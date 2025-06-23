@@ -1,7 +1,7 @@
 'use client';
 
 import { Conversation } from '../../types';
-import NewChatButtonComponent from '../new-chat-button-component/new-chat-button-component';
+import NewChatButtonSidebarComponent from '../new-chat-button-sidebar-component/new-chat-button-sidebar-component';
 import PreviousChatListComponent from '../previous-chat-list-component/previous-chat-list-component';
 import styles from './sidebar-component.module.css';
 
@@ -37,11 +37,16 @@ export default function SidebarComponent({
         </button>
       </div>
 
+      {/* Plus icon - always visible */}
+      <NewChatButtonSidebarComponent 
+        onClick={onCreateNewChat}
+        isOpen={isOpen}
+      />
+
       {isOpen ? (
         <div className={styles.sidebarContent}>
           <div className={styles.sidebarHeader}>
             <h2>שיחות קודמות</h2>
-            <NewChatButtonComponent onClick={onCreateNewChat} />
           </div>
           
           <PreviousChatListComponent
@@ -52,12 +57,7 @@ export default function SidebarComponent({
         </div>
       ) : (
         <div className={styles.miniSidebar}>
-          {/* new chat icon */}
-          <div className={styles.miniIcon} onClick={onCreateNewChat}>
-            <svg fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-            </svg>
-          </div>
+          {/* Additional mini icons can go here if needed */}
         </div>
       )}
     </div>

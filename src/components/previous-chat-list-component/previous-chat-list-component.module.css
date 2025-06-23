@@ -1,8 +1,8 @@
-
 .conversationsList {
   flex: 1;
-  overflow-y: auto;
-  padding: 1rem 0;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .emptyState {

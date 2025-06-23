@@ -1,0 +1,49 @@
+/* plus icon area */
+.plusSection {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  position: absolute;
+  top: 70px;
+  height: 40px;
+  width: 40px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  justify-content: center;
+  color: var(--text-color);
+}
+
+.plusSection:hover {
+  background-color: var(--hover-bg);
+}
+
+.miniIcon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--hover-bg);
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--text-color);
+}
+
+.miniIcon:hover {
+  background-color: var(--primary-color);
+  color: var(--primary-text);
+}
+
+.miniIcon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.plusTitle {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-color);
+  white-space: nowrap;
+  margin-right: 0.5rem;
+} 

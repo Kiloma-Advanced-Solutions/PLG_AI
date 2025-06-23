@@ -7,10 +7,10 @@
   width: 60px;
   height: 100vh;
   background-color: var(--sidebar-bg);
+  border-left: 2px solid var(--border-color);
   transition: width 0.3s ease;
   overflow: hidden;
   z-index: 10;
-  border: 2px solid yellow;
 }
 
 .sidebar.open {
@@ -19,18 +19,21 @@
 
 .sidebarContent {
   height: 100%;
-  padding-top: 70px;
+  width: 100%;
+  padding: 70px 0.5rem 1rem 0.5rem;
   overflow-y: auto;
+  overflow-x: hidden;
   direction: rtl;
+  box-sizing: border-box;
 }
 
 .sidebarHeader {
-  margin-bottom: 1.5rem;
+  margin-top: 4rem;
+  margin-bottom: 0.5rem;
   text-align: center;
 }
 
 .sidebarHeader h2 {
-  margin: 0 0 1rem 0;
   font-size: 1.25rem;
   font-weight: 600;
   color: var(--text-color);
@@ -60,7 +63,6 @@
   cursor: pointer;
   border-radius: 8px;
   transition: all 0.2s ease;
-  border: 2px solid black;  
 }
 
 .burgerButton:hover {
