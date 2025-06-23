@@ -10,12 +10,14 @@ type ChatContainerComponentProps = {
   messages: Message[];
   onSendMessage: (message: string) => void;
   isLoading?: boolean;
+  isSidebarOpen?: boolean;
 };
 
 export default function ChatContainerComponent({ 
   messages, 
   onSendMessage, 
-  isLoading = false 
+  isLoading = false,
+  isSidebarOpen = false
 }: ChatContainerComponentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -35,7 +37,7 @@ export default function ChatContainerComponent({
   };
 
   return (
-    <div className={styles.chatContainer}>
+    <div className={`${styles.chatContainer} ${isSidebarOpen ? styles.shifted : ''}`}>
       <div className={styles.messagesContainer}>
         {messages.length === 0 ? (
           <div className={styles.welcomeMessage}>

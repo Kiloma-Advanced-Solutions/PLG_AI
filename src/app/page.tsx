@@ -122,6 +122,7 @@ export default function Home() {
           messages={currentConversation?.messages || []}
           onSendMessage={handleSendMessage}
           isLoading={isLoading}
+          isSidebarOpen={isSidebarOpen}
         />
       </main>
       

@@ -4,6 +4,12 @@
   flex-direction: column;
   height: 100%;
   background-color: var(--background-color);
+  margin-right: 60px;
+  border: 2px solid red; 
+}
+
+.chatContainer.shifted {
+  transform: translateX(-260px);
 }
 
 /* conversation area */
