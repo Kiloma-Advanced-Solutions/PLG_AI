@@ -1,15 +1,19 @@
+/* entire page */
 .container {
-  min-height: 100vh;
+  height: 100vh;
   background-color: var(--bg-color);
   color: var(--text-color);
   display: flex;
   flex-direction: column;
+  border: 5px solid blue; 
 }
 
+/* conversaton area*/
 .main {
   flex: 1;
   display: flex;
-  flex-direction: column;
+  min-height: 0;
+  border: 20px solid green; 
 }
 
 /* Shift main content when sidebar is open */

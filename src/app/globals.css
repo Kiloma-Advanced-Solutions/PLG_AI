@@ -89,6 +89,7 @@ body {
   overflow-x: hidden;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   direction: rtl;
+  height: 100%;
 }
 
 body {
@@ -100,6 +101,11 @@ body {
     )
     rgb(var(--background-start-rgb));
   font-family: 'Heebo', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Ensure Next.js wrapper takes full height */
+#__next {
+  height: 100%;
 }
 
 a {

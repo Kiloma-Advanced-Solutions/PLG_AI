@@ -1,8 +1,10 @@
 /* input and conversation area */
 .chatContainer {
   display: flex;
-  flex-direction: column;
+  flex-direction: column;   /* input text fiels below the chat area */
+  flex: 1;
   height: 100%;
+  min-height: 0;
   background-color: var(--background-color);
   margin-right: 60px;
   border: 2px solid red; 
