@@ -10,7 +10,7 @@ type HeaderComponentProps = {
 
 export default function HeaderComponent({ onSidebarToggle, isSidebarOpen }: HeaderComponentProps) {
   return (
-    <header className={styles.header}>
+    <header className={`${styles.header} ${isSidebarOpen ? styles.shifted : ''}`}>
       <div className={styles.leftSection}>
         <ThemeToggleComponent />
         
@@ -25,17 +25,6 @@ export default function HeaderComponent({ onSidebarToggle, isSidebarOpen }: Head
         <h1>ChatPLG</h1>
       </div>
       
-      <div className={styles.rightSection}>
-        <button 
-          className={styles.burgerButton}
-          onClick={onSidebarToggle}
-          aria-label="Toggle sidebar"
-        >
-          <svg className={styles.burgerIcon} fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-          </svg>
-        </button>
-      </div>
     </header>
   );
 } 

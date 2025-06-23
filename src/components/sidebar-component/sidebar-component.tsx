@@ -24,34 +24,38 @@ export default function SidebarComponent({
 }: SidebarComponentProps) {
   return (
     <div className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
+      {/* Burger icon at header height - always visible */}
+      <div className={styles.rightSection}>
+        <button 
+          className={styles.burgerButton}
+          onClick={onToggle}
+          aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
+        >
+          <svg className={styles.burgerIcon} fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+          </svg>
+        </button>
+      </div>
+
       {isOpen ? (
-        <>
-          <div className={styles.sidebarContent}>
-            <div className={styles.sidebarHeader}>
-              <h2>שיחות קודמות</h2>
-              <NewChatButtonComponent onClick={onCreateNewChat} />
-            </div>
-            
-            <PreviousChatListComponent
-              conversations={conversations}
-              currentConversationId={currentConversationId}
-              onConversationSelect={onConversationSelect}
-            />
+        <div className={styles.sidebarContent}>
+          <div className={styles.sidebarHeader}>
+            <h2>שיחות קודמות</h2>
+            <NewChatButtonComponent onClick={onCreateNewChat} />
           </div>
-        </>
+          
+          <PreviousChatListComponent
+            conversations={conversations}
+            currentConversationId={currentConversationId}
+            onConversationSelect={onConversationSelect}
+          />
+        </div>
       ) : (
-        /* mini sidebar icons when closed */
         <div className={styles.miniSidebar}>
           {/* new chat icon */}
           <div className={styles.miniIcon} onClick={onCreateNewChat}>
             <svg fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
-            </svg>
-          </div>
-          {/* burger sidebar icon */}
-          <div className={styles.miniIcon} onClick={onToggle}>
-            <svg fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M3 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 4a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
             </svg>
           </div>
         </div>

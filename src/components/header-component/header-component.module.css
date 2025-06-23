@@ -2,15 +2,22 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem 0.5em;
+  padding: 0rem 0.5em;
   background-color: var(--header-bg);
   border-bottom: 1px solid var(--border-color);
   height: 70px;
   position: sticky;
   top: 0;
-  z-index: 100;
   transition: all 0.3s ease;
+  border: 2px solid orange;
+  margin-right: 60px;
+  box-sizing: border-box;
 }
+
+.header.shifted {
+  margin-right: 320px;
+}
+
 
 /* theme icon and logo */
 .leftSection {
@@ -18,42 +25,6 @@
   align-items: center;
   gap: 1rem;
   flex-shrink: 0;
-}
-
-/* burger area */
-.rightSection {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.burgerButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: transparent;
-  color: var(--text-color);
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.burgerButton:hover {
-  background-color: var(--hover-bg);
-  transform: scale(1.05);
-}
-
-.burgerButton:active {
-  transform: scale(0.95);
-}
-
-.burgerIcon {
-  width: 20px;
-  height: 20px;
-  transition: transform 0.2s ease;
 }
 
 .logo {
@@ -74,13 +45,15 @@
 }
 
 .appName {
-  flex: 1;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   text-align: center;
   transition: transform 0.3s ease;
 }
 
 .appName.shifted {
-  transform: translateX(-300px);
+  transform: translateX(-50%);
 }
 
 .appName h1 {
@@ -115,6 +88,7 @@
 @media (max-width: 768px) {
   .header {
     padding: 1rem;
+    margin-right: 60px;
   }
   
   .appName h1 {

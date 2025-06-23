@@ -1,13 +1,16 @@
 .sidebar {
+  display: flex;
+  flex-direction: column;       /* Stack items vertically */
+  align-items: center;          /* Center horizontally */
+  justify-content: center;      /* Center vertically */
   position: fixed;
-  top: 70px;
-  right: 0;
   width: 60px;
-  height: calc(100vh - 70px);
+  height: 100vh;
   background-color: var(--sidebar-bg);
-  border-left: 1px solid var(--border-color);
   transition: width 0.3s ease;
   overflow: hidden;
+  z-index: 10;
+  border: 2px solid yellow;
 }
 
 .sidebar.open {
@@ -16,7 +19,7 @@
 
 .sidebarContent {
   height: 100%;
-  padding: 1rem;
+  padding-top: 70px;
   overflow-y: auto;
   direction: rtl;
 }
@@ -33,6 +36,47 @@
   color: var(--text-color);
 }
 
+/* burger area */
+.rightSection {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  position: absolute;
+  top: 0;
+  right: 0.5rem;
+  height: 70px;
+  padding: 1rem 0;
+}
+
+.burgerButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  border: 2px solid black;  
+}
+
+.burgerButton:hover {
+  background-color: var(--hover-bg);
+  transform: scale(1.05);
+}
+
+.burgerButton:active {
+  transform: scale(0.95);
+}
+
+.burgerIcon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s ease;
+}
 
 /* Mini sidebar icons when closed */
 .miniSidebar {
@@ -40,6 +84,7 @@
   flex-direction: column;
   align-items: center;
   padding: 1rem 0.5rem;
+  padding-top: 70px;
   gap: 1rem;
   height: 100%;
 }
