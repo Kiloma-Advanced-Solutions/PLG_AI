@@ -1,0 +1,152 @@
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 0.5em;
+  background-color: var(--header-bg);
+  border-bottom: 1px solid var(--border-color);
+  height: 70px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+/* theme icon and logo */
+.leftSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+/* burger area */
+.rightSection {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.burgerButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.burgerButton:hover {
+  background-color: var(--hover-bg);
+  transform: scale(1.05);
+}
+
+.burgerButton:active {
+  transform: scale(0.95);
+}
+
+.burgerIcon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2s ease;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  flex-shrink: 0;
+}
+
+.logoIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.appName {
+  flex: 1;
+  text-align: center;
+  transition: transform 0.3s ease;
+}
+
+.appName.shifted {
+  transform: translateX(-300px);
+}
+
+.appName h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-color);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* RTL Support */
+[dir="rtl"] .header {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .leftSection {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .rightSection {
+  flex-direction: row-reverse;
+}
+
+[dir="rtl"] .appName {
+  text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .header {
+    padding: 1rem;
+  }
+  
+  .appName h1 {
+    font-size: 1.25rem;
+  }
+  
+  .leftSection {
+    gap: 0.75rem;
+  }
+  
+  .rightSection {
+    gap: 0.75rem;
+  }
+}
+
+/* Dark mode styles */
+:global(.dark) .header {
+  background-color: #1f2937;
+  border-bottom-color: #374151;
+}
+
+:global(.dark) .burgerButton {
+  color: #f3f4f6;
+}
+
+:global(.dark) .burgerButton:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+:global(.dark) .appName h1 {
+  background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+} 

@@ -1,0 +1,88 @@
+.sidebar {
+  position: fixed;
+  top: 70px;
+  right: 0;
+  width: 60px;
+  height: calc(100vh - 70px);
+  background-color: var(--sidebar-bg);
+  border-left: 1px solid var(--border-color);
+  transition: width 0.3s ease;
+  overflow: hidden;
+  z-index: 50;
+}
+
+.sidebar.open {
+  width: 320px;
+}
+
+.sidebarContent {
+  width: 320px;
+  height: 100%;
+  padding: 1rem;
+  overflow-y: auto;
+  direction: rtl;
+}
+
+.sidebarHeader {
+  margin-bottom: 1.5rem;
+  text-align: center;
+}
+
+.sidebarHeader h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-color);
+}
+
+
+/* Mini sidebar icons when closed */
+.miniSidebar {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem 0.5rem;
+  gap: 1rem;
+  height: 100%;
+}
+
+.miniIcon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--hover-bg);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: var(--text-color);
+}
+
+.miniIcon:hover {
+  background-color: var(--primary-color);
+  color: var(--primary-text);
+}
+
+.miniIcon svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .sidebar.open {
+    width: 280px;
+  }
+  
+  .sidebarContent {
+    width: 280px;
+  }
+
+}
+
+/* Dark mode styles */
+:global(.dark) .sidebar {
+  background-color: #1f2937;
+  border-left-color: #374151;
+}

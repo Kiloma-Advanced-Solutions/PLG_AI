@@ -1,0 +1,25 @@
+.newChatButton {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background-color: var(--primary-color);
+  color: var(--primary-text);
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-bottom: 1rem;
+}
+
+.newChatButton:hover {
+  background-color: var(--primary-hover);
+}
+
+.plusIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+} 

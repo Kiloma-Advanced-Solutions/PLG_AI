@@ -1,0 +1,42 @@
+.themeToggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.themeToggle:hover {
+  background-color: var(--hover-bg);
+  transform: scale(1.05);
+}
+
+.themeToggle:active {
+  transform: scale(0.95);
+}
+
+.icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.3s ease;
+}
+
+.themeToggle:hover .icon {
+  transform: rotate(15deg);
+}
+
+/* Dark mode styles */
+:global(.dark) .themeToggle {
+  color: #f3f4f6;
+}
+
+:global(.dark) .themeToggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+} 

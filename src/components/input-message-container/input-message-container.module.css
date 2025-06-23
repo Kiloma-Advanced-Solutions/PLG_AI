@@ -1,0 +1,71 @@
+/* input area */
+.inputContainer {
+  padding: 1rem;
+  border-top: 1px solid var(--border-color);
+  background-color: var(--background-color);
+}
+
+.inputWrapper {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 1rem;
+  padding: 0.5rem;
+  align-items: center;
+}
+
+/* input text area */
+.messageInput {
+  flex: 1;
+  border: none;
+  background: transparent;
+  resize: none;
+  outline: none;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--text-primary);
+  font-family: inherit;
+  min-height: 1.5rem;
+  max-height: 6rem;
+}
+
+.messageInput::placeholder {
+  color: var(--text-secondary);
+}
+
+.messageInput:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.sendButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  background-color: var(--primary-color);
+  color: var(--primary-text);
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  flex-shrink: 0;
+  transform: rotate(-90deg); /* Rotate 90° to the left */
+}
+
+.sendButton:hover:not(:disabled) {
+  background-color: var(--primary-hover);
+}
+
+.sendButton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sendIcon {
+  width: 1.25rem;
+  height: 1.25rem;
+} 

@@ -1,0 +1,49 @@
+/* each message vertical container */
+.messageContainer {
+  display: flex;
+  margin-bottom: 1rem;
+}
+
+.messageContainer.user {
+  justify-content: flex-end;
+}
+
+.messageContainer.assistant {
+  justify-content: flex-start;
+}
+
+.messageBox {
+  max-width: 70%;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  position: relative;
+}
+
+.messageContainer.user .messageBox {
+  background-color: var(--primary-color);
+  color: var(--primary-text);
+  border-bottom-right-radius: 0.25rem;
+}
+
+.messageContainer.assistant .messageBox {
+  background-color: var(--message-bg);
+  color: var(--text-primary);
+  border-bottom-left-radius: 0.25rem;
+}
+
+.messageText {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  margin-bottom: 0.25rem;
+  word-wrap: break-word;
+}
+
+.messageTime {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  text-align: right;
+}
+
+.messageContainer.assistant .messageTime {
+  text-align: left;
+} 
