@@ -2,7 +2,7 @@
   display: flex;
   flex-direction: column;       /* Stack items vertically */
   align-items: center;          /* Center horizontally */
-  justify-content: flex-start;      /* Align items to the top */
+  justify-content: center;      /* Center vertically */
   position: fixed;
   width: 60px;
   height: 100vh;
@@ -20,7 +20,7 @@
 .sidebarContent {
   height: 100%;
   width: 100%;
-  padding: 70px 0.5rem 1rem 0.5rem;
+  padding: 2rem .5rem 1rem;
   overflow-y: auto;
   overflow-x: hidden;
   direction: rtl;
@@ -38,8 +38,8 @@
   color: var(--text-color);
 }
 
-/* burger area */
-.burgerSection {
+/* burgerSection area */
+.burgerSectionSection {
   display: flex;
   align-items: center;
   flex-shrink: 0;
@@ -50,7 +50,7 @@
   padding: 1rem 0;
 }
 
-.burgerButton {
+.burgerSectionButton {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -64,21 +64,21 @@
   transition: all 0.2s ease;
 }
 
-.burgerButton:hover {
+.burgerSectionButton:hover {
   background-color: var(--hover-bg);
   transform: scale(1.05);
 }
 
-.burgerButton:active {
+.burgerSectionButton:active {
   transform: scale(0.95);
 }
 
-.burgerButton:focus {
+.burgerSectionButton:focus {
   outline: none;
   border: none;
 }
 
-.burgerIcon {
+.burgerSectionIcon {
   width: 20px;
   height: 20px;
   transition: transform 0.2s ease;
@@ -94,6 +94,7 @@
   .sidebarContent {
     width: 280px;
   }
+
 }
 
 /* Dark mode styles */

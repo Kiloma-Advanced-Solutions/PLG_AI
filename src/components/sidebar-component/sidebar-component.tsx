@@ -24,8 +24,8 @@ export default function SidebarComponent({
 }: SidebarComponentProps) {
   return (
     <div className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
-      {/* Burger icon at header height - always visible */}
-      <div className={styles.rightSection}>
+      {/* Burger icon at header height */}
+      <div className={styles.burgerSection}>
         <button 
           className={styles.burgerButton}
           onClick={onToggle}
@@ -37,7 +37,7 @@ export default function SidebarComponent({
         </button>
       </div>
 
-      {/* Plus icon - always visible */}
+      {/* Plus icon */}
       <NewChatButtonSidebarComponent 
         onClick={onCreateNewChat}
         isOpen={isOpen}
@@ -55,11 +55,7 @@ export default function SidebarComponent({
             onConversationSelect={onConversationSelect}
           />
         </div>
-      ) : (
-        <div className={styles.miniSidebar}>
-          {/* Additional mini icons can go here if needed */}
-        </div>
-      )}
+      ) : null}
     </div>
   );
 } 

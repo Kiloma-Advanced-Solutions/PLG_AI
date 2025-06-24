@@ -1,43 +1,29 @@
 /* plus icon area */
 .plusSection {
+  height: 40px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 70px;
+  cursor: pointer;
+  position: relative; /* Establish positioning context for the icon */
+  transition: background-color 0.2s ease;
+  border-radius: 8px;
   display: flex;
   align-items: center;
-  flex-shrink: 0;
-  position: absolute;
-  top: 70px;
-  height: 40px;
-  width: 40px;
-  cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  justify-content: center;
-  color: var(--text-color);
 }
 
 .plusSection:hover {
   background-color: var(--hover-bg);
 }
 
-.miniIcon {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: var(--hover-bg);
-  border-radius: 8px;
-  cursor: pointer;
-  color: var(--text-color);
-}
-
-.miniIcon:hover {
-  background-color: var(--primary-color);
-  color: var(--primary-text);
-}
-
-.miniIcon svg {
+.plusIcon {
+  position: absolute;
+  top: 50%;
+  right: 20px; /* (60px sidebar - 20px icon) / 2 = 20px. This is static. */
+  transform: translateY(-50%);
   width: 20px;
   height: 20px;
+  color: var(--text-color);
 }
 
 .plusTitle {
@@ -45,5 +31,13 @@
   font-weight: 500;
   color: var(--text-color);
   white-space: nowrap;
-  margin-right: 0.5rem;
-} 
+  padding-right: 50px; /* Space to not overlap with the icon */
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s ease 0.1s, visibility 0.2s ease 0.1s;
+}
+
+.plusSection.open .plusTitle {
+  opacity: 1;
+  visibility: visible;
+}
