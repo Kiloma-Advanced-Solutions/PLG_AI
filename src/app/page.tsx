@@ -8,9 +8,17 @@ import { Message, Conversation } from '../types';
 import styles from './page.module.css';
 
 export default function Home() {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+
+  /* holds the master list of all chat conversations in the application */
+  const [conversations, setConversations] = useState<Conversation[]>([]);   
+
+  /* holds the id of the current conversation */
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+
+  /* holds the state of the sidebar */
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  /* holds the state of the loading and waiting for the AI response */
   const [isLoading, setIsLoading] = useState(false);
 
   // Load conversations from localStorage on mount
@@ -56,7 +64,6 @@ export default function Home() {
 
   const selectConversation = (conversationId: string) => {
     setCurrentConversationId(conversationId);
-    setIsSidebarOpen(false);
   };
 
   const handleSendMessage = async (messageBox: string) => {
@@ -116,6 +123,7 @@ export default function Home() {
 
   const currentConversation = getCurrentConversation();
   const sidebarConversations = conversations.filter(conv => conv.messages.length > 0);
+  const isNewChatDisabled = currentConversation ? currentConversation.messages.length === 0 : false;
 
   return (
     <div className={styles.container} dir="rtl">
@@ -140,6 +148,7 @@ export default function Home() {
         onCreateNewChat={createNewChat}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        isNewChatDisabled={isNewChatDisabled}
       />
     </div>
   );

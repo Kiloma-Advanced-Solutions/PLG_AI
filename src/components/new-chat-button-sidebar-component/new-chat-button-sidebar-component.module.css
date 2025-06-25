@@ -1,29 +1,47 @@
 /* plus icon area */
-.plusSection {
-  height: 40px;
-  line-height: 40px;
+.plusSectionWrapper {
   width: 100%;
   margin-top: 70px;
-  cursor: pointer;
-  border-radius: 8px;
   display: flex;
   align-items: center;
-  transition: background-color 0.2s ease;
-  padding-left: 0.5rem;
+  padding: 0 10px; /* Centering the 40px button in the 60px sidebar */
   box-sizing: border-box;
   position: relative;
-
 }
 
-.plusSection:hover {
-  background-color: var(--hover-bg);
-}
-
-.plusIconWrapper {
-  min-width: 60px; /* Match the collapsed sidebar width */
+.plusButton {
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  color: var(--text-color);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  flex-shrink: 0; /* Prevents the button from shrinking */
+}
+
+.plusButton:hover {
+  background-color: var(--hover-bg);
+  transform: scale(1.05);
+}
+
+.plusButton:active {
+  transform: scale(0.95);
+}
+
+.plusButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+  background-color: transparent;
+  transform: none;
+}
+
+.plusButton:disabled ~ .plusTitle {
+  opacity: 0.5;
 }
 
 .plusIcon {
@@ -40,9 +58,14 @@
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s ease 0.1s, visibility 0.2s ease 0.1s;
+  margin-right: 12px;
 }
 
-.plusSection.open .plusTitle {
+.plusSectionWrapper.open .plusTitle {
   opacity: 1;
   visibility: visible;
+}
+
+.plusSectionWrapper.open .plusButton:disabled ~ .plusTitle {
+  opacity: 0.5 !important;
 }
