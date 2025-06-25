@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import HeaderComponent from '../components/header-component/header-component';
 import SidebarComponent from '../components/sidebar-component/sidebar-component';
 import ChatContainerComponent from '../components/chat-container-component/chat-container-component';
+import { InputHandle } from '../components/input-message-container/input-message-container';
 import { Message, Conversation } from '../types';
 import styles from './page.module.css';
 
@@ -20,6 +21,7 @@ export default function Home() {
 
   /* holds the state of the loading and waiting for the AI response */
   const [isLoading, setIsLoading] = useState(false);
+  const inputRef = useRef<InputHandle>(null);
 
   // Load conversations from localStorage on mount
   useEffect(() => {
@@ -97,6 +99,7 @@ export default function Home() {
     }));
 
     setIsLoading(true);
+    inputRef.current?.focus();
 
     // Simulate AI response (replace with actual API call)
     setTimeout(() => {
@@ -140,6 +143,7 @@ export default function Home() {
           onSendMessage={handleSendMessage}
           isLoading={isLoading}
           isSidebarOpen={isSidebarOpen}
+          ref={inputRef}
         />
       </main>
       
