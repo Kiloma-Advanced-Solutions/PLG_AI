@@ -84,8 +84,10 @@ export default function Home() {
     // Update conversations with the new message
     setConversations(prev => prev.map(conv => {
       if (conv.id === currentConversationId) {
+        const isFirstMessage = conv.messages.length === 0;
         return {
           ...conv,
+          title: isFirstMessage ? messageBox : conv.title,
           messages: [...conv.messages, userMessage],
           lastMessage: messageBox,
           timestamp: new Date().toISOString()
