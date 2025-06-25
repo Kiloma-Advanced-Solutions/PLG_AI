@@ -56,7 +56,7 @@ export default function ChatContainerComponent({
         )}
         
         {isLoading && (
-          <div className={styles.loadingMessage}>
+          <div className={`${styles.messageContainer} ${styles.assistant}`}>
             <div className={styles.typingIndicator}>
               <span></span>
               <span></span>

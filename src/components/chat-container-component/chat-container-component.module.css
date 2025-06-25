@@ -53,7 +53,7 @@
   padding: 0.75rem 1rem;
   background-color: var(--message-bg);
   border-radius: 1rem;
-  border-top-left-radius: 0.25rem;
+  border-bottom-right-radius: 0.25rem;
 }
 
 .typingIndicator span {
