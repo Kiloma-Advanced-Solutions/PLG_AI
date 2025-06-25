@@ -1,26 +1,32 @@
 /* plus icon area */
 .plusSection {
   height: 40px;
+  line-height: 40px;
   width: 100%;
-  box-sizing: border-box;
   margin-top: 70px;
   cursor: pointer;
-  position: relative; /* Establish positioning context for the icon */
-  transition: background-color 0.2s ease;
   border-radius: 8px;
   display: flex;
   align-items: center;
+  transition: background-color 0.2s ease;
+  padding-left: 0.5rem;
+  box-sizing: border-box;
+  position: relative;
+
 }
 
 .plusSection:hover {
   background-color: var(--hover-bg);
 }
 
+.plusIconWrapper {
+  min-width: 60px; /* Match the collapsed sidebar width */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .plusIcon {
-  position: absolute;
-  top: 50%;
-  right: 20px; /* (60px sidebar - 20px icon) / 2 = 20px. This is static. */
-  transform: translateY(-50%);
   width: 20px;
   height: 20px;
   color: var(--text-color);
@@ -31,7 +37,6 @@
   font-weight: 500;
   color: var(--text-color);
   white-space: nowrap;
-  padding-right: 50px; /* Space to not overlap with the icon */
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.2s ease 0.1s, visibility 0.2s ease 0.1s;
