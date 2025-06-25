@@ -35,6 +35,12 @@ export default function Home() {
   };
 
   const createNewChat = () => {
+    const currentConversation = getCurrentConversation();
+    if (currentConversation && currentConversation.messages.length === 0) {
+      setIsSidebarOpen(false);
+      return;
+    }
+
     const newConversation: Conversation = {
       id: Date.now().toString(),
       title: 'שיחה חדשה',
@@ -109,6 +115,7 @@ export default function Home() {
   };
 
   const currentConversation = getCurrentConversation();
+  const sidebarConversations = conversations.filter(conv => conv.messages.length > 0);
 
   return (
     <div className={styles.container} dir="rtl">
@@ -127,7 +134,7 @@ export default function Home() {
       </main>
       
       <SidebarComponent
-        conversations={conversations}
+        conversations={sidebarConversations}
         currentConversationId={currentConversationId || undefined}
         onConversationSelect={selectConversation}
         onCreateNewChat={createNewChat}
