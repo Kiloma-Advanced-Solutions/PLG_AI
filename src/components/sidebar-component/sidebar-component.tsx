@@ -39,7 +39,7 @@ export default function SidebarComponent({
         </button>
       </div>
 
-      {/* Plus icon */}
+      {/* newChatIcon icon */}
       <NewChatButtonSidebarComponent 
         onClick={onCreateNewChat}
         isOpen={isOpen}

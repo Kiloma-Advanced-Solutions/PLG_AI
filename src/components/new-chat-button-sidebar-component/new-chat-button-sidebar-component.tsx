@@ -14,14 +14,14 @@ export default function NewChatButtonSidebarComponent({
   disabled
 }: NewChatButtonSidebarComponentProps) {
   return (
-    <div className={`${styles.plusSectionWrapper} ${isOpen ? styles.open : ''}`}>
+    <div className={`${styles.newChatIconSectionWrapper} ${isOpen ? styles.open : ''}`}>
       <button 
-        className={styles.plusButton} 
+        className={styles.newChatIconButton} 
         onClick={onClick}
         disabled={disabled}
         aria-label="Create new chat"
       >
-        <div className={styles.plusIcon}>
+        <div className={styles.newChatIconIcon}>
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="#000000">
           <g>
             <path 
@@ -42,7 +42,7 @@ export default function NewChatButtonSidebarComponent({
         </svg>
         </div>
       </button>
-      <span className={styles.plusTitle}>צור שיחה חדשה</span>
+      <span className={styles.newChatIconTitle}>צור שיחה חדשה</span>
     </div>
   );
 } 

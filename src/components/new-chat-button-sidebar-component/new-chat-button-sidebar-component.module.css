@@ -1,5 +1,5 @@
-/* plus icon area */
-.plusSectionWrapper {
+/* newChatIcon icon area */
+.newChatIconSectionWrapper {
   width: 100%;
   margin-top: 70px;
   display: flex;
@@ -9,7 +9,7 @@
   position: relative;
 }
 
-.plusButton {
+.newChatIconButton {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -24,33 +24,33 @@
   flex-shrink: 0; /* Prevents the button from shrinking */
 }
 
-.plusButton:hover {
+.newChatIconButton:hover {
   background-color: var(--hover-bg);
   transform: scale(1.05);
 }
 
-.plusButton:active {
+.newChatIconButton:active {
   transform: scale(0.95);
 }
 
-.plusButton:disabled {
+.newChatIconButton:disabled {
   cursor: not-allowed;
   opacity: 0.5;
   background-color: transparent;
   transform: none;
 }
 
-.plusButton:disabled ~ .plusTitle {
+.newChatIconButton:disabled ~ .newChatIconTitle {
   opacity: 0.5;
 }
 
-.plusIcon {
+.newChatIconIcon {
   width: 20px;
   height: 20px;
   color: var(--text-color);
 }
 
-.plusTitle {
+.newChatIconTitle {
   font-size: 1rem;
   font-weight: 500;
   color: var(--text-color);
@@ -61,11 +61,11 @@
   margin-right: 12px;
 }
 
-.plusSectionWrapper.open .plusTitle {
+.newChatIconSectionWrapper.open .newChatIconTitle {
   opacity: 1;
   visibility: visible;
 }
 
-.plusSectionWrapper.open .plusButton:disabled ~ .plusTitle {
+.newChatIconSectionWrapper.open .newChatIconButton:disabled ~ .newChatIconTitle {
   opacity: 0.5 !important;
 }
