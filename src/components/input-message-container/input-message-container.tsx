@@ -20,8 +20,19 @@ export default function InputMessageContainer({
     if (inputValue.trim() && !isLoading) {
       onSendMessage(inputValue.trim());
       setInputValue('');
+      // Immediate refocus
+      ensureFocus();
     }
   };
+
+  // Function to ensure input is always focused
+  const ensureFocus = () => {
+    if (inputRef.current && !isLoading) {
+      inputRef.current.focus();
+    }
+  };
+  
+  
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
@@ -38,6 +49,48 @@ export default function InputMessageContainer({
     }
   }, [inputValue]);
 
+  // Persistent focus management
+  useEffect(() => {
+    const input = inputRef.current;
+    if (!input) return;
+
+    // Initial focus
+    ensureFocus();
+
+    // Handle blur events - refocus immediately unless loading
+    const handleBlur = () => {
+      // Small delay to allow for legitimate focus changes (like clicking send button)
+      setTimeout(() => {
+        ensureFocus();
+      }, 10);
+    };
+
+    // Handle window focus - refocus when user returns to tab
+    const handleWindowFocus = () => {
+      ensureFocus();
+    };
+
+    // Add event listeners
+    input.addEventListener('blur', handleBlur);
+    window.addEventListener('focus', handleWindowFocus);
+
+    // Cleanup
+    return () => {
+      input.removeEventListener('blur', handleBlur);
+      window.removeEventListener('focus', handleWindowFocus);
+    };
+  }, [isLoading]);
+
+  // Focus when loading state changes
+  useEffect(() => {
+    if (!isLoading) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        ensureFocus();
+      }, 50);
+    }
+  }, [isLoading]);
+
   return (
     <form className={styles.inputContainer} onSubmit={handleSubmit}>
       <div className={styles.inputWrapper}>
@@ -46,6 +99,12 @@ export default function InputMessageContainer({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={handleKeyPress}
+          onBlur={(e) => {
+            // Prevent blur unless it's due to loading or legitimate UI interaction
+            if (!isLoading) {
+              setTimeout(() => ensureFocus(), 10);
+            }
+          }}
           placeholder="הקלד הודעה..."
           className={styles.messageInput}
           rows={1}
