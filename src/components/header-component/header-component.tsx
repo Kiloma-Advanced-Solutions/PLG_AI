@@ -6,9 +6,10 @@ import styles from './header-component.module.css';
 type HeaderComponentProps = {
   onSidebarToggle: () => void;
   isSidebarOpen: boolean;
+  onNewChat: () => void;
 };
 
-export default function HeaderComponent({ onSidebarToggle, isSidebarOpen }: HeaderComponentProps) {
+export default function HeaderComponent({ onSidebarToggle, isSidebarOpen, onNewChat }: HeaderComponentProps) {
   return (
     <header className={`${styles.header} ${isSidebarOpen ? styles.shifted : ''}`}>
       <div className={styles.leftSection}>
@@ -22,7 +23,7 @@ export default function HeaderComponent({ onSidebarToggle, isSidebarOpen }: Head
       </div>
       
       <div className={`${styles.appName} ${isSidebarOpen ? styles.shifted : ''}`}>
-        <h1>ChatPLG</h1>
+        <h1 onClick={onNewChat} className={styles.clickable}>ChatPLG</h1>
       </div>
       
     </header>

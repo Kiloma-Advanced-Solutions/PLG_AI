@@ -66,6 +66,21 @@
   background-clip: text;
 }
 
+.clickable {
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.clickable:hover {
+  transform: scale(1.05);
+  opacity: 0.8;
+}
+
+.clickable:active {
+  transform: scale(0.95);
+}
+
 /* RTL Support */
 [dir="rtl"] .header {
   flex-direction: row-reverse;
