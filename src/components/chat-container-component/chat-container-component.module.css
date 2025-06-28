@@ -1,18 +1,16 @@
 /* input and conversation area */
 .chatContainer {
   display: flex;
-  flex-direction: column;   /* input text fiels below the chat area */
+  flex-direction: column;   /* placing the input text field below the chat area */
   flex: 1;
   height: 100%;
   min-height: 0;
   background-color: var(--background-color);
 }
 
-
 .chatContainer.shifted {
   margin-right: 260px;
 }
-
 
 /* conversation area */
 .messagesContainer {
@@ -21,7 +19,6 @@
   display: flex;
   flex-direction: column;
   padding: 2rem 3rem;
-  
 }
 
 .welcomeMessage {

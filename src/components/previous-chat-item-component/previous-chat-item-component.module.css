@@ -1,6 +1,5 @@
 .conversationItem {
   padding: 1rem;
-  border-bottom: 1px solid var(--border-color);
   cursor: pointer;
   transition: background-color 0.2s ease;
   border-radius: 0.5rem;
@@ -8,10 +7,11 @@
   border: 1px solid var(--border-color);
   width: calc(100% - 0.5rem);
   box-sizing: border-box;
+  
 }
 
 .conversationItem:hover {
-  background-color: var(--hover-color);
+  background-color: var(--hover-bg);
 }
 
 .conversationItem.active {

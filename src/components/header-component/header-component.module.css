@@ -17,7 +17,6 @@
   margin-right: 320px;
 }
 
-
 /* theme icon and logo */
 .leftSection {
   display: flex;
@@ -49,10 +48,6 @@
   transform: translateX(-50%);
   text-align: center;
   transition: transform 0.3s ease;
-}
-
-.appName.shifted {
-  transform: translateX(-50%);
 }
 
 .appName h1 {
@@ -94,10 +89,6 @@
   flex-direction: row-reverse;
 }
 
-[dir="rtl"] .appName {
-  text-align: center;
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
   .header {
@@ -123,7 +114,6 @@
   background-color: #1f2937;
   border-bottom-color: #374151;
 }
-
 
 :global(.dark) .appName h1 {
   background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);

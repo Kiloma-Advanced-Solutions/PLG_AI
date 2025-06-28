@@ -1,20 +1,18 @@
 /* input area */
 .inputContainer {
   padding: 1rem;
-  /* border-top: 1px solid var(--border-color); */
   background-color: var(--background-color);
   margin-bottom: 0.75rem;
 }
 
 .inputWrapper {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   gap: 0.5rem;
   background-color: var(--input-bg);
   border: 2px solid var(--border-color);
   border-radius: 1rem;
   padding: 0.5rem;
-  align-items: center;
   width: 70%;
   margin: 0 auto;
 }
@@ -29,7 +27,6 @@
   font-size: 1rem;
   line-height: 1.4;
   color: var(--text-primary);
-  font-family: inherit;
   min-height: 1.5rem;
   max-height: 6rem;
   padding: 0.25rem 0.75rem;
@@ -57,7 +54,7 @@
   cursor: pointer;
   transition: background-color 0.2s ease;
   flex-shrink: 0;
-  transform: rotate(-90deg); /* Rotate 90° to the left */
+  transform: rotate(-90deg);
 }
 
 .sendButton:hover:not(:disabled) {

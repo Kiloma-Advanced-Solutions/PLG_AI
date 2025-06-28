@@ -1,7 +1,7 @@
 'use client';
 
 import { Conversation } from '../../types';
-import NewChatButtonSidebarComponent from '../new-chat-button-sidebar-component/new-chat-button-sidebar-component';
+import NewChatButtonComponent from '../new-chat-button-component/new-chat-button-component';
 import PreviousChatListComponent from '../previous-chat-list-component/previous-chat-list-component';
 import styles from './sidebar-component.module.css';
 
@@ -42,7 +42,7 @@ export default function SidebarComponent({
       </div>
 
       {/* newChatIcon icon */}
-      <NewChatButtonSidebarComponent 
+      <NewChatButtonComponent 
         onClick={onCreateNewChat}
         isOpen={isOpen}
         disabled={isNewChatDisabled}
