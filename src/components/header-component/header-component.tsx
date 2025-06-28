@@ -5,13 +5,12 @@ import styles from './header-component.module.css';
 
 // the props of the header component
 type HeaderComponentProps = {
-  onSidebarToggle: () => void;
   isSidebarOpen: boolean;
   onCreateNewChat: () => void;
 };
 
 // the header component
-export default function HeaderComponent({ onSidebarToggle, isSidebarOpen, onCreateNewChat }: HeaderComponentProps) {
+export default function HeaderComponent({ isSidebarOpen, onCreateNewChat }: HeaderComponentProps) {
   // render the header component
   return (
     <header className={`${styles.header} ${isSidebarOpen ? styles.shifted : ''}`}>

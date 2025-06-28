@@ -161,7 +161,6 @@ export default function Home() {
     // the main container of the page
     <div className={styles.container} dir="rtl">
       <HeaderComponent 
-        onSidebarToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         isSidebarOpen={isSidebarOpen}
         onCreateNewChat={createNewChat}
       />
