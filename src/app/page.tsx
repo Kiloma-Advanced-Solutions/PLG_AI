@@ -158,7 +158,6 @@ export default function Home() {
 
   // render the main page
   return (
-    // the main container of the page
     <div className={styles.container} dir="rtl">
       <HeaderComponent 
         isSidebarOpen={isSidebarOpen}
