@@ -4,12 +4,14 @@ import { Conversation } from '../../types';
 import PreviousChatItemComponent from '../previous-chat-item-component/previous-chat-item-component';
 import styles from './previous-chat-list-component.module.css';
 
+// Props for the PreviousChatListComponent component
 type PreviousChatListComponentProps = {
   conversations: Conversation[];
   currentConversationId?: string;
   onConversationSelect: (conversationId: string) => void;
 };
 
+// function to render the PreviousChatListComponent component
 export default function PreviousChatListComponent({
   conversations,
   currentConversationId,
@@ -32,6 +34,7 @@ export default function PreviousChatListComponent({
           <p>התחל שיחה חדשה!</p>
         </div>
       ) : (
+        // map over the conversations and render a PreviousChatItemComponent for each conversation
         conversations.map((conversation) => (
           <PreviousChatItemComponent
             key={conversation.id}

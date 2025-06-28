@@ -24,10 +24,16 @@ export default function Home() {
   // Load conversations from localStorage on mount
   useEffect(() => {
     const savedConversations = localStorage.getItem('chatplg-conversations');
+    const savedCurrentConversationId = localStorage.getItem('chatplg-current-conversation-id');
+    
     if (savedConversations) {
       const parsed = JSON.parse(savedConversations);
       setConversations(parsed);
-      if (parsed.length > 0) {
+      
+      // Restore the last active conversation, or default to first if none saved
+      if (savedCurrentConversationId && parsed.find((conv: Conversation) => conv.id === savedCurrentConversationId)) {
+        setCurrentConversationId(savedCurrentConversationId);
+      } else if (parsed.length > 0) {
         setCurrentConversationId(parsed[0].id);
       }
     }
@@ -37,6 +43,13 @@ export default function Home() {
   useEffect(() => {
     localStorage.setItem('chatplg-conversations', JSON.stringify(conversations));
   }, [conversations]);
+
+  // Save current conversation ID whenever it changes
+  useEffect(() => {
+    if (currentConversationId) {
+      localStorage.setItem('chatplg-current-conversation-id', currentConversationId);
+    }
+  }, [currentConversationId]);
 
   const getCurrentConversation = (): Conversation | null => {
     return conversations.find(conv => conv.id === currentConversationId) || null;
@@ -141,7 +154,7 @@ export default function Home() {
   // get the current conversation and the sidebar conversations
   const currentConversation = getCurrentConversation();
   const sidebarConversations = conversations.filter(conv => conv.messages.length > 0);
-  const isNewChatDisabled = currentConversation ? currentConversation.messages.length === 0 : false;
+  const isNewChatDisabled = currentConversation ? currentConversation.messages.length === 0 : true;
 
   // render the main page
   return (

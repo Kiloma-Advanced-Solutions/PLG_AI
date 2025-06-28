@@ -3,6 +3,7 @@
 import { useTheme } from '../../contexts/ThemeContext';
 import styles from './theme-toggle-component.module.css';
 
+// function to render the ThemeToggleComponent component
 export default function ThemeToggleComponent() {
   const { isDark, toggleTheme } = useTheme();
 

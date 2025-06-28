@@ -2,12 +2,14 @@
 
 import styles from './new-chat-button-sidebar-component.module.css';
 
+// Props for the NewChatButtonSidebarComponent component
 type NewChatButtonSidebarComponentProps = {
   onClick: () => void;
   isOpen: boolean;
   disabled: boolean;
 };
 
+// function to render the NewChatButtonSidebarComponent component
 export default function NewChatButtonSidebarComponent({ 
   onClick, 
   isOpen,

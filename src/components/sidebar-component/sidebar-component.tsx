@@ -5,6 +5,7 @@ import NewChatButtonSidebarComponent from '../new-chat-button-sidebar-component/
 import PreviousChatListComponent from '../previous-chat-list-component/previous-chat-list-component';
 import styles from './sidebar-component.module.css';
 
+// Props for the SidebarComponent component
 type SidebarComponentProps = {
   conversations: Conversation[];
   currentConversationId?: string;
@@ -15,6 +16,7 @@ type SidebarComponentProps = {
   isNewChatDisabled: boolean;
 };
 
+// function to render the SidebarComponent component
 export default function SidebarComponent({
   conversations,
   currentConversationId,
