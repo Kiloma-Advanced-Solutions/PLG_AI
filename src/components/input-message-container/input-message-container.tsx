@@ -19,6 +19,7 @@ export default function InputMessageContainer({
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  // Function to handle the submission of the message
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (inputValue.trim() && !isLoading) {
@@ -61,15 +62,15 @@ export default function InputMessageContainer({
     <form className={styles.inputContainer} onSubmit={handleSubmit}>
       <div className={styles.inputWrapper}>
         <textarea
-          ref={inputRef}
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyPress={handleKeyPress}
+          ref={inputRef} // the ref to the textarea element
+          value={inputValue} 
+          onChange={(e) => setInputValue(e.target.value)} 
+          onKeyDown={handleKeyPress} 
           placeholder="הקלד הודעה..."
-          className={styles.messageInput}
-          rows={1}
-          disabled={isLoading}
-          dir="rtl"
+          className={styles.messageInput} 
+          rows={1}  // the number of rows of the textarea
+          disabled={isLoading} // the disabled state of the textarea
+          dir="rtl" // the direction of the textarea
         />
         <button
           type="submit"
