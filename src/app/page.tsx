@@ -9,16 +9,16 @@ import styles from './page.module.css';
 
 export default function Home() {
 
-  /* holds the master list of all chat conversations in the application */
-  const [conversations, setConversations] = useState<Conversation[]>([]);   
+  // holds the master list of all chat conversations in the application 
+  const [conversations, setConversations] = useState<Conversation[]>([]);
 
-  /* holds the id of the current conversation */
+  // holds the id of the current conversation 
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
 
-  /* holds the state of the sidebar */
+  // holds the state of the sidebar
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  /* holds the state of the loading and waiting for the AI response */
+  // holds the state of the loading and waiting for the AI response
   const [isLoading, setIsLoading] = useState(false);
 
   // Load conversations from localStorage on mount
@@ -44,6 +44,8 @@ export default function Home() {
 
   const createNewChat = () => {
     const currentConversation = getCurrentConversation();
+
+    // if the current conversation is empty, don't create a new chat and close sidebar
     if (currentConversation && currentConversation.messages.length === 0) {
       setIsSidebarOpen(false);
       return;
@@ -51,21 +53,29 @@ export default function Home() {
 
     const newConversation: Conversation = {
       id: Date.now().toString(),
-      title: 'שיחה חדשה',
+      title: 'שיחה חדשה',   // temporary placeholder title 
       lastMessage: '',
       timestamp: new Date().toISOString(),
       messages: []
     };
     
+    // add the new conversation to the conversations list
     setConversations(prev => [newConversation, ...prev]);
+
+    // set the current conversation id to the new conversation
     setCurrentConversationId(newConversation.id);
+
+    // close the sidebar
     setIsSidebarOpen(false);
   };
 
+
+  // select a conversation from the sidebar
   const selectConversation = (conversationId: string) => {
     setCurrentConversationId(conversationId);
   };
 
+  // handle the sending of a message from the user to the assistant
   const handleSendMessage = async (messageBox: string) => {
     if (!currentConversationId) {
       createNewChat();
@@ -74,6 +84,7 @@ export default function Home() {
       return;
     }
 
+    // create a new message from the user
     const userMessage: Message = {
       id: Date.now().toString(),
       type: 'user',
@@ -96,10 +107,12 @@ export default function Home() {
       return conv;
     }));
 
+    // start the loading state
     setIsLoading(true);
 
-    // Simulate AI response (replace with actual API call)
+    // Simulate AI response
     setTimeout(() => {
+      // create a new message from the assistant
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         type: 'assistant',
@@ -107,6 +120,7 @@ export default function Home() {
         timestamp: new Date().toISOString()
       };
 
+      // update the conversations list with the new message
       setConversations(prev => prev.map(conv => {
         if (conv.id === currentConversationId) {
           return {
@@ -119,20 +133,24 @@ export default function Home() {
         return conv;
       }));
 
+      // stop the loading state
       setIsLoading(false);
     }, 1500);
   };
 
+  // get the current conversation and the sidebar conversations
   const currentConversation = getCurrentConversation();
   const sidebarConversations = conversations.filter(conv => conv.messages.length > 0);
   const isNewChatDisabled = currentConversation ? currentConversation.messages.length === 0 : false;
 
+  // render the main page
   return (
+    // the main container of the page
     <div className={styles.container} dir="rtl">
       <HeaderComponent 
         onSidebarToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         isSidebarOpen={isSidebarOpen}
-        onNewChat={createNewChat}
+        onCreateNewChat={createNewChat}
       />
       
       <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>

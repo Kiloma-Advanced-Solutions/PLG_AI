@@ -3,13 +3,16 @@
 import ThemeToggleComponent from '../theme-toggle-component/theme-toggle-component';
 import styles from './header-component.module.css';
 
+// the props of the header component
 type HeaderComponentProps = {
   onSidebarToggle: () => void;
   isSidebarOpen: boolean;
-  onNewChat: () => void;
+  onCreateNewChat: () => void;
 };
 
-export default function HeaderComponent({ onSidebarToggle, isSidebarOpen, onNewChat }: HeaderComponentProps) {
+// the header component
+export default function HeaderComponent({ onSidebarToggle, isSidebarOpen, onCreateNewChat }: HeaderComponentProps) {
+  // render the header component
   return (
     <header className={`${styles.header} ${isSidebarOpen ? styles.shifted : ''}`}>
       <div className={styles.leftSection}>
@@ -23,7 +26,7 @@ export default function HeaderComponent({ onSidebarToggle, isSidebarOpen, onNewC
       </div>
       
       <div className={`${styles.appName} ${isSidebarOpen ? styles.shifted : ''}`}>
-        <h1 onClick={onNewChat} className={styles.clickable}>ChatPLG</h1>
+        <h1 onClick={onCreateNewChat} className={styles.clickable}>ChatPLG</h1>
       </div>
       
     </header>

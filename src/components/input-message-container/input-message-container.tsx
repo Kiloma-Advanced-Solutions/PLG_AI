@@ -3,15 +3,19 @@
 import { useState, useRef, useEffect } from 'react';
 import styles from './input-message-container.module.css';
 
+// the props of the input message container component
 type InputMessageContainerProps = {
   onSendMessage: (message: string) => void;
   isLoading?: boolean;
 };
 
+// the input message container component
 export default function InputMessageContainer({ 
   onSendMessage, 
   isLoading = false 
 }: InputMessageContainerProps) {
+
+  // the state of the input value
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -20,20 +24,10 @@ export default function InputMessageContainer({
     if (inputValue.trim() && !isLoading) {
       onSendMessage(inputValue.trim());
       setInputValue('');
-      // Immediate refocus
-      ensureFocus();
     }
   };
 
-  // Function to ensure input is always focused
-  const ensureFocus = () => {
-    if (inputRef.current && !isLoading) {
-      inputRef.current.focus();
-    }
-  };
-  
-  
-
+  // Function to allow users to send a message by pressing Enter
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
@@ -41,53 +35,25 @@ export default function InputMessageContainer({
     }
   };
 
-  // Auto-resize textarea
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.style.height = 'auto';
-      inputRef.current.style.height = `${inputRef.current.scrollHeight}px`;
-    }
-  }, [inputValue]);
-
-  // Persistent focus management
+  // Auto-resize textarea and maintain focus
   useEffect(() => {
     const input = inputRef.current;
     if (!input) return;
 
-    // Initial focus
-    ensureFocus();
+    // Auto-resize
+    input.style.height = 'auto';
+    input.style.height = `${input.scrollHeight}px`;
 
-    // Handle blur events - refocus immediately unless loading
-    const handleBlur = () => {
-      // Small delay to allow for legitimate focus changes (like clicking send button)
-      setTimeout(() => {
-        ensureFocus();
-      }, 10);
-    };
+    // Focus management
+    if (!isLoading) {
+      input.focus();
+    }
+  }, [inputValue, isLoading]);
 
-    // Handle window focus - refocus when user returns to tab
-    const handleWindowFocus = () => {
-      ensureFocus();
-    };
-
-    // Add event listeners
-    input.addEventListener('blur', handleBlur);
-    window.addEventListener('focus', handleWindowFocus);
-
-    // Cleanup
-    return () => {
-      input.removeEventListener('blur', handleBlur);
-      window.removeEventListener('focus', handleWindowFocus);
-    };
-  }, [isLoading]);
-
-  // Focus when loading state changes
+  // Re-focus when loading state changes
   useEffect(() => {
     if (!isLoading) {
-      // Small delay to ensure DOM is updated
-      setTimeout(() => {
-        ensureFocus();
-      }, 50);
+      setTimeout(() => inputRef.current?.focus(), 50);
     }
   }, [isLoading]);
 
@@ -99,12 +65,6 @@ export default function InputMessageContainer({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyPress={handleKeyPress}
-          onBlur={(e) => {
-            // Prevent blur unless it's due to loading or legitimate UI interaction
-            if (!isLoading) {
-              setTimeout(() => ensureFocus(), 10);
-            }
-          }}
           placeholder="הקלד הודעה..."
           className={styles.messageInput}
           rows={1}

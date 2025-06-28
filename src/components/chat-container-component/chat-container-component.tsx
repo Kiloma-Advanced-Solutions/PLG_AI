@@ -1,11 +1,12 @@
 'use client';
 
-import { useRef, useEffect, forwardRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { Message } from '../../types';
 import ChatMessageComponent from '../chat-message-component/chat-message-component';
-import InputMessageContainer, { InputHandle } from '../input-message-container/input-message-container';
+import InputMessageContainer from '../input-message-container/input-message-container';
 import styles from './chat-container-component.module.css';
 
+// the props of the chat container component
 type ChatContainerComponentProps = {
   messages: Message[];
   onSendMessage: (message: string) => void;
@@ -13,14 +14,20 @@ type ChatContainerComponentProps = {
   isSidebarOpen?: boolean;
 };
 
-const ChatContainerComponent = forwardRef<InputHandle, ChatContainerComponentProps>(
-  ({ messages, onSendMessage, isLoading = false, isSidebarOpen = false }, ref) => {
+// the chat container component
+export default function ChatContainerComponent({ 
+  messages, 
+  onSendMessage, 
+  isLoading = false, 
+  isSidebarOpen = false 
+}: ChatContainerComponentProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
     const scrollToBottom = () => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
+    // scroll to the bottom of the messages container every time the messages array changes
     useEffect(() => {
       scrollToBottom();
     }, [messages]);
@@ -41,6 +48,7 @@ const ChatContainerComponent = forwardRef<InputHandle, ChatContainerComponentPro
               <p>התחל שיחה חדשה על ידי שליחת הודעה</p>
             </div>
           ) : (
+            // render the messages
             messages.map((message) => (
               <ChatMessageComponent
                 key={message.id}
@@ -67,12 +75,7 @@ const ChatContainerComponent = forwardRef<InputHandle, ChatContainerComponentPro
         <InputMessageContainer 
           onSendMessage={onSendMessage}
           isLoading={isLoading}
-          ref={ref}
         />
       </div>
     );
-  }
-);
-
-ChatContainerComponent.displayName = 'ChatContainerComponent';
-export default ChatContainerComponent; 
+} 
