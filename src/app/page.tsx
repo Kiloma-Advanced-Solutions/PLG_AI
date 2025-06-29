@@ -90,11 +90,22 @@ export default function Home() {
 
   // handle the sending of a message from the user to the assistant
   const handleSendMessage = async (messageBox: string) => {
-    if (!currentConversationId) {
-      createNewChat();
-      // Wait for the new conversation to be created
-      setTimeout(() => handleSendMessage(messageBox), 100);
-      return;
+    let conversationId = currentConversationId;
+    
+    // If no current conversation, create one first
+    if (!conversationId) {
+      const newConversation: Conversation = {
+        id: Date.now().toString(),
+        title: 'שיחה חדשה',
+        lastMessage: '',
+        timestamp: new Date().toISOString(),
+        messages: []
+      };
+      
+      // Add the new conversation to the list
+      setConversations(prev => [newConversation, ...prev]);
+      setCurrentConversationId(newConversation.id);
+      conversationId = newConversation.id;
     }
 
     // create a new message from the user
@@ -107,7 +118,7 @@ export default function Home() {
 
     // Update conversations with the new message
     setConversations(prev => prev.map(conv => {
-      if (conv.id === currentConversationId) {
+      if (conv.id === conversationId) {
         const isFirstMessage = conv.messages.length === 0;
         return {
           ...conv,
@@ -135,7 +146,7 @@ export default function Home() {
 
       // update the conversations list with the new message
       setConversations(prev => prev.map(conv => {
-        if (conv.id === currentConversationId) {
+        if (conv.id === conversationId) {
           return {
             ...conv,
             messages: [...conv.messages, assistantMessage],
