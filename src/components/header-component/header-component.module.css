@@ -49,9 +49,10 @@
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
-  transition: transform 0.3s ease;
+  transition: all 0.3s ease;
 }
 
+/* For screens > 600px, center within header (accounting for sidebar) */
 .appName.shifted {
   /* Center in the remaining visible area when sidebar is open */
   left: calc((100vw - var(--sidebar-width-open)) / 2);
@@ -144,21 +145,8 @@
   }
 }
 
+/* For screens <= 600px, center on screen regardless of sidebar */
 @media (max-width: 600px) {
-  .appName {
-    position: relative;
-    left: auto;
-    transform: none;
-    flex: 1;
-    text-align: center;
-  }
-  
-  .appName.shifted {
-    left: auto;
-  }
-}
-
-@media (max-width: 500px) {
   .header {
     margin-right: var(--sidebar-width-closed-mobile);
   }
@@ -167,7 +155,15 @@
     margin-right: var(--sidebar-width-open-mobile);
   }
 
+  /* Always center on screen for mobile */
+  .appName {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  
   .appName.shifted {
+    left: 50%;
+    transform: translateX(-50%);
     display: none; /* Hide title when sidebar is open on mobile */
   }
 
