@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import HeaderComponent from '../components/header-component/header-component';
 import SidebarComponent from '../components/sidebar-component/sidebar-component';
 import ChatContainerComponent from '../components/chat-container-component/chat-container-component';
