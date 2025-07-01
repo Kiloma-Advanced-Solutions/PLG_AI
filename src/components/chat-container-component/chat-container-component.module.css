@@ -85,7 +85,7 @@
 }
 
 /* Mobile responsive design */
-@media (max-width: 425px) {
+@media (max-width: 768px) {
   .messagesContainer {
     padding: 1rem;
   }
