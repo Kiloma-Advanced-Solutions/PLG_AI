@@ -162,7 +162,7 @@
   }
 }
 
-@media (max-width: 425px) {
+@media (max-width: 500px) {
   .header {
     margin-right: var(--sidebar-width-closed-mobile);
   }

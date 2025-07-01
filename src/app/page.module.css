@@ -31,7 +31,7 @@
   }
 }
 
-@media (max-width: 425px) {
+@media (max-width: 500px) {
   .main {
     margin-right: var(--sidebar-width-closed-mobile);
   }

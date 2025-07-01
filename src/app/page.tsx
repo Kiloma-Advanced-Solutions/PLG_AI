@@ -88,7 +88,7 @@ export default function Home() {
     setCurrentConversationId(conversationId);
     
     // Auto-close sidebar on mobile when conversation is selected
-    if (typeof window !== 'undefined' && window.innerWidth <= 425) {
+    if (typeof window !== 'undefined' && window.innerWidth <= 500) {
       setIsSidebarOpen(false);
     }
   };
