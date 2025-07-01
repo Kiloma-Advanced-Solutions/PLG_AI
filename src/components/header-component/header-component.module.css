@@ -152,18 +152,25 @@
   }
   
   .header.shifted {
-    margin-right: var(--sidebar-width-open-mobile);
+    margin-right: var(--sidebar-width-open-mobile);margin-right: var(--sidebar-width-open-mobile);
   }
   
   .appName.shifted {
     left: calc((100vw - var(--sidebar-width-open-mobile)) / 2);
+  }
+
+  .appName h1 {
+    font-size: 1.4rem;
+  }
+  
+  .leftSection {
+    gap: 0.2rem;
   }
   
   .mobileControls {
     display: flex;
   }
 }
-
 
 
 /* Dark mode styles */
