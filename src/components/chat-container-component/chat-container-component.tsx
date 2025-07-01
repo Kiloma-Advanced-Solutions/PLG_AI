@@ -12,6 +12,7 @@ type ChatContainerComponentProps = {
   onSendMessage: (message: string) => void;
   isLoading?: boolean;
   isSidebarOpen?: boolean;
+  shouldFocusInput?: boolean;
 };
 
 // the chat container component
@@ -19,7 +20,8 @@ export default function ChatContainerComponent({
   messages, 
   onSendMessage, 
   isLoading = false, 
-  isSidebarOpen = false 
+  isSidebarOpen = false,
+  shouldFocusInput = false
 }: ChatContainerComponentProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -75,6 +77,7 @@ export default function ChatContainerComponent({
         <InputMessageContainer 
           onSendMessage={onSendMessage}
           isLoading={isLoading}
+          shouldFocusInput={shouldFocusInput}
         />
       </div>
     );

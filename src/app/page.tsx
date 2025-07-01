@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import HeaderComponent from '../components/header-component/header-component';
 import SidebarComponent from '../components/sidebar-component/sidebar-component';
 import ChatContainerComponent from '../components/chat-container-component/chat-container-component';
@@ -20,6 +20,9 @@ export default function Home() {
 
   // holds the state of the loading and waiting for the AI response
   const [isLoading, setIsLoading] = useState(false);
+  
+  // ref to trigger input focus
+  const [shouldFocusInput, setShouldFocusInput] = useState(false);
 
   // Load conversations from localStorage on mount
   useEffect(() => {
@@ -58,9 +61,12 @@ export default function Home() {
   const createNewChat = () => {
     const currentConversation = getCurrentConversation();
 
-    // if the current conversation is empty, don't create a new chat and close sidebar
+    // if the current conversation is empty, focus the input field instead
     if (currentConversation && currentConversation.messages.length === 0) {
       setIsSidebarOpen(false);
+      setShouldFocusInput(true);
+      // Reset the focus trigger after a short delay
+      setTimeout(() => setShouldFocusInput(false), 100);
       return;
     }
 
@@ -170,7 +176,6 @@ export default function Home() {
   // get the current conversation and the sidebar conversations
   const currentConversation = getCurrentConversation();
   const sidebarConversations = conversations.filter(conv => conv.messages.length > 0);
-  const isNewChatDisabled = currentConversation ? currentConversation.messages.length === 0 : true;
 
   // render the main page
   return (
@@ -187,6 +192,7 @@ export default function Home() {
           onSendMessage={handleSendMessage}
           isLoading={isLoading}
           isSidebarOpen={isSidebarOpen}
+          shouldFocusInput={shouldFocusInput}
         />
       </main>
       
@@ -197,7 +203,6 @@ export default function Home() {
         onCreateNewChat={createNewChat}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        isNewChatDisabled={isNewChatDisabled}
       />
     </div>
   );

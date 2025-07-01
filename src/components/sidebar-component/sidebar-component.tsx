@@ -13,7 +13,6 @@ type SidebarComponentProps = {
   onCreateNewChat: () => void;
   isOpen: boolean;
   onToggle: () => void;
-  isNewChatDisabled: boolean;
 };
 
 // function to render the SidebarComponent component
@@ -23,8 +22,7 @@ export default function SidebarComponent({
   onConversationSelect,
   onCreateNewChat,
   isOpen,
-  onToggle,
-  isNewChatDisabled
+  onToggle
 }: SidebarComponentProps) {
   return (
     <div className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
@@ -45,7 +43,6 @@ export default function SidebarComponent({
       <NewChatButtonComponent 
         onClick={onCreateNewChat}
         isOpen={isOpen}
-        disabled={isNewChatDisabled}
       />
 
       {isOpen ? (

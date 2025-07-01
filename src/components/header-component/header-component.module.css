@@ -70,17 +70,13 @@
 
 .clickable {
   cursor: pointer;
-  transition: all 0.2s ease;
   user-select: none;
 }
 
-.clickable:hover {
-  transform: scale(1.05);
-  opacity: 0.8;
-}
+/* Removed hover and active states to prevent highlighting */
 
-.clickable:active {
-  transform: scale(0.95);
+.clickable:focus {
+  outline: none; /* Remove focus outline as well */
 }
 
 /* Mobile controls */

@@ -6,21 +6,18 @@ import styles from './new-chat-button-component.module.css';
 type NewChatButtonComponentProps = {
   onClick: () => void;
   isOpen: boolean;
-  disabled: boolean;
 };
 
 // function to render the NewChatButtonSidebarComponent component
 export default function NewChatButtonComponent({ 
   onClick, 
-  isOpen,
-  disabled
+  isOpen
 }: NewChatButtonComponentProps) {
   return (
     <div className={`${styles.newChatIconSectionWrapper} ${isOpen ? styles.open : ''}`}>
       <button 
         className={styles.newChatIconButton} 
         onClick={onClick}
-        disabled={disabled}
         aria-label="Create new chat"
       >
         <div className={styles.newChatIconIcon}>

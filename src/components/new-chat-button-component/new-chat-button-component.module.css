@@ -29,8 +29,8 @@
   transform: scale(1.05);
 }
 
-.newChatIconButton:active {
-  transform: scale(0.95);
+.newChatIconButton:focus {
+  outline: none; /* Remove focus outline as well */
 }
 
 .newChatIconButton:disabled {

@@ -7,17 +7,20 @@ import styles from './input-message-container.module.css';
 type InputMessageContainerProps = {
   onSendMessage: (message: string) => void;
   isLoading?: boolean;
+  shouldFocusInput?: boolean;
 };
 
 // the input message container component
 export default function InputMessageContainer({ 
   onSendMessage, 
-  isLoading = false 
+  isLoading = false,
+  shouldFocusInput = false
 }: InputMessageContainerProps) {
 
   // the state of the input value
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [isFocusAnimating, setIsFocusAnimating] = useState(false);
 
   // Function to handle the submission of the message
   const handleSubmit = (e: React.FormEvent) => {
@@ -58,9 +61,22 @@ export default function InputMessageContainer({
     }
   }, [isLoading]);
 
+  // Handle focus animation when shouldFocusInput changes
+  useEffect(() => {
+    if (shouldFocusInput && inputRef.current) {
+      inputRef.current.focus();
+      setIsFocusAnimating(true);
+      
+      // Remove animation class after animation completes
+      setTimeout(() => {
+        setIsFocusAnimating(false);
+      }, 600);
+    }
+  }, [shouldFocusInput]);
+
   return (
     <form className={styles.inputContainer} onSubmit={handleSubmit}>
-      <div className={styles.inputWrapper}>
+      <div className={`${styles.inputWrapper} ${isFocusAnimating ? styles.focusAnimation : ''}`}>
         <textarea
           ref={inputRef} // the ref to the textarea element
           value={inputValue} 
