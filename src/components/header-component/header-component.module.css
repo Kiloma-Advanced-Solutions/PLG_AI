@@ -51,8 +51,8 @@
 }
 
 .appName.shifted {
-  /* Adjust centering when sidebar is open to account for the margin */
-  left: calc(50% - var(--sidebar-width-open) / 2);
+  /* Center in the remaining visible area when sidebar is open */
+  left: calc((100vw - var(--sidebar-width-open)) / 2);
 }
 
 .appName h1 {
@@ -142,7 +142,7 @@
   }
   
   .appName.shifted {
-    left: calc(50% - var(--sidebar-width-open-tablet) / 2);
+    left: calc((100vw - var(--sidebar-width-open-tablet)) / 2);
   }
 }
 
@@ -156,7 +156,7 @@
   }
   
   .appName.shifted {
-    left: calc(50% - var(--sidebar-width-open-mobile) / 2);
+    left: calc((100vw - var(--sidebar-width-open-mobile)) / 2);
   }
   
   .mobileControls {
