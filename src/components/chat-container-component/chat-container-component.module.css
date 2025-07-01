@@ -9,9 +9,7 @@
   min-height: 10;
 }
 
-.chatContainer.shifted {
-  margin-right: 260px;
-}
+/* Removed - spacing handled by main container */
 
 /* conversation area */
 .messagesContainer {
@@ -24,7 +22,7 @@
 
 .welcomeMessage {
   text-align: center;
-  padding: 4rem 1rem;
+  padding: 3rem 1rem;
   color: var(--text-secondary);
 }
 
@@ -84,8 +82,18 @@
   }
 }
 
+/* Responsive Design - spacing handled by main container */
+
 /* Mobile responsive design */
 @media (max-width: 768px) {
+  .messagesContainer {
+    padding: 1.5rem 1rem;
+  }
+  
+  
+}
+
+@media (max-width: 425px) {
   .messagesContainer {
     padding: 1rem;
   }
@@ -94,7 +102,4 @@
     padding: 3rem 1rem;
   }
   
-  .chatContainer.shifted {
-    margin-right: 0;
-  }
 }

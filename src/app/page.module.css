@@ -12,8 +12,12 @@
   flex: 1;
   display: flex;
   min-height: 0;
-  margin-right: 60px;
+  margin-right: var(--sidebar-width-closed);
   transition: margin-right 0.3s ease;
+}
+
+.main.shifted {
+  margin-right: var(--sidebar-width-open);
 }
 
 /* Responsive Design */
@@ -23,16 +27,16 @@
   }
   
   .main.shifted {
-    margin-right: 20px;
+    margin-right: var(--sidebar-width-open-tablet);
   }
 }
 
 @media (max-width: 425px) {
   .main {
-    margin-right: 0;
+    margin-right: var(--sidebar-width-closed-mobile);
   }
   
   .main.shifted {
-    margin-right: 0;
+    margin-right: var(--sidebar-width-open-mobile);
   }
 } 
