@@ -184,6 +184,11 @@
     padding-left: 0.5rem;
   }
   
+  /* Hide theme toggle and logo when sidebar is open */
+  .header.shifted .leftSection {
+    display: none;
+  }
+  
   .mobileControls {
     display: flex;
   }
