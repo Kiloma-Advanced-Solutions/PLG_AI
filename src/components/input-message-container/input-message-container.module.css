@@ -76,7 +76,7 @@
 /* Mobile responsive design */
 @media (max-width: 600px) {
   .inputContainer {
-    padding: 0.75rem;
+    padding: 0.25rem;
   }
   
   .inputWrapper {
