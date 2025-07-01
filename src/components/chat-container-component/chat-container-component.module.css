@@ -18,11 +18,12 @@
   display: flex;
   flex-direction: column;
   padding: 2rem 3rem;
+  padding-top: 1rem; /* Add some top padding to prevent overlap */
 }
 
 .welcomeMessage {
   text-align: center;
-  padding: 3rem 1rem;
+  padding: 2rem 1rem 3rem 1rem; /* Reduced top padding to account for container padding */
   color: var(--text-secondary);
 }
 
@@ -87,7 +88,7 @@
 /* Mobile responsive design */
 @media (max-width: 768px) {
   .messagesContainer {
-    padding: 1.5rem 1rem;
+    padding: 1rem 1rem 1.5rem 1rem; /* Maintain top padding on tablets */
   }
   
   
@@ -95,11 +96,11 @@
 
 @media (max-width: 425px) {
   .messagesContainer {
-    padding: 1rem;
+    padding: 0.75rem 1rem 1rem 1rem; /* Slightly less padding but maintain top spacing */
   }
   
   .welcomeMessage {
-    padding: 3rem 1rem;
+    padding: 1.5rem 1rem 3rem 1rem; /* Adjusted for mobile */
   }
   
 }
