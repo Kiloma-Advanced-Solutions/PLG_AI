@@ -86,6 +86,11 @@ export default function Home() {
   // select a conversation from the sidebar
   const selectConversation = (conversationId: string) => {
     setCurrentConversationId(conversationId);
+    
+    // Auto-close sidebar on mobile when conversation is selected
+    if (typeof window !== 'undefined' && window.innerWidth < 425) {
+      setIsSidebarOpen(false);
+    }
   };
 
   // handle the sending of a message from the user to the assistant
