@@ -148,7 +148,7 @@
   }
 }
 
-/* @media (max-width: 650px) {
+@media (max-width: 600px) {
   .appName {
     position: relative;
     left: auto;
@@ -160,7 +160,7 @@
   .appName.shifted {
     left: auto;
   }
-} */
+}
 
 @media (max-width: 425px) {
   .header {
@@ -172,7 +172,7 @@
   }
 
   .appName.shifted {
-    left: calc((100vw - var(--sidebar-width-open-mobile)) / 2);
+    display: none; /* Hide title when sidebar is open on mobile */
   }
 
   .appName h1 {
@@ -186,6 +186,11 @@
   
   .mobileControls {
     display: flex;
+  }
+  
+  /* Hide mobile burger button when sidebar is open */
+  .header.shifted .mobileControls {
+    display: none;
   }
 }
 
