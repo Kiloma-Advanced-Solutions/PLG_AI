@@ -147,6 +147,20 @@
   }
 }
 
+@media (max-width: 650px) {
+  .appName {
+    position: relative;
+    left: auto;
+    transform: none;
+    flex: 1;
+    text-align: center;
+  }
+  
+  .appName.shifted {
+    left: auto;
+  }
+}
+
 @media (max-width: 425px) {
   .header {
     margin-right: var(--sidebar-width-closed-mobile);
@@ -154,10 +168,6 @@
   
   .header.shifted {
     margin-right: var(--sidebar-width-open-mobile);
-  }
-  
-  .appName.shifted {
-    left: calc((100vw - var(--sidebar-width-open-mobile)) / 2);
   }
 
   .appName h1 {
