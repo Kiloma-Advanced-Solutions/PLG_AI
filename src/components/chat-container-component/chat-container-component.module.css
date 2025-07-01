@@ -6,7 +6,6 @@
   height: 100%;
   min-height: 0;
   background-color: var(--background-color);
-  min-height: 10;
 }
 
 /* Removed - spacing handled by main container */
@@ -17,8 +16,7 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  padding: 2rem 3rem;
-  padding-top: 1rem; /* Add some top padding to prevent overlap */
+  padding: 1rem 3rem 2rem; /* Consolidated padding */
 }
 
 .welcomeMessage {

@@ -33,7 +33,7 @@
   outline: none; /* Remove focus outline as well */
 }
 
-.newChatIconButton:disabled {
+/* .newChatIconButton:disabled {
   cursor: not-allowed;
   opacity: 0.5;
   transform: none;
@@ -41,7 +41,7 @@
 
 .newChatIconButton:disabled ~ .newChatIconTitle {
   opacity: 0.5;
-}
+} */
 
 .newChatIconIcon {
   width: 20px;
@@ -63,8 +63,4 @@
 .newChatIconSectionWrapper.open .newChatIconTitle {
   opacity: 1;
   visibility: visible;
-}
-
-.newChatIconSectionWrapper.open .newChatIconButton:disabled ~ .newChatIconTitle {
-  opacity: 0.5 !important;
 }

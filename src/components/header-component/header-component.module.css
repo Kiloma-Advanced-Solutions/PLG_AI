@@ -49,7 +49,7 @@
   left: 50%;
   transform: translateX(-50%);
   text-align: center;
-  transition: all 0.3s ease;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 
 /* For screens > 600px, center within header (accounting for sidebar) */
@@ -156,14 +156,13 @@
   }
 
   /* Always center on screen for mobile */
-  .appName {
+  .appName,
+  .appName.shifted {
     left: 50%;
     transform: translateX(-50%);
   }
   
   .appName.shifted {
-    left: 50%;
-    transform: translateX(-50%);
     display: none; /* Hide title when sidebar is open on mobile */
   }
 

@@ -46,7 +46,9 @@
 :root {
   /* CSS Variables for theming */
   --bg-color: #ffffff;
+  --background-color: #ffffff;
   --text-color: #1f2937;
+  --text-primary: #1f2937;
   --text-secondary: #6b7280;
   --text-tertiary: #9ca3af;
   --header-bg: #ffffff;
@@ -58,10 +60,15 @@
   --hover-bg: #f3f4f6;
   --active-bg: #eff6ff;
   --primary-color: #667eea;
+  --primary-hover: #5a67d8;
   --user-message-bg: #3b82f6;
   --user-message-text: #ffffff;
   --assistant-message-bg: #f3f4f6;
   --assistant-message-text: #1f2937;
+  --message-bg: #f3f4f6;
+  --primary-text: #ffffff;
+  --primary-text-secondary: rgba(255, 255, 255, 0.8);
+  --primary-text-tertiary: rgba(255, 255, 255, 0.6);
   
   /* Sidebar width variables */
   --sidebar-width-closed: 60px;
@@ -69,22 +76,14 @@
   --sidebar-width-open: 320px;
   --sidebar-width-open-tablet: 230px;
   --sidebar-width-open-mobile: 100vw;
-
-  
-  /* Additional variables for new components */
-  --background-color: #ffffff;
-  --text-primary: #1f2937;
-  --message-bg: #f3f4f6;
-  --primary-text: #ffffff;
-  --primary-text-secondary: rgba(255, 255, 255, 0.8);
-  --primary-text-tertiary: rgba(255, 255, 255, 0.6);
-  --primary-hover: #5a67d8;
 }
 
 /* Dark mode variables */
 .dark {
   --bg-color: #111827;
+  --background-color: #111827;
   --text-color: #f9fafb;
+  --text-primary: #f9fafb;
   --text-secondary: #d1d5db;
   --text-tertiary: #9ca3af;
   --header-bg: #1f2937;
@@ -96,19 +95,15 @@
   --hover-bg: #374151;
   --active-bg: #1e40af;
   --primary-color: #60a5fa;
+  --primary-hover: #3b82f6;
   --user-message-bg: #3b82f6;
   --user-message-text: #ffffff;
   --assistant-message-bg: #374151;
   --assistant-message-text: #f3f4f6;
-  
-  /* Additional variables for new components */
-  --background-color: #111827;
-  --text-primary: #f9fafb;
   --message-bg: #374151;
   --primary-text: #ffffff;
   --primary-text-secondary: rgba(255, 255, 255, 0.8);
   --primary-text-tertiary: rgba(255, 255, 255, 0.6);
-  --primary-hover: #3b82f6;
 }
 
 * {
