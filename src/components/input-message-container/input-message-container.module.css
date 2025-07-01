@@ -70,4 +70,15 @@
 .sendIcon {
   width: 1.25rem;
   height: 1.25rem;
+}
+
+/* Mobile responsive design */
+@media (max-width: 425px) {
+  .inputContainer {
+    padding: 0.75rem;
+  }
+  
+  .inputWrapper {
+    width: 95%;
+  }
 } 

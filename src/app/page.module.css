@@ -25,4 +25,14 @@
   .main.shifted {
     margin-right: 20px;
   }
+}
+
+@media (max-width: 425px) {
+  .main {
+    margin-right: 0;
+  }
+  
+  .main.shifted {
+    margin-right: 0;
+  }
 } 

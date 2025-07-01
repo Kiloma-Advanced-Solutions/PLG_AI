@@ -9,12 +9,12 @@
   position: sticky;
   top: 0;
   transition: all 0.3s ease;
-  margin-right: 60px;
+  margin-right: var(--sidebar-width-closed);
   box-sizing: border-box;
 }
 
 .header.shifted {
-  margin-right: 320px;
+  margin-right: var(--sidebar-width-open);
 }
 
 /* theme icon and logo */
@@ -50,6 +50,11 @@
   transition: transform 0.3s ease;
 }
 
+.appName.shifted {
+  /* Adjust centering when sidebar is open to account for the margin */
+  left: calc(50% - var(--sidebar-width-open) / 2);
+}
+
 .appName h1 {
   margin: 0;
   font-size: 1.5rem;
@@ -76,6 +81,46 @@
   transform: scale(0.95);
 }
 
+/* Mobile controls */
+.mobileControls {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.mobileBurgerButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: none;
+  color: var(--text-color);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.mobileBurgerButton:hover {
+  background-color: var(--hover-bg);
+  transform: scale(1.05);
+}
+
+.mobileBurgerButton:active {
+  transform: scale(0.95);
+}
+
+.mobileBurgerButton:focus {
+  outline: none;
+}
+
+.mobileBurgerButton svg {
+  width: 20px;
+  height: 20px;
+}
+
 /* RTL Support */
 [dir="rtl"] .header {
   flex-direction: row-reverse;
@@ -91,23 +136,35 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .header {
-    padding: 1rem;
-    margin-right: 60px;
+
+  .header.shifted {
+    margin-right: var(--sidebar-width-open-tablet); 
   }
   
-  .appName h1 {
-    font-size: 1.25rem;
-  }
-  
-  .leftSection {
-    gap: 0.75rem;
-  }
-  
-  .burgerSection {
-    gap: 0.75rem;
+  .appName.shifted {
+    left: calc(50% - var(--sidebar-width-open-tablet) / 2);
   }
 }
+
+@media (max-width: 425px) {
+  .header {
+    margin-right: var(--sidebar-width-closed-mobile);
+  }
+  
+  .header.shifted {
+    margin-right: var(--sidebar-width-open-mobile);
+  }
+  
+  .appName.shifted {
+    left: calc(50% - var(--sidebar-width-open-mobile) / 2);
+  }
+  
+  .mobileControls {
+    display: flex;
+  }
+}
+
+
 
 /* Dark mode styles */
 :global(.dark) .header {

@@ -173,6 +173,7 @@ export default function Home() {
       <HeaderComponent 
         isSidebarOpen={isSidebarOpen}
         onCreateNewChat={createNewChat}
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
       />
       
       <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>

@@ -25,6 +25,14 @@
   --assistant-message-bg: #f3f4f6;
   --assistant-message-text: #1f2937;
   
+  /* Sidebar width variables */
+  --sidebar-width-closed: 60px;
+  --sidebar-width-closed-mobile: 0px;
+  --sidebar-width-open: 320px;
+  --sidebar-width-open-tablet: 230px;
+  --sidebar-width-open-mobile: 100vw;
+
+  
   /* Additional variables for new components */
   --background-color: #ffffff;
   --text-primary: #1f2937;

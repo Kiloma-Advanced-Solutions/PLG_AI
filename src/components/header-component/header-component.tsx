@@ -7,10 +7,11 @@ import styles from './header-component.module.css';
 type HeaderComponentProps = {
   isSidebarOpen: boolean;
   onCreateNewChat: () => void;
+  onToggleSidebar: () => void;
 };
 
 // the header component
-export default function HeaderComponent({ isSidebarOpen, onCreateNewChat }: HeaderComponentProps) {
+export default function HeaderComponent({ isSidebarOpen, onCreateNewChat, onToggleSidebar }: HeaderComponentProps) {
   // render the header component
   return (
     <header className={`${styles.header} ${isSidebarOpen ? styles.shifted : ''}`}>
@@ -26,6 +27,19 @@ export default function HeaderComponent({ isSidebarOpen, onCreateNewChat }: Head
       
       <div className={`${styles.appName} ${isSidebarOpen ? styles.shifted : ''}`}>
         <h1 onClick={onCreateNewChat} className={styles.clickable}>ChatPLG</h1>
+      </div>
+
+      {/* Mobile controls - only visible on mobile */}
+      <div className={styles.mobileControls}>
+        <button 
+          className={styles.mobileBurgerButton}
+          onClick={onToggleSidebar}
+          aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+        >
+          <svg fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+          </svg>
+        </button>
       </div>
       
     </header>

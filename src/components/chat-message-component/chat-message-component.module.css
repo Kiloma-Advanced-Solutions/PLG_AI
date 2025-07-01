@@ -54,4 +54,15 @@
 
 .messageContainer.assistant .messageTime {
   text-align: left;
+}
+
+/* Mobile responsive design */
+@media (max-width: 425px) {
+  .messageContainer {
+    margin: 0.5rem 0.5rem;
+  }
+  
+  .messageBox {
+    max-width: 85%;
+  }
 } 

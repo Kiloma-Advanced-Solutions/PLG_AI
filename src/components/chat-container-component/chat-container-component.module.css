@@ -82,4 +82,19 @@
     transform: scale(1);
     opacity: 1;
   }
-} 
+}
+
+/* Mobile responsive design */
+@media (max-width: 425px) {
+  .messagesContainer {
+    padding: 1rem;
+  }
+  
+  .welcomeMessage {
+    padding: 3rem 1rem;
+  }
+  
+  .chatContainer.shifted {
+    margin-right: 0;
+  }
+}
