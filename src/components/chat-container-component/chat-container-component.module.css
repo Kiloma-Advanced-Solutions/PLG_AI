@@ -42,6 +42,47 @@
   margin: 0.5rem 1.75rem;
 }
 
+.errorMessage {
+  display: flex;
+  justify-content: flex-start;
+  margin: 0.5rem 1.75rem;
+}
+
+.errorContent {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  background-color: var(--error-bg, #fee);
+  border: 1px solid var(--error-border, #fcc);
+  border-radius: 1rem;
+  border-bottom-right-radius: 0.25rem;
+}
+
+.errorIcon {
+  font-size: 1.1rem;
+}
+
+.errorText {
+  color: var(--error-text, #a00);
+  font-size: 0.9rem;
+}
+
+.retryButton {
+  padding: 0.25rem 0.75rem;
+  background-color: var(--primary-color);
+  color: var(--primary-text);
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: opacity 0.2s;
+}
+
+.retryButton:hover {
+  opacity: 0.9;
+}
+
 .typingIndicator {
   display: flex;
   align-items: center; /* Vertically center the dots */

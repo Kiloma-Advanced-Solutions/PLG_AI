@@ -7,13 +7,15 @@ type ChatMessageComponentProps = {
   type: 'user' | 'assistant';
   content: string;
   timestamp: string;
+  isStreaming?: boolean;
 };
 
 // the chat message component
 export default function ChatMessageComponent({ 
   type, 
   content, 
-  timestamp 
+  timestamp,
+  isStreaming = false
 }: ChatMessageComponentProps) {
   // render the chat message component
   return (
@@ -22,6 +24,7 @@ export default function ChatMessageComponent({
       <div className={styles.messageBox}>
         <div className={styles.messageText} dir="rtl">
           {content}
+          {isStreaming && <span className={styles.streamingCursor}>|</span>}
         </div>
         <div className={styles.messageTime}>
           {timestamp}

@@ -13,6 +13,9 @@ type ChatContainerComponentProps = {
   isLoading?: boolean;
   isSidebarOpen?: boolean;
   shouldFocusInput?: boolean;
+  streamingMessage?: string;
+  apiError?: string | null;
+  onRetry?: () => void;
 };
 
 // the chat container component
@@ -21,7 +24,10 @@ export default function ChatContainerComponent({
   onSendMessage, 
   isLoading = false, 
   isSidebarOpen = false,
-  shouldFocusInput = false
+  shouldFocusInput = false,
+  streamingMessage = '',
+  apiError = null,
+  onRetry
 }: ChatContainerComponentProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -61,13 +67,39 @@ export default function ChatContainerComponent({
             ))
           )}
           
+          {apiError && (
+            <div className={styles.errorMessage}>
+              <div className={styles.errorContent}>
+                <span className={styles.errorIcon}>⚠️</span>
+                <span className={styles.errorText}>{apiError}</span>
+                {onRetry && (
+                  <button 
+                    className={styles.retryButton}
+                    onClick={onRetry}
+                  >
+                    נסה שוב
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+          
           {isLoading && (
             <div className={styles.loadingMessage}>
-              <div className={styles.typingIndicator}>
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
+              {streamingMessage ? (
+                <ChatMessageComponent
+                  type="assistant"
+                  content={streamingMessage}
+                  timestamp={formatTimestamp(new Date().toISOString())}
+                  isStreaming={true}
+                />
+              ) : (
+                <div className={styles.typingIndicator}>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              )}
             </div>
           )}
           

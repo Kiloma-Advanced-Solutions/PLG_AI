@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import HeaderComponent from '../components/header-component/header-component';
 import SidebarComponent from '../components/sidebar-component/sidebar-component';
 import ChatContainerComponent from '../components/chat-container-component/chat-container-component';
 import { Message, Conversation } from '../types';
+import { streamChatResponse, StreamError } from '../utils/streaming-api';
 import styles from './page.module.css';
 
 export default function Home() {
@@ -23,6 +24,18 @@ export default function Home() {
   
   // ref to trigger input focus
   const [shouldFocusInput, setShouldFocusInput] = useState(false);
+  
+  // holds the current streaming message content
+  const [streamingMessage, setStreamingMessage] = useState('');
+  
+  // ref for abort controller to cancel streaming
+  const abortControllerRef = useRef<AbortController | null>(null);
+  
+  // ref to track streaming content for cleanup
+  const streamingContentRef = useRef<string>('');
+  
+  // error state for API errors
+  const [apiError, setApiError] = useState<string | null>(null);
 
   // Load conversations from localStorage on mount
   useEffect(() => {
@@ -103,6 +116,9 @@ export default function Home() {
   const handleSendMessage = async (messageBox: string) => {
     let conversationId = currentConversationId;
     
+    // Clear any previous errors
+    setApiError(null);
+    
     // If no current conversation, create one first
     if (!conversationId) {
       const newConversation: Conversation = {
@@ -142,35 +158,71 @@ export default function Home() {
       return conv;
     }));
 
-    // start the loading state
+    // start the loading state and streaming
     setIsLoading(true);
+    setStreamingMessage('');
+    streamingContentRef.current = '';
+    
+    // Create abort controller for this request
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
 
-    // Simulate AI response
-    setTimeout(() => {
-      // create a new message from the assistant
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        type: 'assistant',
-        content: `תודה על ההודעה שלך: "${messageBox}". זו תגובה לדוגמה מהבוט.`,
-        timestamp: new Date().toISOString()
-      };
+    // Get all messages in the conversation for context
+    const currentConv = conversations.find(conv => conv.id === conversationId);
+    const allMessages = currentConv ? [...currentConv.messages, userMessage] : [userMessage];
 
-      // update the conversations list with the new message
-      setConversations(prev => prev.map(conv => {
-        if (conv.id === conversationId) {
-          return {
-            ...conv,
-            messages: [...conv.messages, assistantMessage],
-            lastMessage: assistantMessage.content,
+    // Stream the response
+    await streamChatResponse(
+      allMessages,
+      // onToken callback - update streaming message
+      (token: string) => {
+        streamingContentRef.current += token;
+        setStreamingMessage(streamingContentRef.current);
+      },
+      // onError callback - handle errors
+      (error: StreamError) => {
+        console.error('Streaming error:', error);
+        setApiError(error.message);
+        setIsLoading(false);
+        setStreamingMessage('');
+        streamingContentRef.current = '';
+        abortControllerRef.current = null;
+      },
+      // onComplete callback - finalize message
+      () => {
+        const finalContent = streamingContentRef.current;
+        
+        // Only add message if we have content
+        if (finalContent.trim()) {
+          const assistantMessage: Message = {
+            id: (Date.now() + 1).toString(),
+            type: 'assistant',
+            content: finalContent,
             timestamp: new Date().toISOString()
           };
-        }
-        return conv;
-      }));
 
-      // stop the loading state
-      setIsLoading(false);
-    }, 1500);
+          // update the conversations list with the final message
+          setConversations(prev => prev.map(conv => {
+            if (conv.id === conversationId) {
+              return {
+                ...conv,
+                messages: [...conv.messages, assistantMessage],
+                lastMessage: assistantMessage.content,
+                timestamp: new Date().toISOString()
+              };
+            }
+            return conv;
+          }));
+        }
+        
+        // cleanup
+        setIsLoading(false);
+        setStreamingMessage('');
+        streamingContentRef.current = '';
+        abortControllerRef.current = null;
+      },
+      abortController
+    );
   };
 
   // get the current conversation and the sidebar conversations
@@ -193,6 +245,13 @@ export default function Home() {
           isLoading={isLoading}
           isSidebarOpen={isSidebarOpen}
           shouldFocusInput={shouldFocusInput}
+          streamingMessage={streamingMessage}
+          apiError={apiError}
+          onRetry={() => {
+            if (apiError) {
+              setApiError(null);
+            }
+          }}
         />
       </main>
       

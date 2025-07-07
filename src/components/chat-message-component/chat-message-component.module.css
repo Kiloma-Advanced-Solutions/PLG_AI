@@ -56,6 +56,22 @@
   text-align: left;
 }
 
+/* Streaming cursor animation */
+.streamingCursor {
+  animation: blink 1s infinite;
+  font-weight: bold;
+  color: var(--primary-color);
+}
+
+@keyframes blink {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
 /* Mobile responsive design */
 @media (max-width: 600px) {
   .messageContainer {
