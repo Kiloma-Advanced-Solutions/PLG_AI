@@ -1,196 +1,429 @@
 # ChatPLG-UI
 
-A production-ready React chat application with live streaming responses from LLM models via vLLM server. Features Hebrew language support and real-time conversation management.
+A modern, production-ready Hebrew chat application with real-time streaming AI responses. Built with Next.js, FastAPI, and vLLM for seamless AI-powered conversations.
 
-## Features
+![ChatPLG-UI](https://img.shields.io/badge/Next.js-15.3.4-black?style=for-the-badge&logo=next.js)
+![FastAPI](https://img.shields.io/badge/FastAPI-latest-009688?style=for-the-badge&logo=fastapi)
+![vLLM](https://img.shields.io/badge/vLLM-latest-purple?style=for-the-badge)
+![TypeScript](https://img.shields.io/badge/TypeScript-latest-3178C6?style=for-the-badge&logo=typescript)
 
-- 🎯 **Live Streaming**: Real-time streaming responses from LLM models
-- 🌍 **Hebrew Support**: Full RTL support and Hebrew language interface
-- 💬 **Multiple Conversations**: Manage multiple chat sessions with persistent storage
-- 🔄 **Production Ready**: Built with FastAPI backend and React frontend
-- 📱 **Responsive Design**: Mobile-friendly interface
-- 🚀 **Easy Setup**: One-command startup script
-- 🛠️ **Error Handling**: Comprehensive error handling and retry logic
-- 👥 **Multi-user Support**: Supports multiple concurrent users
+## 🌟 Features
 
-## Architecture
+### Core Features
+- **🎯 Real-time Streaming**: Live AI responses with streaming support
+- **🌍 Hebrew Language Support**: Full RTL support and Hebrew interface
+- **💬 Multi-conversation Management**: Persistent chat sessions with local storage
+- **📱 Responsive Design**: Mobile-first, modern UI/UX
+- **🚀 Production Ready**: Scalable architecture with proper error handling
 
-- **Frontend**: Next.js (React) with TypeScript
-- **Backend**: FastAPI with streaming support
-- **LLM Engine**: vLLM server for model inference
-- **Storage**: Local storage for conversation persistence
 
-## Prerequisites
+## 🏗️ Architecture
 
-- Python 3.8 or higher
-- Node.js 18 or higher
-- npm or yarn
-- A running vLLM server (see setup instructions below)
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│   Next.js App   │    │   FastAPI API   │    │   vLLM Server   │
+│   (Port 3000)   │◄──►│   (Port 8090)   │◄──►│   (Port 8000)   │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+        │                       │                       │
+        │                       │                       │
+   ┌─────────┐            ┌─────────────┐        ┌─────────────┐
+   │Browser  │            │HTTP Client  │        │AI Model     │
+   │Storage  │            │(httpx)      │        │Inference    │
+   └─────────┘            └─────────────┘        └─────────────┘
+```
 
-## Quick Start
+### Components
+- **Frontend**: Next.js with TypeScript, React components, CSS modules
+- **Backend**: FastAPI with streaming responses, session management, CORS
+- **AI Engine**: vLLM server with OpenAI-compatible API
+- **Storage**: Browser localStorage for conversation persistence
+
+## 🚀 Quick Start
+
+### For Local Development
 
 1. **Clone the repository**:
    ```bash
-   git clone <repository-url>
-   cd ChatPLG-UI
+   git init
+   git remote add origin https://github.com/pelegel/ChatPLG-UI.git
+   git fetch origin
+   git checkout -b connect-to-api origin
    ```
 
-2. **Install Requirements**
-    ```bash
-    python -m venv chatplg_venv
-    source chatplg_venv/bin/activate
-    python -m pip install -r requirements.txt
-    ```
-
-3. **Start your vLLM server** (in a separate terminal):
+2. **Start vLLM server** (in separate terminal):
    ```bash
-    python3 -m vllm.entrypoints.openai.api_server \
-    --model gaunernst/gemma-3-12b-it-qat-autoawq \
-    --max-model-len 131072 \
-    --port 8000 \
-    --tensor-parallel-size 2 | grep -Ev "Received request chatcmpl|Added request chatcmpl|HTTP/1.1\" 200 OK"
+   python3 -m vllm.entrypoints.openai.api_server \   
+      --model gaunernst/gemma-3-12b-it-qat-autoawq \ 
+      --max-model-len 131072 \
+      --port 8000 \  
+      --tensor-parallel-size 2 | grep -Ev "Received request chatcmpl|Added request chatcmpl|HTTP/1.1\" 200 OK"
    ```
 
-4. **Run the application**:
+3. **Use the startup script**:
    ```bash
+   chmod +x start.sh
    ./start.sh
    ```
 
-The startup script will:
-- Install Python and Node.js dependencies
-- Start the FastAPI backend server on port 8090
-- Start the React frontend on port 3000
-- Automatically open the application in your browser
-
-## Manual Setup
-
-If you prefer to set up manually:
-
-### Backend Setup
-
-1. **Create and activate a virtual environment**:
+   Or manually:
    ```bash
+   # Backend
    python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
-
-2. **Install Python dependencies**:
-   ```bash
+   source venv/bin/activate
    pip install -r requirements.txt
-   ```
-
-3. **Start the FastAPI server**:
-   ```bash
    python server.py
-   ```
 
-### Frontend Setup
-
-1. **Install Node.js dependencies**:
-   ```bash
+   # Frontend (new terminal)
    npm install
-   ```
-
-2. **Start the React development server**:
-   ```bash
    npm run dev
    ```
 
-## Usage
+### For Containerized Deployment (vast.ai, etc.)
 
-1. **Access the application**: Open http://localhost:3000 in your browser
-2. **Start chatting**: Type your message in Hebrew or English
-3. **Create new conversations**: Use the sidebar to manage multiple chat sessions
-4. **Monitor API health**: Check http://localhost:8090/api/health for backend status
+1. **Setup the environment**:
+   ```bash
+   # Install dependencies
+   pip install -r requirements.txt
+   npm install
+   ```
 
-## API Endpoints
+2. **Configure API endpoint**:
+   ```bash
+   # Edit src/utils/streaming-api.ts
+   # Update API_BASE_URL to your external IP and port
+   # Example: 'http://166.113.52.39:42350'
+   ```
 
-- `POST /api/chat/stream` - Stream chat completions
-- `GET /api/health` - Health check with vLLM status
-- `GET /api/metrics` - System metrics and active sessions
+3. **Start all services**:
+   ```bash
+   # Terminal 1: vLLM server
+   python3 -m vllm.entrypoints.openai.api_server \
+     --model gaunernst/gemma-3-12b-it-qat-autoawq \
+     --max-model-len 131072 \
+     --port 8000 \
+     --tensor-parallel-size 2
 
-## Configuration
+   # Terminal 2: FastAPI backend
+   python server.py
+
+   # Terminal 3: Next.js frontend
+   npm run dev
+   ```
+
+## 🔧 Configuration
 
 ### Environment Variables
 
-- `NEXT_PUBLIC_API_URL`: Backend API URL (default: http://localhost:8090)
+Create a `.env.local` file in the root directory:
+
+```env
+# API Configuration
+NEXT_PUBLIC_API_BASE_URL=http://localhost:8090
+
+# For containerized deployment, use external IP:
+# NEXT_PUBLIC_API_BASE_URL=http://your-external-ip:mapped-port
+```
 
 ### Backend Configuration
 
-Edit `server.py` to modify:
-- `VLLM_API_URL`: vLLM server URL
-- `MODEL_NAME`: Model name for vLLM
-- `SYSTEM_PROMPT`: System prompt for the assistant
+Edit `server.py` to customize:
 
-## Development
+```python
+# Model Configuration
+MODEL_NAME = "gaunernst/gemma-3-12b-it-qat-autoawq"
+VLLM_API_URL = "http://localhost:8000/v1/chat/completions"
+
+# CORS Configuration
+allow_origins = ["*"]  # Adjust for production
+
+# System Prompt
+SYSTEM_PROMPT = """Your Hebrew AI assistant prompt here..."""
+```
+
+### Frontend Configuration
+
+Edit `src/utils/streaming-api.ts` for API settings:
+
+```typescript
+// API configuration
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8090';
+```
+
+## 📋 API Documentation
+
+### Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/chat/stream` | Stream chat completions |
+| `GET` | `/api/health` | Health check with vLLM status |
+| `GET` | `/api/metrics` | System metrics and active sessions |
+
+### Chat Streaming API
+
+**Request:**
+```json
+{
+  "messages": [
+    {
+      "type": "user",
+      "content": "שלום, מה שלומך?"
+    }
+  ],
+  "session_id": "unique-session-id"
+}
+```
+
+**Response (Server-Sent Events):**
+```
+data: {"choices":[{"delta":{"content":"שלום"}}]}
+data: {"choices":[{"delta":{"content":"!"}}]}
+data: [DONE]
+```
+
+## 🛠️ Development
 
 ### Project Structure
 
 ```
 ChatPLG-UI/
 ├── src/
-│   ├── app/                    # Next.js app router
-│   ├── components/             # React components
-│   ├── types/                  # TypeScript types
-│   └── utils/                  # Utility functions
-├── server.py                   # FastAPI backend
-├── requirements.txt            # Python dependencies
-├── start.sh                    # Startup script
-└── README.md
+│   ├── app/                    # Next.js app directory
+│   │   ├── page.tsx           # Main chat page
+│   │   ├── layout.tsx         # Root layout
+│   │   └── globals.css        # Global styles
+│   ├── components/            # React components
+│   │   ├── chat-container-component/
+│   │   ├── chat-message-component/
+│   │   ├── sidebar-component/
+│   │   └── input-message-container/
+│   ├── contexts/              # React contexts
+│   │   └── ThemeContext.tsx
+│   ├── types/                 # TypeScript definitions
+│   │   └── index.ts
+│   └── utils/                 # Utilities
+│       └── streaming-api.ts   # API client
+├── server.py                  # FastAPI backend server
+├── requirements.txt           # Python dependencies
+├── package.json              # Node.js dependencies
+├── start.sh                  # Startup script
+└── README.md                 # This file
 ```
 
 ### Key Components
 
-- **ChatContainerComponent**: Main chat interface
-- **StreamingAPI**: WebSocket-like streaming utilities
-- **MessageComponent**: Individual message rendering
-- **SidebarComponent**: Conversation management
+- **`ChatContainerComponent`**: Main chat interface with message display
+- **`InputMessageContainer`**: Message input with streaming support
+- **`SidebarComponent`**: Conversation management and navigation
+- **`ThemeContext`**: Dark/light theme management
+- **`streaming-api.ts`**: API client with streaming support
 
-## Production Deployment
+### Development Commands
 
-For production deployment:
+```bash
+# Frontend development
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run start        # Start production server
+npm run lint         # Run ESLint
 
-1. **Build the React app**:
-   ```bash
-   npm run build
-   ```
+# Backend development
+python server.py     # Start FastAPI server
+uvicorn server:app --reload  # Development mode with auto-reload
+```
 
-2. **Start the production server**:
-   ```bash
-   npm start
-   ```
+## 🐳 Docker Deployment
 
-3. **Configure reverse proxy** (nginx/Apache) to serve both frontend and API
+### Dockerfile Example
 
-## Troubleshooting
+```dockerfile
+FROM python:3.9-slim
+
+WORKDIR /app
+
+# Copy requirements and install Python deps
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+
+# Copy source code
+COPY . .
+
+# Install Node.js and npm
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
+RUN apt-get install -y nodejs
+
+# Install frontend dependencies and build
+RUN npm install
+RUN npm run build
+
+# Expose ports
+EXPOSE 3000 8090
+
+# Start both services
+CMD ["./start.sh"]
+```
+
+### Docker Compose
+
+```yaml
+version: '3.8'
+services:
+  chatplg-ui:
+    build: .
+    ports:
+      - "3000:3000"
+      - "8090:8090"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8090
+    depends_on:
+      - vllm-server
+  
+  vllm-server:
+    image: vllm/vllm-openai:latest
+    ports:
+      - "8000:8000"
+    command: >
+      --model gaunernst/gemma-3-12b-it-qat-autoawq
+      --port 8000
+      --tensor-parallel-size 2
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+```
+
+## 🔍 Troubleshooting
 
 ### Common Issues
 
-1. **vLLM server not running**: Ensure your vLLM server is running on port 8000
-2. **Port conflicts**: Check if ports 3000 and 8090 are available
-3. **Memory issues**: Ensure sufficient RAM for both vLLM and the application
-4. **Network errors**: Check firewall settings and network connectivity
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| `CONNECTION_REFUSED` | Backend not running | Check if `python server.py` is running |
+| `vLLM not healthy` | vLLM server not responding | Verify vLLM server on port 8000 |
+| `Model not found` | Incorrect model name | Update `MODEL_NAME` in `server.py` |
+| `Port conflicts` | Ports already in use | Check `lsof -i :3000` and `lsof -i :8090` |
+| `Hebrew text issues` | Missing font support | Check browser font settings |
 
-### Logs
+### Container-Specific Issues
 
-- Backend logs: Check the terminal running `python server.py`
-- Frontend logs: Check browser console and terminal running `npm run dev`
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| `localhost` not working | Container networking | Use external IP instead of localhost |
+| Port mapping issues | Incorrect port forwarding | Check port mapping: `external:internal` |
+| CORS errors | Missing CORS headers | Update `allow_origins` in `server.py` |
 
-## Contributing
+### Debug Commands
+
+```bash
+# Check server health
+curl http://localhost:8090/api/health
+
+# Check vLLM server
+curl http://localhost:8000/v1/models
+
+# Test streaming endpoint
+curl -X POST http://localhost:8090/api/chat/stream \
+  -H "Content-Type: application/json" \
+  -d '{"messages": [{"type": "user", "content": "שלום"}], "session_id": "test"}'
+
+# Check logs
+tail -f /var/log/your-app.log
+```
+
+## 🚀 Production Deployment
+
+### Performance Optimizations
+
+1. **Frontend**:
+   ```bash
+   npm run build
+   npm start
+   ```
+
+2. **Backend**:
+   ```bash
+   gunicorn -w 4 -k uvicorn.workers.UvicornWorker server:app
+   ```
+
+3. **Nginx Configuration**:
+   ```nginx
+   upstream backend {
+       server localhost:8090;
+   }
+
+   server {
+       listen 80;
+       
+       location / {
+           proxy_pass http://localhost:3000;
+       }
+       
+       location /api/ {
+           proxy_pass http://backend;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+       }
+   }
+   ```
+
+### Security Considerations
+
+- Set specific CORS origins (not `*`)
+- Use environment variables for sensitive data
+- Implement rate limiting
+- Add authentication if needed
+- Use HTTPS in production
+
+## 📊 Monitoring
+
+### Health Checks
+
+- **Application**: `GET /api/health`
+- **vLLM Server**: `GET /api/health` (includes vLLM status)
+- **Metrics**: `GET /api/metrics`
+
+### Logging
+
+- Backend logs: Check terminal running `python server.py`
+- Frontend logs: Browser console and Next.js terminal
+- vLLM logs: vLLM server terminal
+
+## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
+2. Create a feature branch: `git checkout -b feature-name`
 3. Make your changes
 4. Test thoroughly
 5. Submit a pull request
 
-## License
+### Development Setup
 
-This project is licensed under the MIT License.
+```bash
+# Setup development environment
+git clone <your-fork>
+cd ChatPLG-UI
+npm install
+pip install -r requirements.txt
 
-## Support
+# Run tests
+npm test
+python -m pytest
 
-For support and questions:
-- Check the troubleshooting section above
-- Review the logs for error messages
-- Ensure all prerequisites are properly installed
+# Code formatting
+npm run lint
+black server.py
+```
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [vLLM](https://github.com/vllm-project/vllm) for the high-performance inference engine
+- [Next.js](https://nextjs.org/) for the React framework
+- [FastAPI](https://fastapi.tiangolo.com/) for the backend framework
+- [Hugging Face](https://huggingface.co/) for the model hosting
+
+
+---
+
+**Made with ❤️ for Hebrew AI conversations**
