@@ -47,7 +47,7 @@ A modern, production-ready Hebrew chat application with real-time streaming AI r
    git init
    git remote add origin https://github.com/pelegel/ChatPLG-UI.git
    git fetch origin
-   git checkout -b connect-to-api origin
+   git checkout -b connect-to-api origin/connect-to-api
    ```
 
 2. **Start vLLM server** (in separate terminal):
