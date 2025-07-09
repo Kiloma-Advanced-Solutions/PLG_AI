@@ -2,7 +2,7 @@ import { Message } from '../types';
 
 // API configuration
 // const API_BASE_URL = 'http://localhost:8090';
-const API_BASE_URL = 'http://166.113.52.39:42350'; // External port mapped to container's 8090
+const API_BASE_URL = 'http://211.72.13.201:41630'; // External port mapped to container's 8090
 
 // Generate a unique session ID for each user session
 export const generateSessionId = (): string => {
@@ -86,16 +86,19 @@ export const streamChatResponse = async (
   const sessionId = getSessionId();
   
   try {
-    // Check API health first (temporarily bypassed)
-    // const isHealthy = await checkAPIHealth();
-    // if (!isHealthy) {
-    //   onError({
-    //     type: 'api',
-    //     message: 'שירות הבינה המלאכותית אינו זמין כרגע. אנא נסה שוב מאוחר יותר.',
-    //     retryable: true
-    //   });
-    //   return;
-    // }
+    // Check API health first
+    console.log('Checking API health...');
+    const isHealthy = await checkAPIHealth();
+    if (!isHealthy) {
+      console.error('API health check failed');
+      onError({
+        type: 'api',
+        message: 'שירות הבינה המלאכותית אינו זמין כרגע. אנא נסה שוב מאוחר יותר.',
+        retryable: true
+      });
+      return;
+    }
+    console.log('API health check passed');
 
     const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
       method: 'POST',
@@ -141,17 +144,26 @@ export const streamChatResponse = async (
 
     const decoder = new TextDecoder();
     let buffer = '';
+    let completed = false;
 
     try {
       while (true) {
         const { done, value } = await reader.read();
         
         if (done) {
+          console.log('Stream ended normally');
+          // Call onComplete if we haven't already
+          if (!completed) {
+            completed = true;
+            onComplete();
+          }
           break;
         }
 
         // Decode the chunk and add to buffer
-        buffer += decoder.decode(value, { stream: true });
+        const chunk = decoder.decode(value, { stream: true });
+        buffer += chunk;
+        console.log('Received chunk:', chunk);
 
         // Process complete lines
         const lines = buffer.split('\n');
@@ -160,9 +172,14 @@ export const streamChatResponse = async (
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const data = line.slice(6).trim();
+            console.log('Processing line:', data);
             
             if (data === '[DONE]') {
-              onComplete();
+              console.log('Stream completed with [DONE]');
+              if (!completed) {
+                completed = true;
+                onComplete();
+              }
               return;
             }
             
@@ -171,6 +188,7 @@ export const streamChatResponse = async (
               
               // Handle error messages from the server
               if (parsed.error) {
+                console.error('Server error:', parsed.error);
                 onError({
                   type: 'api',
                   message: parsed.error,
@@ -183,22 +201,23 @@ export const streamChatResponse = async (
               if (parsed.choices?.[0]?.delta?.content) {
                 onToken(parsed.choices[0].delta.content);
               }
-            } catch {
-              // Skip invalid JSON lines
-              console.warn('Failed to parse streaming data:', data);
+            } catch (parseError) {
+              console.warn('Failed to parse streaming data:', data, parseError);
             }
           }
         }
       }
-    } catch {
+    } catch (streamError) {
       if (abortController?.signal.aborted) {
         // Request was cancelled, don't treat as error
         return;
       }
       
+      console.error('Streaming error:', streamError);
+      const errorMessage = streamError instanceof Error ? streamError.message : 'הזרמת התגובה נקטעה. אנא נסה שוב.';
       onError({
         type: 'streaming',
-        message: 'הזרמת התגובה נקטעה. אנא נסה שוב.',
+        message: errorMessage,
         retryable: true
       });
     } finally {
@@ -211,6 +230,8 @@ export const streamChatResponse = async (
       return;
     }
     
+    console.error('Fetch error:', error);
+    
     if (error instanceof TypeError && error.message.includes('fetch')) {
       onError({
         type: 'connection',
@@ -218,9 +239,10 @@ export const streamChatResponse = async (
         retryable: true
       });
     } else {
+      const errorMessage = error instanceof Error ? error.message : 'אירעה שגיאה בחיבור לשרת.';
       onError({
         type: 'connection',
-        message: 'אירעה שגיאה בחיבור לשרת.',
+        message: errorMessage,
         retryable: true
       });
     }
