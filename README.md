@@ -44,6 +44,7 @@ A modern, production-ready Hebrew chat application with real-time streaming AI r
 
 1. **Clone the repository**:
    ```bash
+   cd / && mkdir ChatPLG && cd ChatPLG
    git init
    git remote add origin https://github.com/pelegel/ChatPLG-UI.git
    git fetch origin
