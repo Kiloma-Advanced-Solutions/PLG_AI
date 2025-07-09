@@ -40,4 +40,39 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Log files
+*.log
+frontend.log
+vllm.log
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environment
 /chatplg-venv
+chatplg-venv/
+venv/
+env/
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# AI/ML models and data
+*.model
+*.pkl
+*.h5
+*.hdf5
+checkpoints/
+models/
+data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

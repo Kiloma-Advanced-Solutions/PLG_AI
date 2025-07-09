@@ -77,11 +77,11 @@ export const checkAPIHealth = async (): Promise<boolean> => {
 
 // Streaming response handler
 export const streamChatResponse = async (
-  messages: Message[],
-  onToken: (token: string) => void,
-  onError: (error: StreamError) => void,
-  onComplete: () => void,
-  abortController?: AbortController
+  messages: Message[],                   // Conversation history   
+  onToken: (token: string) => void,      // Called for each AI token
+  onError: (error: StreamError) => void, // Called on errors
+  onComplete: () => void,                // Called when stream ends
+  abortController?: AbortController      // For canceling requests
 ): Promise<void> => {
   const sessionId = getSessionId();
   
@@ -98,42 +98,41 @@ export const streamChatResponse = async (
       });
       return;
     }
-    console.log('API health check passed');
 
     const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Accept': 'text/event-stream',
+        'Accept': 'text/event-stream',      // for SSE (Server-Sent Events)
       },
       body: JSON.stringify({
         messages: formatMessagesForAPI(messages),
         session_id: sessionId
       }),
-      signal: abortController?.signal
+      signal: abortController?.signal       // abort signal for canceling the request
     });
 
     if (!response.ok) {
       let errorMessage = 'שגיאה בשרת';
       
-      if (response.status === 400) {
+      if (response.status === 400) {         // Bad Request
         errorMessage = 'בקשה לא תקינה';
-      } else if (response.status === 500) {
+      } else if (response.status === 500) {  // Internal Server Error
         errorMessage = 'שגיאה פנימית בשרת';
-      } else if (response.status === 503) {
+      } else if (response.status === 503) {  // Service Unavailable
         errorMessage = 'השירות אינו זמין כרגע';
       }
       
       onError({
         type: 'api',
         message: errorMessage,
-        retryable: response.status >= 500
+        retryable: response.status >= 500  // Retryable if server error
       });
-      return;
+      return;                              // Stop the stream if there's an error
     }
 
-    const reader = response.body?.getReader();
-    if (!reader) {
+    const reader = response.body?.getReader();  // Get the reader for reading chunks from the response stream
+    if (!reader) {  
       onError({
         type: 'streaming',
         message: 'לא ניתן לקרוא את התגובה מהשרת',
@@ -142,16 +141,16 @@ export const streamChatResponse = async (
       return;
     }
 
-    const decoder = new TextDecoder();
-    let buffer = '';
-    let completed = false;
+    const decoder = new TextDecoder();  // Decode the chunks from the stream
+    let buffer = '';                    // Buffer to store the chunks (incomplete lines)
+    let completed = false;              // Flag to check if the stream has completed
 
     try {
       while (true) {
-        const { done, value } = await reader.read();
+        const { done, value } = await reader.read();  // Waits for the next chunk from the server
         
         if (done) {
-          console.log('Stream ended normally');
+          console.log('Stream ended successfully');
           // Call onComplete if we haven't already
           if (!completed) {
             completed = true;
@@ -167,15 +166,13 @@ export const streamChatResponse = async (
 
         // Process complete lines
         const lines = buffer.split('\n');
-        buffer = lines.pop() || ''; // Keep the last incomplete line in buffer
+        buffer = lines.pop() || '';   // Keep the last incomplete line in buffer
 
         for (const line of lines) {
           if (line.startsWith('data: ')) {
             const data = line.slice(6).trim();
-            console.log('Processing line:', data);
             
             if (data === '[DONE]') {
-              console.log('Stream completed with [DONE]');
               if (!completed) {
                 completed = true;
                 onComplete();
@@ -198,8 +195,8 @@ export const streamChatResponse = async (
               }
               
               // Handle streaming tokens
-              if (parsed.choices?.[0]?.delta?.content) {
-                onToken(parsed.choices[0].delta.content);
+              if (parsed.choices?.[0]?.delta?.content) {    // If the server sent a token
+                onToken(parsed.choices[0].delta.content);  // Call the onToken function with the token
               }
             } catch (parseError) {
               console.warn('Failed to parse streaming data:', data, parseError);
@@ -207,24 +204,23 @@ export const streamChatResponse = async (
           }
         }
       }
-    } catch (streamError) {
-      if (abortController?.signal.aborted) {
-        // Request was cancelled, don't treat as error
+    } catch (streamError) {  // Abort during stream reading (while processing chunks)
+      if (abortController?.signal.aborted) {  // Request was cancelled, don't treat as error
         return;
       }
       
-      console.error('Streaming error:', streamError);
+      console.error('Streaming error:', streamError); 
       const errorMessage = streamError instanceof Error ? streamError.message : 'הזרמת התגובה נקטעה. אנא נסה שוב.';
-      onError({
+      onError({  // Call the onError function with the error message
         type: 'streaming',
         message: errorMessage,
         retryable: true
       });
     } finally {
-      reader.releaseLock();
+      reader.releaseLock();  // Release the lock on the reader
     }
     
-  } catch (error) {
+  } catch (error) {  // Abort during initial request (before streaming starts)
     // Handle fetch errors
     if (abortController?.signal.aborted) {
       return;
@@ -233,7 +229,7 @@ export const streamChatResponse = async (
     console.error('Fetch error:', error);
     
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      onError({
+      onError({ 
         type: 'connection',
         message: 'אין חיבור לשרת. אנא בדוק את החיבור שלך.',
         retryable: true

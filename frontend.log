@@ -7,13 +7,24 @@
    - Network:      http://172.17.0.3:3000
 
  ✓ Starting...
- ✓ Ready in 1379ms
+ ✓ Ready in 1440ms
  ○ Compiling / ...
- ✓ Compiled / in 15.3s (840 modules)
+ ✓ Compiled / in 3.2s (840 modules)
  ⚠ Unsupported metadata viewport is configured in metadata export in /. Please move it to viewport export instead.
 Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- ⚠ Unsupported metadata viewport is configured in metadata export in /. Please move it to viewport export instead.
-Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
- GET / 200 in 2689ms
+ GET / 200 in 3640ms
  ⚠ Cross origin request detected from 211.72.13.201 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
 Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+ ✓ Compiled in 125ms (350 modules)
+ ⚠ Unsupported metadata viewport is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET / 200 in 19ms
+ ✓ Compiled in 67ms (350 modules)
+ ⚠ Unsupported metadata viewport is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET / 200 in 17ms
+ ✓ Compiled in 45ms (336 modules)
+ ✓ Compiled in 106ms (350 modules)
+ ⚠ Unsupported metadata viewport is configured in metadata export in /. Please move it to viewport export instead.
+Read more: https://nextjs.org/docs/app/api-reference/functions/generate-viewport
+ GET / 200 in 28ms
