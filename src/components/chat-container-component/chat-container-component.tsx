@@ -35,10 +35,10 @@ export default function ChatContainerComponent({
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    // scroll to the bottom of the messages container every time the messages array changes
+    // scroll to the bottom of the messages container every time the messages array changes or streaming message updates
     useEffect(() => {
       scrollToBottom();
-    }, [messages]);
+    }, [messages, streamingMessage]);
 
     const formatTimestamp = (timestamp: string) => {
       return new Date(timestamp).toLocaleTimeString('he-IL', {

@@ -2,7 +2,7 @@ import { Message } from '../types';
 
 // API configuration
 // const API_BASE_URL = 'http://localhost:8090';
-const API_BASE_URL = 'http://211.72.13.201:41630'; // External port mapped to container's 8090
+const API_BASE_URL = 'http://184.98.19.66:41724'; // External port mapped to container's 8090
 
 // Generate a unique session ID for each user session
 export const generateSessionId = (): string => {
