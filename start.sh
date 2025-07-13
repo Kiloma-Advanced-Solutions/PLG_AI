@@ -84,8 +84,8 @@ install_python_deps() {
     
     # Install dependencies
     pip install -r requirements.txt
-    # pkill -f python
-    
+    ps -eo pid,cmd | grep python | grep -v jupyter-notebook | grep -v grep | awk '{print $1}' | xargs -r kill -9
+
     echo "✅ Python dependencies installed successfully\n"
 }
 
