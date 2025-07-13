@@ -13,31 +13,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [isDark, setIsDark] = useState(false);
 
   useEffect(() => {
-    // Check for saved theme preference or default to light mode
+    // Check for saved theme preference, default to light mode
     const savedTheme = localStorage.getItem('theme');
+    const isInitiallyDark = savedTheme === 'dark';
     
-    if (savedTheme === 'dark') {
-      setIsDark(true);
-      document.documentElement.classList.add('dark');
-    } else {
-      // Default to light mode
-      setIsDark(false);
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
+    setIsDark(isInitiallyDark);
+    document.documentElement.classList.toggle('dark', isInitiallyDark);
   }, []);
 
   const toggleTheme = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
     
-    if (newTheme) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
+    document.documentElement.classList.toggle('dark', newIsDark);
+    localStorage.setItem('theme', newIsDark ? 'dark' : 'light');
   };
 
   return (

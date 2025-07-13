@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import HeaderComponent from '../../../components/header-component/header-component';
 import SidebarComponent from '../../../components/sidebar-component/sidebar-component';
@@ -21,9 +21,6 @@ export default function NewChatPage() {
   } = useConversations();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [shouldFocusInput, setShouldFocusInput] = useState(true);
-
-
 
   const handleSendMessage = async (messageContent: string) => {
     // Create a new conversation when sending the first message
@@ -52,7 +49,7 @@ export default function NewChatPage() {
           onSendMessage={handleSendMessage}
           isLoading={isLoading}
           isSidebarOpen={isSidebarOpen}
-          shouldFocusInput={shouldFocusInput}
+          shouldFocusInput={true}
           streamingMessage={streamingMessage}
           apiError={apiError}
           onRetry={retryLastMessage}

@@ -24,8 +24,6 @@ export default function ChatPage() {
   } = useConversations();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [shouldFocusInput, setShouldFocusInput] = useState(false);
-
   const currentConversation = getConversation(conversationId);
 
   // Redirect to /chat/new if conversation doesn't exist
@@ -34,8 +32,6 @@ export default function ChatPage() {
       router.push('/chat/new');
     }
   }, [conversations, currentConversation, router]);
-
-
 
   const handleSendMessage = async (messageContent: string) => {
     if (currentConversation) {
@@ -84,7 +80,7 @@ export default function ChatPage() {
           onSendMessage={handleSendMessage}
           isLoading={isLoading}
           isSidebarOpen={isSidebarOpen}
-          shouldFocusInput={shouldFocusInput}
+          shouldFocusInput={false}
           streamingMessage={streamingMessage}
           apiError={apiError}
           onRetry={retryLastMessage}

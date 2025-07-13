@@ -11,14 +11,7 @@ export default function Home() {
   useEffect(() => {
     // Check if there's a recent conversation with messages
     const recentConversation = conversations.find(conv => conv.messages.length > 0);
-    
-    if (recentConversation) {
-      // Redirect to the most recent conversation
-      router.push(`/chat/${recentConversation.id}`);
-    } else {
-      // No conversations or all are empty, redirect to new chat
-      router.push('/chat/new');
-    }
+    router.push(recentConversation ? `/chat/${recentConversation.id}` : '/chat/new');
   }, [conversations, router]);
 
   // Show loading while redirecting

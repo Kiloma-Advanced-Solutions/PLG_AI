@@ -18,7 +18,6 @@ export default function HeaderComponent({ isSidebarOpen, onToggleSidebar }: Head
     router.push('/chat/new');
   };
   
-  // render the header component
   return (
     <header className={`${styles.header} ${isSidebarOpen ? styles.shifted : ''}`}>
       <div className={styles.leftSection}>
@@ -47,7 +46,6 @@ export default function HeaderComponent({ isSidebarOpen, onToggleSidebar }: Head
           </svg>
         </button>
       </div>
-      
     </header>
   );
 } 

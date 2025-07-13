@@ -33,7 +33,6 @@ export default function SidebarComponent({
   
   return (
     <div className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
-      {/* Burger icon at header height */}
       <div className={styles.burgerSection}>
         <button 
           className={styles.burgerButton}
@@ -46,13 +45,12 @@ export default function SidebarComponent({
         </button>
       </div>
 
-      {/* newChatIcon icon */}
       <NewChatButtonComponent 
         onClick={handleCreateNewChat}
         isOpen={isOpen}
       />
 
-      {isOpen ? (
+      {isOpen && (
         <div className={styles.sidebarContent}>
           <div className={styles.sidebarHeader}>
             <h2>שיחות קודמות</h2>
@@ -64,7 +62,7 @@ export default function SidebarComponent({
             onConversationSelect={handleConversationSelect}
           />
         </div>
-      ) : null}
+      )}
     </div>
   );
 } 

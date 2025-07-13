@@ -17,10 +17,8 @@ export default function InputMessageContainer({
   shouldFocusInput = false
 }: InputMessageContainerProps) {
 
-  // the state of the input value
   const [inputValue, setInputValue] = useState('');
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const [isFocusAnimating, setIsFocusAnimating] = useState(false);
 
   // Function to handle the submission of the message
   const handleSubmit = (e: React.FormEvent) => {
@@ -39,7 +37,7 @@ export default function InputMessageContainer({
     }
   };
 
-  // Auto-resize textarea and maintain focus
+  // Auto-resize textarea and focus management
   useEffect(() => {
     const input = inputRef.current;
     if (!input) return;
@@ -54,31 +52,18 @@ export default function InputMessageContainer({
     }
   }, [inputValue, isLoading]);
 
-  // Re-focus when loading state changes
-  useEffect(() => {
-    if (!isLoading) {
-      setTimeout(() => inputRef.current?.focus(), 50);
-    }
-  }, [isLoading]);
-
-  // Handle focus animation when shouldFocusInput changes
+  // Focus when shouldFocusInput changes
   useEffect(() => {
     if (shouldFocusInput && inputRef.current) {
       inputRef.current.focus();
-      setIsFocusAnimating(true);
-      
-      // Remove animation class after animation completes
-      setTimeout(() => {
-        setIsFocusAnimating(false);
-      }, 600);
     }
   }, [shouldFocusInput]);
 
   return (
     <form className={styles.inputContainer} onSubmit={handleSubmit}>
-      <div className={`${styles.inputWrapper} ${isFocusAnimating ? styles.focusAnimation : ''}`}>
+      <div className={styles.inputWrapper}>
         <textarea
-          ref={inputRef} // the ref to the textarea element
+          ref={inputRef}
           value={inputValue} 
           onChange={(e) => setInputValue(e.target.value)} 
           onKeyDown={handleKeyPress} 

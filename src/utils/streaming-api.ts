@@ -49,22 +49,10 @@ export const formatMessagesForAPI = (messages: Message[]): Array<{type: string, 
 
 // Health check function
 export const checkAPIHealth = async (): Promise<boolean> => {
-  // Only run on client side
-  if (typeof window === 'undefined') {
-    console.log('Health check skipped on server side');
-    return true;
-  }
-  
-  console.log('Health check running on client side, API_BASE_URL:', API_BASE_URL);
+  if (typeof window === 'undefined') return true;
   
   try {
-    const response = await fetch(`${API_BASE_URL}/api/health`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-    
+    const response = await fetch(`${API_BASE_URL}/api/health`);
     if (!response.ok) return false;
     
     const data = await response.json();
@@ -86,11 +74,8 @@ export const streamChatResponse = async (
   const sessionId = getSessionId();
   
   try {
-    // Check API health first
-    console.log('Checking API health...');
     const isHealthy = await checkAPIHealth();
     if (!isHealthy) {
-      console.error('API health check failed');
       onError({
         type: 'api',
         message: 'שירות הבינה המלאכותית אינו זמין כרגע. אנא נסה שוב מאוחר יותר.',
@@ -150,7 +135,6 @@ export const streamChatResponse = async (
         const { done, value } = await reader.read();  // Waits for the next chunk from the server
         
         if (done) {
-          console.log('Stream ended successfully');
           // Call onComplete if we haven't already
           if (!completed) {
             completed = true;
@@ -162,7 +146,6 @@ export const streamChatResponse = async (
         // Decode the chunk and add to buffer
         const chunk = decoder.decode(value, { stream: true });
         buffer += chunk;
-        console.log('Received chunk:', chunk);
 
         // Process complete lines
         const lines = buffer.split('\n');
@@ -220,13 +203,8 @@ export const streamChatResponse = async (
       reader.releaseLock();  // Release the lock on the reader
     }
     
-  } catch (error) {  // Abort during initial request (before streaming starts)
-    // Handle fetch errors
-    if (abortController?.signal.aborted) {
-      return;
-    }
-    
-    console.error('Fetch error:', error);
+  } catch (error) {
+    if (abortController?.signal.aborted) return;
     
     if (error instanceof TypeError && error.message.includes('fetch')) {
       onError({ 

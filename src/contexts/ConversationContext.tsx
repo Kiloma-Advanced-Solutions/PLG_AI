@@ -41,8 +41,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     const savedConversations = localStorage.getItem('chatplg-conversations');
     if (savedConversations) {
-      const parsed = JSON.parse(savedConversations);
-      setConversations(parsed);
+      setConversations(JSON.parse(savedConversations));
     }
   }, []);
 
@@ -88,16 +87,14 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       timestamp: new Date().toISOString()
     };
 
-    // Get current conversation before updating
     const currentConversation = conversations.find(conv => conv.id === conversationId);
     
     // Update conversation with user message
     setConversations(prev => prev.map(conv => {
       if (conv.id === conversationId) {
-        const isFirstMessage = conv.messages.length === 0;
         return {
           ...conv,
-          title: isFirstMessage ? messageContent : conv.title,
+          title: conv.messages.length === 0 ? messageContent : conv.title,
           messages: [...conv.messages, userMessage],
           lastMessage: messageContent,
           timestamp: new Date().toISOString()
@@ -168,9 +165,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   const retryLastMessage = () => {
-    if (apiError) {
-      setApiError(null);
-    }
+    setApiError(null);
   };
 
   const value: ConversationContextType = {
