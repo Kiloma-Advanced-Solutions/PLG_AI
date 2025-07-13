@@ -2,17 +2,14 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useConversations } from '../contexts/ConversationContext';
 
 export default function Home() {
   const router = useRouter();
-  const { conversations } = useConversations();
 
   useEffect(() => {
-    // Check if there's a recent conversation with messages
-    const recentConversation = conversations.find(conv => conv.messages.length > 0);
-    router.push(recentConversation ? `/chat/${recentConversation.id}` : '/chat/new');
-  }, [conversations, router]);
+    // Always redirect to new chat page
+    router.push('/chat/new');
+  }, [router]);
 
   // Show loading while redirecting
   return (

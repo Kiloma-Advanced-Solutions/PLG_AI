@@ -7,14 +7,12 @@ import styles from './input-message-container.module.css';
 type InputMessageContainerProps = {
   onSendMessage: (message: string) => void;
   isLoading?: boolean;
-  shouldFocusInput?: boolean;
 };
 
 // the input message container component
 export default function InputMessageContainer({ 
   onSendMessage, 
   isLoading = false,
-  shouldFocusInput = false
 }: InputMessageContainerProps) {
 
   const [inputValue, setInputValue] = useState('');
@@ -52,12 +50,6 @@ export default function InputMessageContainer({
     }
   }, [inputValue, isLoading]);
 
-  // Focus when shouldFocusInput changes
-  useEffect(() => {
-    if (shouldFocusInput && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [shouldFocusInput]);
 
   return (
     <form className={styles.inputContainer} onSubmit={handleSubmit}>
