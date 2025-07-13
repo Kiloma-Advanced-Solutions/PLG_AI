@@ -21,22 +21,27 @@ export default function NewChatPage() {
   } = useConversations();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
 
   const handleSendMessage = async (messageContent: string) => {
     // Create a new conversation when sending the first message
     const newConversation = createConversation();
+    setCurrentConversationId(newConversation.id);
     
-    // Send the message and wait for state update
-    sendMessage(newConversation.id, messageContent);
+    // Send the message
+    await sendMessage(newConversation.id, messageContent);
     
-    // Small delay to ensure state update before navigation
-    setTimeout(() => {
-      router.push(`/chat/${newConversation.id}`);
-    }, 0);
+    // Navigate to the conversation page
+    router.push(`/chat/${newConversation.id}`);
   };
 
   // Get sidebar conversations (only ones with messages)
   const sidebarConversations = conversations.filter(conv => conv.messages.length > 0);
+
+  // Get the current conversation and its messages
+  const currentConversation = currentConversationId ? 
+    conversations.find(conv => conv.id === currentConversationId) : null;
+  const displayMessages = currentConversation?.messages || [];
 
   return (
     <div className={styles.container} dir="rtl">
@@ -47,7 +52,7 @@ export default function NewChatPage() {
       
       <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
         <ChatContainerComponent
-          messages={[]}
+          messages={displayMessages}
           onSendMessage={handleSendMessage}
           isLoading={isLoading}
           isSidebarOpen={isSidebarOpen}
@@ -60,7 +65,7 @@ export default function NewChatPage() {
       
       <SidebarComponent
         conversations={sidebarConversations}
-        currentConversationId={undefined}
+        currentConversationId={currentConversationId || undefined}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
       />
