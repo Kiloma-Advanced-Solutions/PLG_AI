@@ -1,17 +1,23 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import ThemeToggleComponent from '../theme-toggle-component/theme-toggle-component';
 import styles from './header-component.module.css';
 
 // the props of the header component
 type HeaderComponentProps = {
   isSidebarOpen: boolean;
-  onCreateNewChat: () => void;
   onToggleSidebar: () => void;
 };
 
 // the header component
-export default function HeaderComponent({ isSidebarOpen, onCreateNewChat, onToggleSidebar }: HeaderComponentProps) {
+export default function HeaderComponent({ isSidebarOpen, onToggleSidebar }: HeaderComponentProps) {
+  const router = useRouter();
+  
+  const handleCreateNewChat = () => {
+    router.push('/chat/new');
+  };
+  
   // render the header component
   return (
     <header className={`${styles.header} ${isSidebarOpen ? styles.shifted : ''}`}>
@@ -26,7 +32,7 @@ export default function HeaderComponent({ isSidebarOpen, onCreateNewChat, onTogg
       </div>
       
       <div className={`${styles.appName} ${isSidebarOpen ? styles.shifted : ''}`}>
-        <h1 onClick={onCreateNewChat} className={styles.clickable}>ChatPLG</h1>
+        <h1 onClick={handleCreateNewChat} className={styles.clickable}>ChatPLG</h1>
       </div>
 
       {/* Mobile controls - only visible on mobile */}

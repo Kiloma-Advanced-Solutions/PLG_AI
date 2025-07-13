@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ThemeProvider } from "../contexts/ThemeContext";
+import { ConversationProvider } from "../contexts/ConversationContext";
 
 export const metadata: Metadata = {
   title: "ChatPLG",
@@ -18,7 +19,9 @@ export default function RootLayout({
     <html lang="he" dir="rtl">
       <body>
         <ThemeProvider>
-          {children}
+          <ConversationProvider>
+            {children}
+          </ConversationProvider>
         </ThemeProvider>
       </body>
     </html>

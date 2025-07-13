@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
 import { Conversation } from '../../types';
 import NewChatButtonComponent from '../new-chat-button-component/new-chat-button-component';
 import PreviousChatListComponent from '../previous-chat-list-component/previous-chat-list-component';
@@ -9,8 +10,6 @@ import styles from './sidebar-component.module.css';
 type SidebarComponentProps = {
   conversations: Conversation[];
   currentConversationId?: string;
-  onConversationSelect: (conversationId: string) => void;
-  onCreateNewChat: () => void;
   isOpen: boolean;
   onToggle: () => void;
 };
@@ -19,11 +18,19 @@ type SidebarComponentProps = {
 export default function SidebarComponent({
   conversations,
   currentConversationId,
-  onConversationSelect,
-  onCreateNewChat,
   isOpen,
   onToggle
 }: SidebarComponentProps) {
+  const router = useRouter();
+  
+  const handleConversationSelect = (conversationId: string) => {
+    router.push(`/chat/${conversationId}`);
+  };
+  
+  const handleCreateNewChat = () => {
+    router.push('/chat/new');
+  };
+  
   return (
     <div className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
       {/* Burger icon at header height */}
@@ -41,7 +48,7 @@ export default function SidebarComponent({
 
       {/* newChatIcon icon */}
       <NewChatButtonComponent 
-        onClick={onCreateNewChat}
+        onClick={handleCreateNewChat}
         isOpen={isOpen}
       />
 
@@ -54,7 +61,7 @@ export default function SidebarComponent({
           <PreviousChatListComponent
             conversations={conversations}
             currentConversationId={currentConversationId}
-            onConversationSelect={onConversationSelect}
+            onConversationSelect={handleConversationSelect}
           />
         </div>
       ) : null}
