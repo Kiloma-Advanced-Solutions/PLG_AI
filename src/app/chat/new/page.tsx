@@ -26,11 +26,13 @@ export default function NewChatPage() {
     // Create a new conversation when sending the first message
     const newConversation = createConversation();
     
-    // Redirect to the new conversation route
-    router.push(`/chat/${newConversation.id}`);
+    // Send the message and wait for state update
+    sendMessage(newConversation.id, messageContent);
     
-    // Send the message
-    await sendMessage(newConversation.id, messageContent);
+    // Small delay to ensure state update before navigation
+    setTimeout(() => {
+      router.push(`/chat/${newConversation.id}`);
+    }, 0);
   };
 
   // Get sidebar conversations (only ones with messages)
