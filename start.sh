@@ -84,7 +84,7 @@ install_python_deps() {
     
     # Install dependencies
     pip install -r requirements.txt
-    pkill -f python
+    # pkill -f python
     
     echo "✅ Python dependencies installed successfully\n"
 }
