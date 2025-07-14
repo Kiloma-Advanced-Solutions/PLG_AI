@@ -40,8 +40,8 @@ export default function NewChatButtonComponent({
             </g>
           </svg>
         </div>
+        <span className={styles.newChatIconTitle}>צור שיחה חדשה</span>
       </button>
-      <span className={styles.newChatIconTitle}>צור שיחה חדשה</span>
     </div>
   );
 } 
