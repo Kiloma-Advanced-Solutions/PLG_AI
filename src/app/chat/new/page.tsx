@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import HeaderComponent from '../../../components/header-component/header-component';
 import SidebarComponent from '../../../components/sidebar-component/sidebar-component';
@@ -17,11 +17,17 @@ export default function NewChatPage() {
     apiError, 
     createConversation, 
     sendMessage, 
-    retryLastMessage 
+    retryLastMessage,
+    setNavigationLoading
   } = useConversations();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+
+  // Clear navigation loading when the new chat page loads
+  useEffect(() => {
+    setNavigationLoading(false);
+  }, [setNavigationLoading]);
 
   const handleSendMessage = async (messageContent: string) => {
     // Create a new conversation when sending the first message

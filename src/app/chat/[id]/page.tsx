@@ -20,7 +20,8 @@ export default function ChatPage() {
     apiError, 
     getConversation, 
     sendMessage, 
-    retryLastMessage 
+    retryLastMessage,
+    setNavigationLoading
   } = useConversations();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -32,6 +33,13 @@ export default function ChatPage() {
       router.push('/chat/new');
     }
   }, [conversations, currentConversation, router]);
+
+  // Clear navigation loading when conversation is found
+  useEffect(() => {
+    if (currentConversation) {
+      setNavigationLoading(false);
+    }
+  }, [currentConversation, setNavigationLoading]);
 
   const handleSendMessage = async (messageContent: string) => {
     if (currentConversation) {

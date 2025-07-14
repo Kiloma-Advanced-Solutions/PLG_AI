@@ -15,6 +15,7 @@ type ConversationContextType = {
   sendMessage: (conversationId: string, message: string) => Promise<void>;
   getConversation: (id: string) => Conversation | null;
   retryLastMessage: () => void;
+  setNavigationLoading: (loading: boolean) => void;
 };
 
 const ConversationContext = createContext<ConversationContextType | undefined>(undefined);
@@ -168,6 +169,10 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setApiError(null);
   };
 
+  const setNavigationLoading = (loading: boolean) => {
+    setIsLoading(loading);
+  };
+
   const value: ConversationContextType = {
     conversations,
     isLoading,
@@ -178,7 +183,8 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     deleteConversation,
     sendMessage,
     getConversation,
-    retryLastMessage
+    retryLastMessage,
+    setNavigationLoading
   };
 
   return (

@@ -24,11 +24,27 @@ export default function SidebarComponent({
   const router = useRouter();
   
   const handleConversationSelect = (conversationId: string) => {
-    router.push(`/chat/${conversationId}`);
+    // Close sidebar first to show transition
+    if (isOpen) {
+      onToggle();
+    }
+    
+    // Navigate after a small delay to allow transition to be visible
+    setTimeout(() => {
+      router.push(`/chat/${conversationId}`);
+    }, 150);
   };
   
   const handleCreateNewChat = () => {
-    router.push('/chat/new');
+    // Close sidebar first to show transition
+    if (isOpen) {
+      onToggle();
+    }
+    
+    // Navigate after a small delay to allow transition to be visible
+    setTimeout(() => {
+      router.push('/chat/new');
+    }, 150);
   };
   
   return (
