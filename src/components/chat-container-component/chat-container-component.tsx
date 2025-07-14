@@ -12,7 +12,6 @@ type ChatContainerComponentProps = {
   onSendMessage: (message: string) => void;
   isLoading?: boolean;
   isSidebarOpen?: boolean;
-  shouldFocusInput?: boolean;
   streamingMessage?: string;
   apiError?: string | null;
   onRetry?: () => void;
@@ -24,7 +23,6 @@ export default function ChatContainerComponent({
   onSendMessage, 
   isLoading = false, 
   isSidebarOpen = false,
-  shouldFocusInput = false,
   streamingMessage = '',
   apiError = null,
   onRetry
@@ -109,7 +107,6 @@ export default function ChatContainerComponent({
         <InputMessageContainer 
           onSendMessage={onSendMessage}
           isLoading={isLoading}
-          shouldFocusInput={shouldFocusInput}
         />
       </div>
     );

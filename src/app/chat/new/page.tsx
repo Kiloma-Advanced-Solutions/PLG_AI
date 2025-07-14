@@ -56,7 +56,6 @@ export default function NewChatPage() {
           onSendMessage={handleSendMessage}
           isLoading={isLoading}
           isSidebarOpen={isSidebarOpen}
-          shouldFocusInput={true}
           streamingMessage={streamingMessage}
           apiError={apiError}
           onRetry={retryLastMessage}

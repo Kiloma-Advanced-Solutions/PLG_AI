@@ -83,7 +83,6 @@ export default function ChatPage() {
           onSendMessage={handleSendMessage}
           isLoading={isLoading}
           isSidebarOpen={isSidebarOpen}
-          shouldFocusInput={false}
           streamingMessage={streamingMessage}
           apiError={apiError}
           onRetry={retryLastMessage}
