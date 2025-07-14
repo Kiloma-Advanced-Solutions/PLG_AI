@@ -52,7 +52,7 @@ export default function ChatPage() {
         />
         
         <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', flex: 1 }}>
             <p>טוען...</p>
           </div>
         </main>

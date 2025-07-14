@@ -12,7 +12,7 @@ export default function Home() {
   }, [router]);
 
   // Show loading while redirecting
-  return (
+ return (
     <div style={{ 
       display: 'flex', 
       justifyContent: 'center', 
