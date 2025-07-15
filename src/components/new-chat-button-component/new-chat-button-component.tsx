@@ -2,13 +2,20 @@
 
 import styles from './new-chat-button-component.module.css';
 
-// Props for the NewChatButtonComponent component
+/**
+ * Props for the NewChatButtonComponent
+ */
 type NewChatButtonComponentProps = {
+  /** Callback function when the button is clicked */
   onClick: () => void;
+  /** Whether the sidebar is currently open (affects styling) */
   isOpen: boolean;
 };
 
-// function to render the NewChatButtonComponent component
+/**
+ * Component that renders a button for creating new chat conversations
+ * Adapts its appearance based on sidebar state
+ */
 export default function NewChatButtonComponent({ 
   onClick, 
   isOpen

@@ -3,7 +3,12 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { Message, Conversation } from '../types';
 import { streamChatResponse, StreamError } from '../utils/streaming-api';
+import { generateConversationId, generateMessageId } from '../utils/conversation';
+import { getCurrentTimestamp } from '../utils/date';
 
+/**
+ * Type definition for the conversation context
+ */
 type ConversationContextType = {
   conversations: Conversation[];
   isLoading: boolean;
@@ -15,11 +20,17 @@ type ConversationContextType = {
   sendMessage: (conversationId: string, message: string) => Promise<void>;
   getConversation: (id: string) => Conversation | null;
   retryLastMessage: () => void;
-  setNavigationLoading: (loading: boolean) => void;
 };
 
+/**
+ * React context for managing conversation state and operations
+ */
 const ConversationContext = createContext<ConversationContextType | undefined>(undefined);
 
+/**
+ * Hook to access the conversation context
+ * Throws an error if used outside of ConversationProvider
+ */
 export const useConversations = () => {
   const context = useContext(ConversationContext);
   if (!context) {
@@ -28,17 +39,21 @@ export const useConversations = () => {
   return context;
 };
 
+/**
+ * Provider component for conversation context
+ * Manages all conversation state, localStorage persistence, and API communication
+ */
 export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [apiError, setApiError] = useState<string | null>(null);
   
-  // refs for streaming
+  // Refs for managing streaming state
   const abortControllerRef = useRef<AbortController | null>(null);
   const streamingContentRef = useRef<string>('');
 
-  // Load conversations from localStorage on mount
+  // Load conversations from localStorage on component mount
   useEffect(() => {
     const savedConversations = localStorage.getItem('chatplg-conversations');
     if (savedConversations) {
@@ -46,17 +61,20 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, []);
 
-  // Save conversations to localStorage whenever they change
+  // Persist conversations to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('chatplg-conversations', JSON.stringify(conversations));
   }, [conversations]);
 
+  /**
+   * Creates a new conversation with default values
+   */
   const createConversation = (): Conversation => {
     const newConversation: Conversation = {
-      id: Date.now().toString(),
+      id: generateConversationId(),
       title: 'שיחה חדשה',
       lastMessage: '',
-      timestamp: new Date().toISOString(),
+      timestamp: getCurrentTimestamp(),
       messages: []
     };
     
@@ -64,28 +82,40 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return newConversation;
   };
 
+  /**
+   * Updates an existing conversation with partial data
+   */
   const updateConversation = (id: string, updates: Partial<Conversation>) => {
     setConversations(prev => prev.map(conv => 
       conv.id === id ? { ...conv, ...updates } : conv
     ));
   };
 
+  /**
+   * Deletes a conversation by ID
+   */
   const deleteConversation = (id: string) => {
     setConversations(prev => prev.filter(conv => conv.id !== id));
   };
 
+  /**
+   * Retrieves a conversation by ID
+   */
   const getConversation = (id: string): Conversation | null => {
     return conversations.find(conv => conv.id === id) || null;
   };
 
+  /**
+   * Sends a message and streams the AI response
+   */
   const sendMessage = async (conversationId: string, messageContent: string) => {
     setApiError(null);
     
     const userMessage: Message = {
-      id: Date.now().toString(),
+      id: generateMessageId(),
       type: 'user',
       content: messageContent,
-      timestamp: new Date().toISOString()
+      timestamp: getCurrentTimestamp()
     };
 
     const currentConversation = conversations.find(conv => conv.id === conversationId);
@@ -98,13 +128,13 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           title: conv.messages.length === 0 ? messageContent : conv.title,
           messages: [...conv.messages, userMessage],
           lastMessage: messageContent,
-          timestamp: new Date().toISOString()
+          timestamp: getCurrentTimestamp()
         };
       }
       return conv;
     }));
 
-    // Start streaming
+    // Initialize streaming state
     setIsLoading(true);
     setStreamingMessage('');
     streamingContentRef.current = '';
@@ -112,35 +142,35 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
-    // Build messages array from current conversation state
+    // Build complete message history for API request
     const allMessages = currentConversation ? [...currentConversation.messages, userMessage] : [userMessage];
 
     await streamChatResponse(
       allMessages,
-      // onToken callback
+      // Token callback - called for each streamed token
       (token: string) => {
         streamingContentRef.current += token;
         setStreamingMessage(streamingContentRef.current);
       },
-      // onError callback
+      // Error callback - called when streaming fails
       (error: StreamError) => {
-        console.error('Streaming error:', error);
+        console.error('❌ Streaming error:', error);
         setApiError(error.message);
         setIsLoading(false);
         setStreamingMessage('');
         streamingContentRef.current = '';
         abortControllerRef.current = null;
       },
-      // onComplete callback
+      // Complete callback - called when streaming finishes successfully
       () => {
         const finalContent = streamingContentRef.current;
         
         if (finalContent.trim()) {
           const assistantMessage: Message = {
-            id: (Date.now() + 1).toString(),
+            id: generateMessageId(1), // Add offset to ensure unique ID
             type: 'assistant',
             content: finalContent,
-            timestamp: new Date().toISOString()
+            timestamp: getCurrentTimestamp()
           };
 
           setConversations(prev => prev.map(conv => {
@@ -149,13 +179,14 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
                 ...conv,
                 messages: [...conv.messages, assistantMessage],
                 lastMessage: assistantMessage.content,
-                timestamp: new Date().toISOString()
+                timestamp: getCurrentTimestamp()
               };
             }
             return conv;
           }));
         }
         
+        // Clean up streaming state
         setIsLoading(false);
         setStreamingMessage('');
         streamingContentRef.current = '';
@@ -165,12 +196,11 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     );
   };
 
+  /**
+   * Clears API error state (used for retry functionality)
+   */
   const retryLastMessage = () => {
     setApiError(null);
-  };
-
-  const setNavigationLoading = (loading: boolean) => {
-    setIsLoading(loading);
   };
 
   const value: ConversationContextType = {
@@ -184,7 +214,6 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     sendMessage,
     getConversation,
     retryLastMessage,
-    setNavigationLoading
   };
 
   return (

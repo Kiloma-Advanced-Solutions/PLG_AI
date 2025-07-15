@@ -1,21 +1,33 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import ThemeToggleComponent from '../theme-toggle-component/theme-toggle-component';
+import { useNavigationHelpers } from '../../hooks/useNavigationHelpers';
 import styles from './header-component.module.css';
 
-// the props of the header component
+/**
+ * Props for the HeaderComponent
+ */
 type HeaderComponentProps = {
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
+  onNewChatClick?: () => void;
 };
 
-// the header component
-export default function HeaderComponent({ isSidebarOpen, onToggleSidebar }: HeaderComponentProps) {
-  const router = useRouter();
+/**
+ * Header component that displays app branding and navigation controls
+ */
+export default function HeaderComponent({ 
+  isSidebarOpen, 
+  onToggleSidebar, 
+  onNewChatClick 
+}: HeaderComponentProps) {
+  const { goToNewChat } = useNavigationHelpers();
   
+  /**
+   * Handles new chat creation from header click
+   */
   const handleCreateNewChat = () => {
-    router.push('/chat/new');
+    goToNewChat(undefined, onNewChatClick);
   };
   
   return (

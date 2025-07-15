@@ -5,27 +5,30 @@ import { useRouter, useParams } from 'next/navigation';
 import HeaderComponent from '../../../components/header-component/header-component';
 import SidebarComponent from '../../../components/sidebar-component/sidebar-component';
 import ChatContainerComponent from '../../../components/chat-container-component/chat-container-component';
-import { useConversations } from '../../../contexts/ConversationContext';
+import { useConversationHelpers } from '../../../hooks/useConversations';
 import styles from '../../page.module.css';
 
+/**
+ * Chat page component for displaying a specific conversation
+ */
 export default function ChatPage() {
   const router = useRouter();
   const params = useParams();
   const conversationId = params.id as string;
   
   const { 
-    conversations, 
+    conversationsWithMessages,
     isLoading, 
     streamingMessage, 
     apiError, 
-    getConversation, 
+    getConversationSafely, 
     sendMessage, 
     retryLastMessage,
-    setNavigationLoading
-  } = useConversations();
+    conversations
+  } = useConversationHelpers();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const currentConversation = getConversation(conversationId);
+  const currentConversation = getConversationSafely(conversationId);
 
   // Redirect to /chat/new if conversation doesn't exist
   useEffect(() => {
@@ -34,23 +37,18 @@ export default function ChatPage() {
     }
   }, [conversations, currentConversation, router]);
 
-  // Clear navigation loading when conversation is found
-  useEffect(() => {
-    if (currentConversation) {
-      setNavigationLoading(false);
-    }
-  }, [currentConversation, setNavigationLoading]);
-
+  /**
+   * Handles sending a new message in the current conversation
+   */
   const handleSendMessage = async (messageContent: string) => {
     if (currentConversation) {
       await sendMessage(currentConversation.id, messageContent);
     }
   };
 
-  // Get sidebar conversations (only ones with messages)
-  const sidebarConversations = conversations.filter(conv => conv.messages.length > 0);
-
-  // Show loading or redirect if conversation doesn't exist
+  /**
+   * Renders loading state when conversation is not found
+   */
   if (!currentConversation) {
     return (
       <div className={styles.container} dir="rtl">
@@ -69,7 +67,7 @@ export default function ChatPage() {
         </main>
         
         <SidebarComponent
-          conversations={sidebarConversations}
+          conversations={conversationsWithMessages}
           currentConversationId={conversationId}
           isOpen={isSidebarOpen}
           onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
@@ -98,7 +96,7 @@ export default function ChatPage() {
       </main>
       
       <SidebarComponent
-        conversations={sidebarConversations}
+        conversations={conversationsWithMessages}
         currentConversationId={conversationId}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}

@@ -1,50 +1,46 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { Conversation } from '../../types';
 import NewChatButtonComponent from '../new-chat-button-component/new-chat-button-component';
 import PreviousChatListComponent from '../previous-chat-list-component/previous-chat-list-component';
+import { useNavigationHelpers } from '../../hooks/useNavigationHelpers';
 import styles from './sidebar-component.module.css';
 
-// Props for the SidebarComponent component
+/**
+ * Props for the SidebarComponent
+ */
 type SidebarComponentProps = {
   conversations: Conversation[];
   currentConversationId?: string;
   isOpen: boolean;
   onToggle: () => void;
+  onNewChatClick?: () => void;
 };
 
-// function to render the SidebarComponent component
+/**
+ * Sidebar component that displays navigation and conversation history
+ */
 export default function SidebarComponent({
   conversations,
   currentConversationId,
   isOpen,
-  onToggle
+  onToggle,
+  onNewChatClick
 }: SidebarComponentProps) {
-  const router = useRouter();
+  const { goToConversation, goToNewChat } = useNavigationHelpers();
   
+  /**
+   * Handles conversation selection with sidebar closing
+   */
   const handleConversationSelect = (conversationId: string) => {
-    // Close sidebar first to show transition
-    if (isOpen) {
-      onToggle();
-    }
-    
-    // Navigate after a small delay to allow transition to be visible
-    setTimeout(() => {
-      router.push(`/chat/${conversationId}`);
-    }, 150);
+    goToConversation(conversationId, isOpen ? onToggle : undefined);
   };
   
+  /**
+   * Handles new chat creation with sidebar closing
+   */
   const handleCreateNewChat = () => {
-    // Close sidebar first to show transition
-    if (isOpen) {
-      onToggle();
-    }
-    
-    // Navigate after a small delay to allow transition to be visible
-    setTimeout(() => {
-      router.push('/chat/new');
-    }, 150);
+    goToNewChat(isOpen ? onToggle : undefined, onNewChatClick);
   };
   
   return (

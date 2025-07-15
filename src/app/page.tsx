@@ -3,6 +3,10 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
+/**
+ * Main entry point component for the application
+ * Immediately redirects users to the new chat page
+ */
 export default function Home() {
   const router = useRouter();
 
@@ -11,8 +15,8 @@ export default function Home() {
     router.push('/chat/new');
   }, [router]);
 
-  // Show loading while redirecting
- return (
+  // Show loading state while redirecting
+  return (
     <div style={{ 
       display: 'flex', 
       justifyContent: 'center', 

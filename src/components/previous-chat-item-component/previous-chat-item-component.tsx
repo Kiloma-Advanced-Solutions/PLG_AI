@@ -3,15 +3,24 @@
 import { Conversation } from '../../types';
 import styles from './previous-chat-item-component.module.css';
 
-// Props for the PreviousChatItemComponent component
+/**
+ * Props for the PreviousChatItemComponent
+ */
 type PreviousChatItemComponentProps = {
-  conversation: Conversation;   // The conversation data to display
-  isActive: boolean;  // Whether this chat item is the currently active one
-  onSelect: () => void;  // Function to call when the item is clicked
-  formatTimestamp: (timestamp: string) => string;  // Function to format the timestamp for display
+  /** The conversation data to display */
+  conversation: Conversation;
+  /** Whether this chat item is currently active/selected */
+  isActive: boolean;
+  /** Callback function when the item is clicked */
+  onSelect: () => void;
+  /** Function to format the timestamp for display */
+  formatTimestamp: (timestamp: string) => string;
 };
 
-// function to render the PreviousChatItemComponent component
+/**
+ * Component that renders a single conversation item in the sidebar
+ * Shows conversation title, preview, and timestamp
+ */
 export default function PreviousChatItemComponent({
   conversation,
   isActive,
@@ -22,6 +31,15 @@ export default function PreviousChatItemComponent({
     <div
       className={`${styles.conversationItem} ${isActive ? styles.active : ''}`}
       onClick={onSelect}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onSelect();
+        }
+      }}
+      aria-label={`Open conversation: ${conversation.title}`}
     >
       <div className={styles.conversationItemTitle}>
         {conversation.title}

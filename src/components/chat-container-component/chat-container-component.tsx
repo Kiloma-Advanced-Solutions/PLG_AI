@@ -4,9 +4,12 @@ import { useRef, useEffect } from 'react';
 import { Message } from '../../types';
 import ChatMessageComponent from '../chat-message-component/chat-message-component';
 import InputMessageContainer from '../input-message-container/input-message-container';
+import { formatMessageTimestamp, getCurrentTimestamp } from '../../utils/date';
 import styles from './chat-container-component.module.css';
 
-// the props of the chat container component
+/**
+ * Props for the ChatContainerComponent
+ */
 type ChatContainerComponentProps = {
   messages: Message[];
   onSendMessage: (message: string) => void;
@@ -15,9 +18,12 @@ type ChatContainerComponentProps = {
   streamingMessage?: string;
   apiError?: string | null;
   onRetry?: () => void;
+  triggerInputAnimation?: boolean;
 };
 
-// the chat container component
+/**
+ * Main chat container component that displays messages and handles user input
+ */
 export default function ChatContainerComponent({ 
   messages, 
   onSendMessage, 
@@ -25,25 +31,22 @@ export default function ChatContainerComponent({
   isSidebarOpen = false,
   streamingMessage = '',
   apiError = null,
-  onRetry
+  onRetry,
+  triggerInputAnimation = false
 }: ChatContainerComponentProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    /**
+     * Scrolls to the bottom of the messages container
+     */
     const scrollToBottom = () => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    // scroll to the bottom of the messages container every time the messages array changes or streaming message updates
+    // Scroll to bottom when messages or streaming message updates
     useEffect(() => {
       scrollToBottom();
     }, [messages, streamingMessage]);
-
-    const formatTimestamp = (timestamp: string) => {
-      return new Date(timestamp).toLocaleTimeString('he-IL', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    };
 
     return (
       <div className={`${styles.chatContainer} ${isSidebarOpen ? styles.shifted : ''}`}>
@@ -54,13 +57,13 @@ export default function ChatContainerComponent({
               <p>התחל שיחה חדשה על ידי שליחת הודעה</p>
             </div>
           ) : (
-            // render the messages
+            // Render all messages
             messages.map((message) => (
               <ChatMessageComponent
                 key={message.id}
                 type={message.type}
                 content={message.content}
-                timestamp={formatTimestamp(message.timestamp)}
+                timestamp={formatMessageTimestamp(message.timestamp)}
               />
             ))
           )}
@@ -88,7 +91,7 @@ export default function ChatContainerComponent({
                 <ChatMessageComponent
                   type="assistant"
                   content={streamingMessage}
-                  timestamp={formatTimestamp(new Date().toISOString())}
+                  timestamp={formatMessageTimestamp(getCurrentTimestamp())}
                   isStreaming={true}
                 />
               ) : (
@@ -107,6 +110,7 @@ export default function ChatContainerComponent({
         <InputMessageContainer 
           onSendMessage={onSendMessage}
           isLoading={isLoading}
+          triggerFocusAnimation={triggerInputAnimation}
         />
       </div>
     );

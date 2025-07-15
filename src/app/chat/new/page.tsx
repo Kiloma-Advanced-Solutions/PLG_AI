@@ -1,34 +1,47 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import HeaderComponent from '../../../components/header-component/header-component';
 import SidebarComponent from '../../../components/sidebar-component/sidebar-component';
 import ChatContainerComponent from '../../../components/chat-container-component/chat-container-component';
-import { useConversations } from '../../../contexts/ConversationContext';
+import { useConversationHelpers } from '../../../hooks/useConversations';
 import styles from '../../page.module.css';
 
+/**
+ * New chat page component for starting fresh conversations
+ */
 export default function NewChatPage() {
   const router = useRouter();
   const { 
-    conversations, 
+    conversationsWithMessages,
     isLoading, 
     streamingMessage, 
     apiError, 
     createConversation, 
     sendMessage, 
     retryLastMessage,
-    setNavigationLoading
-  } = useConversations();
+    conversations
+  } = useConversationHelpers();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [triggerInputAnimation, setTriggerInputAnimation] = useState(false);
 
-  // Clear navigation loading when the new chat page loads
-  useEffect(() => {
-    setNavigationLoading(false);
-  }, [setNavigationLoading]);
+  /**
+   * Handles new chat click animation trigger
+   */
+  const handleNewChatClick = () => {
+    // Only trigger animation if we're on an empty conversation
+    if (!currentConversationId && !displayMessages.length) {
+      setTriggerInputAnimation(true);
+      setTimeout(() => setTriggerInputAnimation(false), 100);
+    }
+  };
 
+  /**
+   * Handles sending the first message and creating a new conversation
+   */
   const handleSendMessage = async (messageContent: string) => {
     // Create a new conversation when sending the first message
     const newConversation = createConversation();
@@ -41,10 +54,7 @@ export default function NewChatPage() {
     router.push(`/chat/${newConversation.id}`);
   };
 
-  // Get sidebar conversations (only ones with messages)
-  const sidebarConversations = conversations.filter(conv => conv.messages.length > 0);
-
-  // Get the current conversation and its messages
+  // Get the current conversation and its messages for display
   const currentConversation = currentConversationId ? 
     conversations.find(conv => conv.id === currentConversationId) : null;
   const displayMessages = currentConversation?.messages || [];
@@ -54,6 +64,7 @@ export default function NewChatPage() {
       <HeaderComponent 
         isSidebarOpen={isSidebarOpen}
         onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        onNewChatClick={handleNewChatClick}
       />
       
       <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
@@ -65,14 +76,16 @@ export default function NewChatPage() {
           streamingMessage={streamingMessage}
           apiError={apiError}
           onRetry={retryLastMessage}
+          triggerInputAnimation={triggerInputAnimation}
         />
       </main>
       
       <SidebarComponent
-        conversations={sidebarConversations}
+        conversations={conversationsWithMessages}
         currentConversationId={currentConversationId || undefined}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        onNewChatClick={handleNewChatClick}
       />
     </div>
   );

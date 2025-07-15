@@ -2,24 +2,31 @@
 
 import styles from './chat-message-component.module.css';
 
-// the props of the chat message component
+/**
+ * Props for the ChatMessageComponent
+ */
 type ChatMessageComponentProps = {
+  /** Type of message - determines styling and alignment */
   type: 'user' | 'assistant';
+  /** The message content to display */
   content: string;
+  /** Formatted timestamp string for display */
   timestamp: string;
+  /** Whether this message is currently being streamed (shows cursor animation) */
   isStreaming?: boolean;
 };
 
-// the chat message component
+/**
+ * Component that renders a single chat message with appropriate styling
+ * based on message type (user or assistant)
+ */
 export default function ChatMessageComponent({ 
   type, 
   content, 
   timestamp,
   isStreaming = false
 }: ChatMessageComponentProps) {
-  // render the chat message component
   return (
-    // the container of the message
     <div className={`${styles.messageContainer} ${styles[type]}`}>
       <div className={styles.messageBox}>
         <div className={styles.messageText} dir="rtl">
