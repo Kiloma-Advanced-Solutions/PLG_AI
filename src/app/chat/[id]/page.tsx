@@ -28,14 +28,30 @@ export default function ChatPage() {
   } = useConversationHelpers();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isNavigationLoading, setIsNavigationLoading] = useState(true);
   const currentConversation = getConversationSafely(conversationId);
+
+  // Handle navigation loading state
+  useEffect(() => {
+    // Start with loading true for initial page load
+    setIsNavigationLoading(true);
+    
+    // Small delay to show loading state even for fast localStorage access
+    const loadingTimer = setTimeout(() => {
+      if (currentConversation || (conversations.length > 0 && !currentConversation)) {
+        setIsNavigationLoading(false);
+      }
+    }, 300); // Brief loading period for better UX
+
+    return () => clearTimeout(loadingTimer);
+  }, [conversationId, currentConversation, conversations.length]);
 
   // Redirect to /chat/new if conversation doesn't exist
   useEffect(() => {
-    if (conversations.length > 0 && !currentConversation) {
+    if (conversations.length > 0 && !currentConversation && !isNavigationLoading) {
       router.push('/chat/new');
     }
-  }, [conversations, currentConversation, router]);
+  }, [conversations, currentConversation, router, isNavigationLoading]);
 
   /**
    * Handles sending a new message in the current conversation
@@ -47,9 +63,9 @@ export default function ChatPage() {
   };
 
   /**
-   * Renders loading state when conversation is not found
+   * Renders loading state when conversation is loading or not found
    */
-  if (!currentConversation) {
+  if (isNavigationLoading || !currentConversation) {
     return (
       <div className={styles.container} dir="rtl">
         <HeaderComponent 

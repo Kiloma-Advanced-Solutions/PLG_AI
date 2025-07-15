@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import HeaderComponent from '../../../components/header-component/header-component';
 import SidebarComponent from '../../../components/sidebar-component/sidebar-component';
@@ -27,6 +27,16 @@ export default function NewChatPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [triggerInputAnimation, setTriggerInputAnimation] = useState(false);
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
+  // Handle initial page loading state
+  useEffect(() => {
+    const loadingTimer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 200); // Brief loading period for smooth transition
+
+    return () => clearTimeout(loadingTimer);
+  }, []);
 
   /**
    * Handles new chat click animation trigger
@@ -58,6 +68,35 @@ export default function NewChatPage() {
   const currentConversation = currentConversationId ? 
     conversations.find(conv => conv.id === currentConversationId) : null;
   const displayMessages = currentConversation?.messages || [];
+
+  // Show loading state briefly for smooth navigation experience
+  if (isPageLoading) {
+    return (
+      <div className={styles.container} dir="rtl">
+        <HeaderComponent 
+          isSidebarOpen={isSidebarOpen}
+          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        />
+        
+        <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', flex: 1 }}>
+            <div className={styles.loadingContainer}>
+              <div className={styles.spinner}></div>
+              <p>טוען...</p>
+            </div>
+          </div>
+        </main>
+        
+        <SidebarComponent
+          conversations={conversationsWithMessages}
+          currentConversationId={currentConversationId || undefined}
+          isOpen={isSidebarOpen}
+          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+          onNewChatClick={handleNewChatClick}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container} dir="rtl">
