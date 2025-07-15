@@ -5,7 +5,7 @@
 /**
  * Standard delay used for navigation transitions to allow animations to complete
  */
-const NAVIGATION_DELAY = 50;
+const NAVIGATION_DELAY = 10;
 
 /**
  * Navigates to a conversation with a delay to allow UI transitions

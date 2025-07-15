@@ -16,27 +16,24 @@ export default function NewChatPage() {
   const { 
     conversationsWithMessages,
     isLoading, 
+    isNavigationLoading,
     streamingMessage, 
     apiError, 
     createConversation, 
     sendMessage, 
     retryLastMessage,
-    conversations
+    conversations,
+    setNavigationLoading
   } = useConversationHelpers();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [triggerInputAnimation, setTriggerInputAnimation] = useState(false);
-  const [isPageLoading, setIsPageLoading] = useState(true);
 
-  // Handle initial page loading state
+  // Handle initial page loading state - stop loading immediately when page is ready
   useEffect(() => {
-    const loadingTimer = setTimeout(() => {
-      setIsPageLoading(false);
-    }, 50); // Brief loading period for smooth transition
-
-    return () => clearTimeout(loadingTimer);
-  }, []);
+    setNavigationLoading(false);
+  }, [setNavigationLoading]);
 
   /**
    * Handles new chat click animation trigger
@@ -70,7 +67,7 @@ export default function NewChatPage() {
   const displayMessages = currentConversation?.messages || [];
 
   // Show loading state briefly for smooth navigation experience
-  if (isPageLoading) {
+  if (isNavigationLoading) {
     return (
       <div className={styles.container} dir="rtl">
         <HeaderComponent 

@@ -1,4 +1,5 @@
 import { useRouter } from 'next/navigation';
+import { useConversations } from '../contexts/ConversationContext';
 import { navigateToConversation, navigateToNewChat } from '../utils/navigation';
 
 /**
@@ -7,6 +8,7 @@ import { navigateToConversation, navigateToNewChat } from '../utils/navigation';
  */
 export const useNavigationHelpers = () => {
   const router = useRouter();
+  const { setNavigationLoading } = useConversations();
   
   /**
    * Navigate to a specific conversation with optional sidebar closing
@@ -15,6 +17,8 @@ export const useNavigationHelpers = () => {
     conversationId: string, 
     closeSidebar?: () => void
   ) => {
+    // Start loading immediately
+    setNavigationLoading(true);
     navigateToConversation(conversationId, router, closeSidebar);
   };
   
@@ -25,6 +29,8 @@ export const useNavigationHelpers = () => {
     closeSidebar?: () => void,
     onNewChatClick?: () => void
   ) => {
+    // Start loading immediately
+    setNavigationLoading(true);
     navigateToNewChat(router, closeSidebar, onNewChatClick);
   };
   

@@ -19,32 +19,29 @@ export default function ChatPage() {
   const { 
     conversationsWithMessages,
     isLoading, 
+    isNavigationLoading,
     streamingMessage, 
     apiError, 
     getConversationSafely, 
     sendMessage, 
     retryLastMessage,
-    conversations
+    conversations,
+    setNavigationLoading
   } = useConversationHelpers();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isNavigationLoading, setIsNavigationLoading] = useState(true);
   const currentConversation = getConversationSafely(conversationId);
 
-  // Handle navigation loading state
+  // Handle navigation loading state - stop loading when conversation is ready
   useEffect(() => {
-    // Start with loading true for initial page load
-    setIsNavigationLoading(true);
-    
-    // Small delay to show loading state even for fast localStorage access
-    const loadingTimer = setTimeout(() => {
-      if (currentConversation || (conversations.length > 0 && !currentConversation)) {
-        setIsNavigationLoading(false);
-      }
-    }, 100); // Brief loading period for better UX
-
-    return () => clearTimeout(loadingTimer);
-  }, [conversationId, currentConversation, conversations.length]);
+    if (currentConversation) {
+      // Conversation is loaded, stop loading immediately
+      setNavigationLoading(false);
+    } else if (conversations.length > 0 && !currentConversation) {
+      // Conversation doesn't exist, stop loading and redirect will happen
+      setNavigationLoading(false);
+    }
+  }, [conversationId, currentConversation, conversations.length, setNavigationLoading]);
 
   // Redirect to /chat/new if conversation doesn't exist
   useEffect(() => {

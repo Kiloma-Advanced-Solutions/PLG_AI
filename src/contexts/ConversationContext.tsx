@@ -12,6 +12,7 @@ import { getCurrentTimestamp } from '../utils/date';
 type ConversationContextType = {
   conversations: Conversation[];
   isLoading: boolean;
+  isNavigationLoading: boolean;
   streamingMessage: string;
   apiError: string | null;
   createConversation: () => Conversation;
@@ -20,6 +21,7 @@ type ConversationContextType = {
   sendMessage: (conversationId: string, message: string) => Promise<void>;
   getConversation: (id: string) => Conversation | null;
   retryLastMessage: () => void;
+  setNavigationLoading: (loading: boolean) => void;
 };
 
 /**
@@ -46,6 +48,7 @@ export const useConversations = () => {
 export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isNavigationLoading, setIsNavigationLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [apiError, setApiError] = useState<string | null>(null);
   
@@ -206,6 +209,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const value: ConversationContextType = {
     conversations,
     isLoading,
+    isNavigationLoading,
     streamingMessage,
     apiError,
     createConversation,
@@ -214,6 +218,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     sendMessage,
     getConversation,
     retryLastMessage,
+    setNavigationLoading: setIsNavigationLoading,
   };
 
   return (
