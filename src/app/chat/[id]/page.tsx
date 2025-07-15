@@ -41,7 +41,7 @@ export default function ChatPage() {
       if (currentConversation || (conversations.length > 0 && !currentConversation)) {
         setIsNavigationLoading(false);
       }
-    }, 300); // Brief loading period for better UX
+    }, 100); // Brief loading period for better UX
 
     return () => clearTimeout(loadingTimer);
   }, [conversationId, currentConversation, conversations.length]);

@@ -33,7 +33,7 @@ export default function NewChatPage() {
   useEffect(() => {
     const loadingTimer = setTimeout(() => {
       setIsPageLoading(false);
-    }, 200); // Brief loading period for smooth transition
+    }, 50); // Brief loading period for smooth transition
 
     return () => clearTimeout(loadingTimer);
   }, []);
