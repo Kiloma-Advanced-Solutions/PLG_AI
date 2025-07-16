@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Message } from '../../types';
 import ChatMessageComponent from '../chat-message-component/chat-message-component';
 import InputMessageContainer from '../input-message-container/input-message-container';
@@ -17,7 +17,7 @@ type ChatContainerComponentProps = {
   isSidebarOpen?: boolean;
   streamingMessage?: string;
   apiError?: string | null;
-  onRetry?: () => void;
+  onRetry?: () => Promise<void> | void;
   triggerInputAnimation?: boolean;
 };
 
@@ -35,6 +35,7 @@ export default function ChatContainerComponent({
   triggerInputAnimation = false
 }: ChatContainerComponentProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const [isRetrying, setIsRetrying] = useState(false);
 
     /**
      * Scrolls to the bottom of the messages container
@@ -76,9 +77,21 @@ export default function ChatContainerComponent({
                 {onRetry && (
                   <button 
                     className={styles.retryButton}
-                    onClick={onRetry}
+                    disabled={isRetrying || isLoading}
+                    onClick={async () => {
+                      if (isRetrying || isLoading) return;
+                      
+                      setIsRetrying(true);
+                      try {
+                        await onRetry();
+                      } catch (error) {
+                        console.error('Retry failed:', error);
+                      } finally {
+                        setIsRetrying(false);
+                      }
+                    }}
                   >
-                    נסה שוב
+                    {isRetrying ? 'מנסה שוב...' : 'נסה שוב'}
                   </button>
                 )}
               </div>

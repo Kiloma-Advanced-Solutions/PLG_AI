@@ -20,9 +20,18 @@ type ConversationContextType = {
   deleteConversation: (id: string) => void;
   sendMessage: (conversationId: string, message: string) => Promise<void>;
   getConversation: (id: string) => Conversation | null;
-  retryLastMessage: () => void;
+  retryLastMessage: () => Promise<void>;
   setNavigationLoading: (loading: boolean) => void;
 };
+
+/**
+ * State for tracking retry information
+ */
+type RetryState = {
+  conversationId: string;
+  lastUserMessage: string;
+  messagesBeforeError: Message[];
+} | null;
 
 /**
  * React context for managing conversation state and operations
@@ -33,10 +42,10 @@ const ConversationContext = createContext<ConversationContextType | undefined>(u
  * Hook to access the conversation context
  * Throws an error if used outside of ConversationProvider
  */
-export const useConversations = () => {
+export const useConversationContext = () => {
   const context = useContext(ConversationContext);
   if (!context) {
-    throw new Error('useConversations must be used within a ConversationProvider');
+    throw new Error('useConversationContext must be used within a ConversationProvider');
   }
   return context;
 };
@@ -48,9 +57,10 @@ export const useConversations = () => {
 export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const [isNavigationLoading, setIsNavigationLoading] = useState(false);
+  const [isNavigationLoading, setIsNavigationLoading] = useState(true);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [apiError, setApiError] = useState<string | null>(null);
+  const [retryState, setRetryState] = useState<RetryState>(null);
   
   // Refs for managing streaming state
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -113,6 +123,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
    */
   const sendMessage = async (conversationId: string, messageContent: string) => {
     setApiError(null);
+    setRetryState(null); // Clear any previous retry state
     
     const userMessage: Message = {
       id: generateMessageId(),
@@ -137,6 +148,9 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return conv;
     }));
 
+    // Store state for potential retry
+    const messagesBeforeRequest = currentConversation ? [...currentConversation.messages, userMessage] : [userMessage];
+    
     // Initialize streaming state
     setIsLoading(true);
     setStreamingMessage('');
@@ -146,7 +160,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     abortControllerRef.current = abortController;
 
     // Build complete message history for API request
-    const allMessages = currentConversation ? [...currentConversation.messages, userMessage] : [userMessage];
+    const allMessages = messagesBeforeRequest;
 
     await streamChatResponse(
       allMessages,
@@ -158,6 +172,29 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       // Error callback - called when streaming fails
       (error: StreamError) => {
         console.error('❌ Streaming error:', error);
+        
+        // Store retry information for the failed message
+        setRetryState({
+          conversationId,
+          lastUserMessage: messageContent,
+          messagesBeforeError: currentConversation?.messages || []
+        });
+        
+        // If error occurred during streaming, remove any partial assistant response
+        setConversations(prev => prev.map(conv => {
+          if (conv.id === conversationId) {
+            return {
+              ...conv,
+              messages: currentConversation?.messages || [],
+              lastMessage: currentConversation?.messages && currentConversation.messages.length > 0 
+                ? currentConversation.messages[currentConversation.messages.length - 1].content 
+                : '',
+              timestamp: getCurrentTimestamp()
+            };
+          }
+          return conv;
+        }));
+        
         setApiError(error.message);
         setIsLoading(false);
         setStreamingMessage('');
@@ -189,21 +226,49 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           }));
         }
         
-        // Clean up streaming state
+        // Clean up streaming state and retry info
         setIsLoading(false);
         setStreamingMessage('');
         streamingContentRef.current = '';
         abortControllerRef.current = null;
+        setRetryState(null);
       },
       abortController
     );
   };
 
   /**
-   * Clears API error state (used for retry functionality)
+   * Retries the last failed message by resending it
    */
-  const retryLastMessage = () => {
+  const retryLastMessage = async () => {
+    if (!retryState) {
+      // If no retry state, just clear the error
+      setApiError(null);
+      return;
+    }
+
+    const { conversationId, lastUserMessage, messagesBeforeError } = retryState;
+    
+    // Reset conversation to state before the failed message
+    setConversations(prev => prev.map(conv => {
+      if (conv.id === conversationId) {
+        return {
+          ...conv,
+          messages: messagesBeforeError,
+          lastMessage: messagesBeforeError.length > 0 
+            ? messagesBeforeError[messagesBeforeError.length - 1].content 
+            : '',
+          timestamp: getCurrentTimestamp()
+        };
+      }
+      return conv;
+    }));
+
+    // Clear error state
     setApiError(null);
+    
+    // Resend the message
+    await sendMessage(conversationId, lastUserMessage);
   };
 
   const value: ConversationContextType = {

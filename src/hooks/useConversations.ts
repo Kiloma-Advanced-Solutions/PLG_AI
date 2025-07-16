@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useConversations as useConversationContext } from '../contexts/ConversationContext';
+import { useConversationContext } from '../contexts/ConversationContext';
 import { getConversationsWithMessages } from '../utils/conversation';
 
 /**
