@@ -2,6 +2,8 @@
  * Navigation utilities for smooth transitions
  */
 
+import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+
 /**
  * Standard delay used for navigation transitions to allow animations to complete
  */
@@ -15,7 +17,7 @@ const NAVIGATION_DELAY = 10;
  */
 export const navigateToConversation = (
   conversationId: string,
-  router: any,
+  router: AppRouterInstance,
   onBeforeNavigate?: () => void
 ): void => {
   if (onBeforeNavigate) {
@@ -35,7 +37,7 @@ export const navigateToConversation = (
  * @param onNewChatClick - Optional callback for custom new chat handling (e.g., animations)
  */
 export const navigateToNewChat = (
-  router: any,
+  router: AppRouterInstance,
   currentPath: string,
   onBeforeNavigate?: () => void,
   onNewChatClick?: () => void
