@@ -30,11 +30,13 @@ export const navigateToConversation = (
 /**
  * Navigates to new chat page with a delay to allow UI transitions
  * @param router - Next.js router instance
+ * @param currentPath - Current pathname to check if already on new chat page
  * @param onBeforeNavigate - Optional callback to execute before navigation (e.g., close sidebar)
  * @param onNewChatClick - Optional callback for custom new chat handling (e.g., animations)
  */
 export const navigateToNewChat = (
   router: any,
+  currentPath: string,
   onBeforeNavigate?: () => void,
   onNewChatClick?: () => void
 ): void => {
@@ -43,9 +45,14 @@ export const navigateToNewChat = (
   }
   
   setTimeout(() => {
-    if (onNewChatClick) {
+    // If already on new chat page, just trigger the callback without redirecting
+    if (currentPath === '/chat/new' && onNewChatClick) {
       onNewChatClick();
     } else {
+      // Navigate to new chat page
+      if (onNewChatClick) {
+        onNewChatClick();
+      }
       router.push('/chat/new');
     }
   }, NAVIGATION_DELAY);

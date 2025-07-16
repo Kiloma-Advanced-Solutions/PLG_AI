@@ -1,4 +1,4 @@
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useConversations } from '../contexts/ConversationContext';
 import { navigateToConversation, navigateToNewChat } from '../utils/navigation';
 
@@ -8,6 +8,7 @@ import { navigateToConversation, navigateToNewChat } from '../utils/navigation';
  */
 export const useNavigationHelpers = () => {
   const router = useRouter();
+  const pathname = usePathname();
   const { setNavigationLoading } = useConversations();
   
   /**
@@ -29,9 +30,11 @@ export const useNavigationHelpers = () => {
     closeSidebar?: () => void,
     onNewChatClick?: () => void
   ) => {
-    // Start loading immediately
-    setNavigationLoading(true);
-    navigateToNewChat(router, closeSidebar, onNewChatClick);
+    // Start loading immediately only if we're navigating to a different page
+    if (pathname !== '/chat/new') {
+      setNavigationLoading(true);
+    }
+    navigateToNewChat(router, pathname, closeSidebar, onNewChatClick);
   };
   
   return {
