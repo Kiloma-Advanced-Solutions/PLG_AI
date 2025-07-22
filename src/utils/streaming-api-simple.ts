@@ -9,29 +9,10 @@ import { Message } from '../types';
 // CONFIGURATION
 // ========================================
 
-const API_CONFIG = {
-  // API URL - Change this for production
-  baseUrl: 'http://localhost:8090',
-  
-  // API Endpoints
-  endpoints: {
-    chat: '/api/chat/stream',
-    health: '/api/health'
-  },
-  
-  // Storage keys
-  storage: {
-    sessionId: 'chat-session-id'
-  }
-} as const;
-
-// Validate configuration
-if (!API_CONFIG.baseUrl) {
-  throw new Error('NEXT_PUBLIC_API_URL environment variable is required');
-}
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090';
 
 // ========================================
-// TYPES
+// SIMPLE TYPES
 // ========================================
 
 export interface StreamError {
@@ -51,40 +32,12 @@ export const generateSessionId = (): string => {
 export const getSessionId = (): string => {
   if (typeof window === 'undefined') return generateSessionId();
   
-  let sessionId = sessionStorage.getItem(API_CONFIG.storage.sessionId);
+  let sessionId = sessionStorage.getItem('chat-session-id');
   if (!sessionId) {
     sessionId = generateSessionId();
-    sessionStorage.setItem(API_CONFIG.storage.sessionId, sessionId);
+    sessionStorage.setItem('chat-session-id', sessionId);
   }
   return sessionId;
-};
-
-// ========================================
-// API CLIENT
-// ========================================
-
-/**
- * Get common headers for API requests
- */
-const getHeaders = () => ({
-  'Content-Type': 'application/json',
-  'X-Client-ID': 'chatplg-ui',  // Identify client
-});
-
-/**
- * Check if API is healthy before making requests
- */
-export const checkApiHealth = async (): Promise<boolean> => {
-  try {
-    const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.health}`);
-    if (!response.ok) return false;
-    
-    const data = await response.json();
-    return data.status === 'healthy';
-  } catch (error) {
-    console.error('Health check failed:', error);
-    return false;
-  }
 };
 
 // ========================================
@@ -101,34 +54,22 @@ export const streamChatResponse = async (
   const sessionId = getSessionId();
   
   try {
-    // Check API health before request
-    const isHealthy = await checkApiHealth();
-    if (!isHealthy) {
-      onError({
-        type: 'connection',
-        message: 'שירות הבינה המלאכותית אינו זמין כרגע',
-        retryable: true
-      });
-      return;
-    }
-    
-    // Make request to API
-    const response = await fetch(
-      `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.chat}`,
-      {
-        method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({
-          messages: messages.map(msg => ({
-            role: msg.type === 'user' ? 'user' : 'assistant',
-            content: msg.content
-          })),
-          session_id: sessionId,
-          stream: true
-        }),
-        signal: abortController?.signal
-      }
-    );
+    // Simple request to simplified backend
+    const response = await fetch(`${API_BASE_URL}/api/chat/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        messages: messages.map(msg => ({
+          role: msg.type === 'user' ? 'user' : 'assistant', // Convert type → role
+          content: msg.content
+        })),
+        session_id: sessionId,
+        stream: true
+      }),
+      signal: abortController?.signal
+    });
 
     if (!response.ok) {
       onError({
@@ -142,10 +83,7 @@ export const streamChatResponse = async (
     // Process streaming response
     const reader = response.body?.getReader();
     if (!reader) {
-      onError({ 
-        type: 'streaming', 
-        message: 'לא ניתן לקרוא תגובה מהשרת' 
-      });
+      onError({ type: 'streaming', message: 'לא ניתן לקרוא תגובה מהשרת' });
       return;
     }
 
@@ -178,11 +116,7 @@ export const streamChatResponse = async (
           const parsed = JSON.parse(data);
           
           if (parsed.error) {
-            onError({ 
-              type: 'api', 
-              message: parsed.error, 
-              retryable: true 
-            });
+            onError({ type: 'api', message: parsed.error, retryable: true });
             return;
           }
           
