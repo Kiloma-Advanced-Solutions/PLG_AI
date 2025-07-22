@@ -191,8 +191,8 @@ export const streamChatResponse = async (
             onToken(parsed.choices[0].delta.content);
           }
         } catch (e) {
-          // Skip malformed JSON
-          console.warn('Invalid SSE data:', data);
+          // Log parse errors but continue
+          console.warn('Invalid SSE data:', e);
         }
       }
     }
@@ -200,6 +200,7 @@ export const streamChatResponse = async (
   } catch (error) {
     if (abortController?.signal.aborted) return;
     
+    console.error('Stream error:', error);
     onError({
       type: 'connection',
       message: 'שגיאה בחיבור לשרת',
