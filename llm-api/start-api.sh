@@ -16,24 +16,16 @@ NC='\033[0m' # No Color
 # Environment Configuration
 # =================================
 
+# Base URL (can be overridden)
+export LLM_API_BASE_URL=${LLM_API_BASE_URL:-"http://localhost"}
+
 # Server Configuration
 export LLM_API_HOST="0.0.0.0"
 export LLM_API_PORT=8090
 export LLM_API_LOG_LEVEL="INFO"
 
-# CORS Configuration
-export LLM_API_ALLOWED_ORIGINS="http://localhost:3000"  # Frontend URL
-
-# vLLM Configuration
-export LLM_API_VLLM_BASE_URL="http://localhost:8000"
-export LLM_API_VLLM_API_URL="http://localhost:8000/v1/chat/completions"
-export LLM_API_VLLM_METRICS_URL="http://localhost:8000/metrics"
+# Model Configuration
 export LLM_API_MODEL_NAME="gaunernst/gemma-3-12b-it-qat-autoawq"
-
-# Model Parameters
-export LLM_API_MAX_TOKENS=2048
-export LLM_API_TEMPERATURE=0.7
-export LLM_API_TOP_P=0.9
 
 # Connection Settings
 export LLM_API_REQUEST_TIMEOUT=300
@@ -45,42 +37,54 @@ export LLM_API_KEEPALIVE_EXPIRY=60.0
 echo -e "${BLUE}🚀 Starting Unified LLM API${NC}"
 echo -e "${BLUE}================================${NC}"
 
-# Function to check if a service is running
-check_service() {
-    local url=$1
-    local name=$2
-    
-    if curl -s "$url" > /dev/null 2>&1; then
-        echo -e "✅ ${GREEN}$name is running${NC}"
-        return 0
+# Function to check if a process is running
+is_process_running() {
+    local search_term=$1
+    if pgrep -f "$search_term" > /dev/null; then
+        return 0  # Process is running
     else
-        echo -e "❌ ${RED}$name is not responding${NC}"
-        return 1
+        return 1  # Process is not running
     fi
 }
 
-# Function to wait for a service
-wait_for_service() {
-    local url=$1
-    local name=$2
-    local max_attempts=${3:-60}
+# Function to stop vLLM server
+stop_vllm() {
+    echo -e "${YELLOW}Stopping vLLM server...${NC}"
+    pkill -f "vllm serve" || true
+    sleep 2  # Give it time to shut down
+}
+
+# Function to start vLLM server
+start_vllm() {
+    echo -e "${YELLOW}Starting vLLM server...${NC}"
+    python3 -m vllm.entrypoints.openai.api_server \
+        --model $LLM_API_MODEL_NAME \
+        --max-model-len 131072 \
+        --port 8000 \
+        --tensor-parallel-size 2 | grep -Ev "Received request chatcmpl|Added request chatcmpl|HTTP/1.1\" 200 OK" &
     
-    echo -e "⏳ ${YELLOW}Waiting for $name to start...${NC}"
-    
-    for i in $(seq 1 $max_attempts); do
-        if curl -s "$url" > /dev/null 2>&1; then
-            echo -e "✅ ${GREEN}$name is ready!${NC}"
+    # Wait for vLLM to start
+    echo -e "${YELLOW}Waiting for vLLM server to start...${NC}"
+    for i in {1..30}; do
+        if curl -s http://localhost:8000/v1/models > /dev/null; then
+            echo -e "${GREEN}vLLM server is ready!${NC}"
             return 0
         fi
-        
-        if [ $i -eq $max_attempts ]; then
-            echo -e "❌ ${RED}$name failed to start within $max_attempts seconds${NC}"
-            return 1
-        fi
-        
         sleep 1
     done
+    echo -e "${RED}vLLM server failed to start within 30 seconds${NC}"
+    return 1
 }
+
+# Function to cleanup on exit
+cleanup() {
+    echo -e "\n${YELLOW}Cleaning up...${NC}"
+    stop_vllm
+    exit 0
+}
+
+# Register cleanup function
+trap cleanup SIGINT SIGTERM
 
 # Create virtual environment if it doesn't exist
 if [ ! -d "venv" ]; then
@@ -96,44 +100,61 @@ source venv/bin/activate
 echo -e "📚 ${YELLOW}Installing dependencies...${NC}"
 pip install -r requirements.txt > /dev/null
 
-# Check if vLLM server is running
-echo -e "🔍 ${YELLOW}Checking vLLM server availability...${NC}"
-VLLM_MODELS_URL="${LLM_API_VLLM_BASE_URL}/v1/models"
+# Get port mappings from Python config
+echo -e "🔍 ${YELLOW}Loading configuration...${NC}"
+CONFIG=$(python -c "
+from core.config import llm_config
+print(f'''{llm_config.frontend_port}
+{llm_config.api_port}
+{llm_config.vllm_port}
+{llm_config.frontend_url}
+{llm_config.api_url}
+{llm_config.vllm_url}
+{llm_config.vllm_api_url}
+''')
+")
 
-if ! check_service "$VLLM_MODELS_URL" "vLLM server"; then
-    echo -e "${YELLOW}⚠️  vLLM server is not running. Starting anyway...${NC}"
-    echo -e "${YELLOW}   Make sure to start vLLM server for dual RTX 4090 setup:${NC}"
-    echo -e "${YELLOW}   python3 -m vllm.entrypoints.openai.api_server \\${NC}"
-    echo -e "${YELLOW}     --model $LLM_API_MODEL_NAME \\${NC}"
-    echo -e "${YELLOW}     --max-model-len 131072 \\${NC}"
-    echo -e "${YELLOW}     --port 8000 \\${NC}"
-    echo -e "${YELLOW}     --tensor-parallel-size 2 \\${NC}"
-    echo -e "${YELLOW}     --gpu-memory-utilization 0.9${NC}"
-    echo ""
-fi
+# Read port mappings and URLs into variables
+IFS=$'\n' read -r FRONTEND_PORT API_PORT VLLM_PORT FRONTEND_URL API_URL VLLM_URL VLLM_API_URL <<< "$CONFIG"
+
+# Stop any existing vLLM server
+stop_vllm
+
+# Ensure vLLM is installed
+echo -e "📦 ${YELLOW}Installing vLLM...${NC}"
+pip install -q vllm || {
+    echo -e "${RED}Failed to install vLLM. Please install it manually:${NC}"
+    echo "pip install vllm"
+    exit 1
+}
+
+# Start vLLM server
+start_vllm
 
 # Display configuration
 echo -e "${BLUE}📋 Configuration:${NC}"
 echo -e "   🌐 API Host: $LLM_API_HOST"
 echo -e "   🔌 API Port: $LLM_API_PORT"
-echo -e "   🔗 vLLM URL: $LLM_API_VLLM_API_URL"
+echo -e "   🔗 vLLM URL: $VLLM_API_URL"
 echo -e "   🤖 Model: $LLM_API_MODEL_NAME"
 echo -e "   📊 Log Level: $LLM_API_LOG_LEVEL"
-echo -e "   🔒 CORS Origins: $LLM_API_ALLOWED_ORIGINS"
+echo -e "   🔒 CORS Origins:"
+echo -e "      - Frontend: $FRONTEND_URL"
+echo -e "      - API: $API_URL"
 echo ""
 
 # Start the API server
 echo -e "🚀 ${GREEN}Starting Unified LLM API...${NC}"
-echo -e "   📍 Server will be available at: http://$LLM_API_HOST:$LLM_API_PORT"
-echo -e "   💊 Health check: http://$LLM_API_HOST:$LLM_API_PORT/api/health"
-echo -e "   📊 Metrics: http://$LLM_API_HOST:$LLM_API_PORT/api/metrics"
+echo -e "   📍 Server will be available at: $API_URL"
+echo -e "   💊 Health check: $API_URL/api/health"
+echo -e "   📊 Metrics: $API_URL/api/metrics"
 echo ""
 
 # Choose startup method based on environment
 if [ "$1" = "dev" ] || [ "$1" = "development" ]; then
     echo -e "🔧 ${YELLOW}Starting in development mode...${NC}"
     echo -e "   🚀 ${GREEN}vLLM handles all request queuing${NC}"
-    uvicorn llm-api.main:app \
+    python -m uvicorn main:app \
         --host "$LLM_API_HOST" \
         --port "$LLM_API_PORT" \
         --log-level "${LLM_API_LOG_LEVEL,,}" \
@@ -144,7 +165,7 @@ elif [ "$1" = "prod" ] || [ "$1" = "production" ]; then
     echo -e "   🚀 ${GREEN}No artificial limits - vLLM manages everything${NC}"
     
     # Production: Single process, let vLLM handle all queuing and batching
-    uvicorn llm-api.main:app \
+    python -m uvicorn main:app \
         --host "$LLM_API_HOST" \
         --port "$LLM_API_PORT" \
         --timeout-keep-alive 60 \
@@ -154,7 +175,7 @@ elif [ "$1" = "prod" ] || [ "$1" = "production" ]; then
 else
     echo -e "🔧 ${YELLOW}Starting with uvicorn - no artificial limits...${NC}"
     echo -e "   🚀 ${GREEN}vLLM handles all request management${NC}"
-    uvicorn llm-api.main:app \
+    python -m uvicorn main:app \
         --host "$LLM_API_HOST" \
         --port "$LLM_API_PORT" \
         --log-level "${LLM_API_LOG_LEVEL,,}" \

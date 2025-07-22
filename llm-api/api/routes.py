@@ -1,22 +1,17 @@
 # api/routes.py - HTTP Endpoints
 """
-Handle HTTP requests/responses
-- Route definitions
-- Request validation
-- Response formatting
-- Error handling
+API routes and endpoint handlers
 """
 
 import logging
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
 
-from ..core.models import ChatRequest, HealthStatus
-from ..services.chat_service import chat_service
-from ..utils.health import health_checker
+from core.models import ChatRequest, HealthStatus
+from services.chat_service import chat_service
+from utils.health import health_checker
 
 logger = logging.getLogger(__name__)
-
 
 def create_routes(app: FastAPI) -> None:
     """Configure all API routes with proper error handling"""

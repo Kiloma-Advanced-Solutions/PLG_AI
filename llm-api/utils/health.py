@@ -1,22 +1,15 @@
-# utils/health.py - System Monitoring
 """
-Health and metrics
-- Health checks
-- Performance monitoring
-- System status
-- Uptime tracking
+Health checker for monitoring system status
 """
-
 import time
 import logging
 from datetime import datetime
 from typing import Optional
 
-from ..core.llm_engine import llm_engine
-from ..core.models import HealthStatus
+from core.llm_engine import llm_engine
+from core.models import HealthStatus
 
 logger = logging.getLogger(__name__)
-
 
 class HealthChecker:
     """Health checker with robust monitoring and error handling"""
@@ -92,29 +85,6 @@ class HealthChecker:
         except Exception as e:
             logger.warning(f"Failed to get vLLM metrics: {e}")
             return {"running": None, "waiting": None}
-
-    def get_uptime_seconds(self) -> float:
-        """Get system uptime in seconds"""
-        return time.time() - self.start_time
-
-    def get_health_summary(self) -> dict:
-        """Get a summary of health status"""
-        return {
-            "uptime_seconds": self.get_uptime_seconds(),
-            "last_health_check": self.last_health_check.isoformat() if self.last_health_check else None,
-            "consecutive_failures": self.consecutive_failures,
-            "status": "degraded" if self.consecutive_failures > 0 else "operational"
-        }
-
-    def is_system_degraded(self) -> bool:
-        """Check if system is in degraded state"""
-        return self.consecutive_failures > 0
-
-    def reset_failure_count(self) -> None:
-        """Reset consecutive failure counter (for manual recovery)"""
-        self.consecutive_failures = 0
-        logger.info("Health check failure counter reset")
-
 
 # Global health checker instance
 health_checker = HealthChecker() 

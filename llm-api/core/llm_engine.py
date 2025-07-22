@@ -1,17 +1,11 @@
-# core/llm_engine.py - vLLM Communication
 """
-Bridge to vLLM server
-- HTTP client management
-- Connection pooling
-- Streaming handling
-- Session tracking
+LLM engine for handling vLLM server communication
 """
-
 import httpx
 import asyncio
 import json
 import logging
-from typing import List, Dict, Any, Optional, AsyncGenerator
+from typing import List, Dict, Any, Optional, AsyncGenerator, Tuple
 from datetime import datetime
 
 from .config import llm_config, get_default_system_prompt, get_model_params
@@ -19,102 +13,96 @@ from .models import Message
 
 logger = logging.getLogger(__name__)
 
-
 class LLMEngine:
-    """Simple LLM engine for chat conversations"""
+    """LLM engine for chat conversations"""
     
     def __init__(self):
-        # vLLM server URLs
-        self.base_url = llm_config.vllm_api_url.replace("/v1/chat/completions", "")
         self.chat_url = llm_config.vllm_api_url
-        self.models_url = f"{self.base_url}/v1/models"  
         self.metrics_url = llm_config.vllm_metrics_url
-        
-        self.timeout = llm_config.request_timeout
-        self.health_timeout = llm_config.health_check_timeout
-        
-        # Simple session tracking
+        self.models_url = f"{llm_config.vllm_url}/v1/models"
         self.active_sessions: Dict[str, str] = {}  # session_id -> started_at
-        
-        # HTTP client with connection pooling
-        self.connection_limits = httpx.Limits(
-            max_keepalive_connections=llm_config.max_keepalive_connections,
-            max_connections=llm_config.connection_pool_size,
-            keepalive_expiry=llm_config.keepalive_expiry
-        )
-        
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client = None
 
     async def get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client with connection pooling"""
-        if self._client is None or self._client.is_closed:
+        if self._client is None:
+            logger.info(f"Creating new HTTP client with timeout={llm_config.request_timeout}s")
             self._client = httpx.AsyncClient(
-                limits=self.connection_limits,
-                timeout=httpx.Timeout(self.timeout, connect=10.0),
-                follow_redirects=True
+                timeout=llm_config.request_timeout,
+                limits=httpx.Limits(
+                    max_keepalive_connections=llm_config.max_keepalive_connections,
+                    max_connections=llm_config.connection_pool_size,
+                    keepalive_expiry=llm_config.keepalive_expiry
+                )
             )
         return self._client
 
-    async def close(self) -> None:
-        """Close HTTP client and cleanup resources"""
-        if self._client and not self._client.is_closed:
-            await self._client.aclose()
-            self._client = None
-        self.active_sessions.clear()
+    async def _make_request(self, method: str, url: str, **kwargs) -> Tuple[bool, Any]:
+        """Make HTTP request with error handling"""
+        try:
+            client = await self.get_client()
+            logger.debug(f"Making {method} request to {url}")
+            
+            # Add headers if not provided
+            if 'headers' not in kwargs:
+                kwargs['headers'] = llm_config.vllm_headers
+            
+            response = await client.request(method, url, **kwargs)
+            
+            if response.status_code == 200:
+                return True, response
+            elif response.status_code == 401:
+                logger.error(f"Authentication failed for {url} (401)")
+                return False, "Authentication failed. Check vLLM API key."
+            elif response.status_code == 404:
+                logger.error(f"Endpoint not found: {url} (404)")
+                return False, "vLLM endpoint not found."
+            else:
+                logger.error(f"vLLM request failed: {url} ({response.status_code})")
+                return False, f"vLLM request failed with status {response.status_code}"
+                
+        except httpx.ConnectError as e:
+            logger.error(f"Connection error to {url}: {str(e)}")
+            return False, f"Cannot connect to vLLM at {llm_config.vllm_url}"
+        except httpx.TimeoutException as e:
+            logger.error(f"Timeout connecting to {url}: {str(e)}")
+            return False, "vLLM request timed out"
+        except Exception as e:
+            logger.error(f"Unexpected error connecting to {url}: {str(e)}")
+            return False, f"Unexpected error: {str(e)}"
 
     async def check_health(self) -> bool:
-        """Check if vLLM server is responding"""
-        try:
-            client = await self.get_client()
-            response = await client.get(self.models_url, timeout=self.health_timeout)
-            return response.status_code == 200
-        except Exception as e:
-            logger.warning(f"vLLM health check failed: {e}")
-            return False
+        """Check if vLLM server is healthy"""
+        success, result = await self._make_request("GET", self.models_url)
+        if success:
+            logger.info("vLLM health check passed")
+            return True
+        logger.warning(f"vLLM health check failed: {result}")
+        return False
 
-    async def get_metrics(self) -> Dict[str, Optional[int]]:
-        """Get basic vLLM metrics"""
-        try:
-            client = await self.get_client()
-            response = await client.get(self.metrics_url, timeout=self.health_timeout)
-            
-            if response.status_code != 200:
-                return {"running": None, "waiting": None}
-            
-            # Simple metrics parsing
-            text = response.text
-            running = waiting = 0
-            
-            for line in text.split('\n'):
-                if "vllm:num_requests_running" in line and not line.startswith('#'):
-                    try:
-                        running = int(float(line.split()[-1]))
-                    except (ValueError, IndexError):
-                        pass
-                elif "vllm:num_requests_waiting" in line and not line.startswith('#'):
-                    try:
-                        waiting = int(float(line.split()[-1]))
-                    except (ValueError, IndexError):
-                        pass
-            
-            return {"running": running, "waiting": waiting}
-            
-        except Exception as e:
-            logger.warning(f"Failed to get metrics: {e}")
-            return {"running": None, "waiting": None}
+    async def get_metrics(self) -> Dict[str, Any]:
+        """Get vLLM server metrics"""
+        success, result = await self._make_request("GET", self.metrics_url)
+        if success:
+            try:
+                return result.json()
+            except Exception as e:
+                logger.error(f"Failed to parse metrics response: {e}")
+                return {}
+        return {}
+
+    def get_session_info(self) -> Dict[str, Any]:
+        """Get information about active sessions"""
+        return {
+            "active_sessions": len(self.active_sessions)
+        }
 
     async def chat_stream(
-        self, 
-        messages: List[Message], 
+        self,
+        messages: List[Message],
         session_id: str,
     ) -> AsyncGenerator[str, None]:
-        """
-        Stream chat completion - main method for conversations
-        
-        Args:
-            messages: List of Message objects (including system prompt if needed)
-            session_id: Session ID for tracking (always provided by service layer)
-        """
+        """Stream chat completion"""
         if not messages:
             yield 'data: {"error": "No messages provided"}\n\n'
             return
@@ -136,22 +124,23 @@ class LLMEngine:
             "stream": True,
         }
         
-        # Track session (session_id is always provided)
+        # Track session
         self.active_sessions[session_id] = datetime.now().isoformat()
         logger.info(f"Starting chat for session {session_id}")
         
         try:
+            # First check if vLLM is available
+            if not await self.check_health():
+                logger.error("vLLM server is not healthy, aborting chat request")
+                yield 'data: {"error": "LLM service is not available"}\n\n'
+                return
+
+            # Make streaming request
             client = await self.get_client()
-            async with client.stream(
-                "POST", 
-                self.chat_url, 
-                headers={"Content-Type": "application/json"}, 
-                json=payload
-            ) as response:
-                
+            async with client.stream("POST", self.chat_url, json=payload, headers=llm_config.vllm_headers) as response:
                 if response.status_code != 200:
                     logger.error(f"vLLM API error: {response.status_code}")
-                    yield 'data: {"error": "LLM service error"}\n\n'
+                    yield f'data: {{"error": "LLM service error: {response.status_code}"}}\n\n'
                     return
                 
                 # Process streaming response
@@ -169,27 +158,13 @@ class LLMEngine:
                     yield f"data: {chunk}\n\n"
                     await asyncio.sleep(0.001)
         
-        except httpx.TimeoutException:
-            logger.error("Request timed out")
-            yield 'data: {"error": "Request timed out"}\n\n'
-        except httpx.ConnectError:
-            logger.error("Cannot connect to vLLM")
-            yield 'data: {"error": "Cannot connect to LLM service"}\n\n'
         except Exception as e:
             logger.error(f"Chat error: {e}")
-            yield 'data: {"error": "An error occurred"}\n\n'
+            yield f'data: {{"error": "An error occurred: {str(e)}"}}\n\n'
         finally:
             # Cleanup session
             if session_id in self.active_sessions:
                 self.active_sessions.pop(session_id, None)
-
-    def get_session_info(self) -> Dict[str, Any]:
-        """Get simple session information"""
-        return {
-            "active_sessions": len(self.active_sessions),
-            "sessions": list(self.active_sessions.keys())
-        }
-
 
 # Global LLM engine instance
 llm_engine = LLMEngine() 

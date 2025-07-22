@@ -1,72 +1,47 @@
-# main.py - Application Bootstrap
 """
-Create and configure FastAPI application
-- Import all components
-- Setup middleware  
-- Register routes
-- Configure logging
-- Start server
+Main FastAPI application entry point
 """
-
 import logging
-
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+import sys
+from pathlib import Path
 
-from .core.config import llm_config
-from .api.routes import create_routes
-from .api.middleware import setup_middleware, setup_exception_handlers, setup_logging
+# Add the parent directory to Python path
+sys.path.append(str(Path(__file__).parent))
 
-# Setup logging
-setup_logging()
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
+# Import configuration and routes
+from core.config import llm_config
+from api.routes import create_routes
+from api.middleware import setup_middleware
 
 # Create FastAPI app
 app = FastAPI(
     title="Unified LLM API",
-    description="Self-hosted LLM API for secure, air-gapped environments",
-    version="1.0.0",
-    docs_url=None,          # Disable docs
-    redoc_url=None,         # Disable redoc
-    openapi_url=None,       # Disable OpenAPI schema
+    description="A unified API for LLM-powered applications",
+    version="1.0.0"
 )
 
-# Setup middleware and exception handlers
+# Setup middleware (CORS, error handling, etc.)
 setup_middleware(app)
-setup_exception_handlers(app)
 
-# Add API routes
+# Create API routes
 create_routes(app)
 
-
-# Simple health endpoint for load balancers
-@app.get("/ping", include_in_schema=False)
-async def ping():
-    """Simple ping endpoint for load balancer health checks"""
-    return {"status": "ok", "message": "pong"}
-
-
-# Root endpoint
-@app.get("/", include_in_schema=False)
+# Basic health check endpoint
+@app.get("/")
 async def root():
-    """Root endpoint with API information"""
-    return {
-        "name": app.title,
-        "version": "1.0.0",
-        "status": "running",
-        "health": "/api/health",
-    }
+    """Root endpoint for basic connectivity check"""
+    return {"status": "ok", "message": "LLM API is running"}
 
-
-# Entry point for direct execution
-if __name__ == "__main__":
-    import uvicorn
-    
-    uvicorn.run(
-        "llm-api.main:app",
-        host=llm_config.host,
-        port=llm_config.port,
-        log_level=llm_config.log_level.lower(),
-        reload=True,    # Development mode
-        access_log=True
-    ) 
+@app.get("/ping")
+async def ping():
+    """Simple ping endpoint for health checks"""
+    return {"ping": "pong"} 

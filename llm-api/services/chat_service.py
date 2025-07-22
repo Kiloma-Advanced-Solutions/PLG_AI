@@ -1,21 +1,14 @@
-# services/chat_service.py - Chat Logic
 """
-Chat-specific business rules
-- Message preparation
-- Conversation management
-- Context truncation
-- Session ID generation
+Chat service for handling chat conversations
 """
-
 import uuid
 import logging
 from typing import List, Optional, AsyncGenerator, Dict, Any
 
-from ..core.llm_engine import llm_engine
-from ..core.models import Message
+from core.llm_engine import llm_engine
+from core.models import Message
 
 logger = logging.getLogger(__name__)
-
 
 class ChatService:
     """Service for handling chat conversations"""

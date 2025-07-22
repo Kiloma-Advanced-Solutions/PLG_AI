@@ -10,8 +10,8 @@ import { Message } from '../types';
 // ========================================
 
 const API_CONFIG = {
-  // API URL - Change this for production
-  baseUrl: 'http://localhost:8090',
+  // API URL - Set via environment variable
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090',
   
   // API Endpoints
   endpoints: {
