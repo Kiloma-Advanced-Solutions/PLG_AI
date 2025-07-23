@@ -14,15 +14,15 @@ class LLMConfig(BaseSettings):
         description="Base URL for all services"
     )
     frontend_port: int = Field(
-        default=46073,  # 3000 mapped port
+        default=40374,  # 3000 mapped port
         description="Frontend port"
     )
     api_port: int = Field(
-        default=46051,  # 8090 mapped port
+        default=40398,  # 8090 mapped port
         description="API port"
     )
     vllm_port: int = Field(
-        default=46077,  # 8000 mapped port
+        default=8000,  # vLLM server port
         description="vLLM server port"
     )
     
