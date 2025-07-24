@@ -11,7 +11,7 @@ import { Message } from '../types';
 
 const API_CONFIG = {
   // API URL - Set via environment variable
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8090',
+  baseUrl: 'http://51.38.121.198:44139',
   
   // API Endpoints
   endpoints: {

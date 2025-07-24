@@ -14,11 +14,11 @@ class LLMConfig(BaseSettings):
         description="Base URL for all services"
     )
     frontend_port: int = Field(
-        default=40374,  # 3000 mapped port
+        default=44292,  # 3000 mapped port
         description="Frontend port"
     )
     api_port: int = Field(
-        default=40398,  # 8090 mapped port
+        default=44139,  # 8090 mapped port
         description="API port"
     )
     vllm_port: int = Field(
@@ -102,7 +102,9 @@ class LLMConfig(BaseSettings):
             self.frontend_url,
             self.api_url,
             "http://localhost:3000",  # Local development
-            "http://localhost:8090"   # Local API
+            "http://localhost:8090",   # Local API
+            "http://51.38.121.198:44292",  # Cloud frontend URL
+            "http://51.38.121.198:44139",  # Cloud API URL
         ]
 
     class Config:

@@ -65,14 +65,14 @@ start_vllm() {
     
     # Wait for vLLM to start
     echo -e "${YELLOW}Waiting for vLLM server to start...${NC}"
-    for i in {1..30}; do
+    for i in {1..600}; do
         if curl -s http://localhost:8000/v1/models > /dev/null; then
             echo -e "${GREEN}vLLM server is ready!${NC}"
             return 0
         fi
         sleep 1
     done
-    echo -e "${RED}vLLM server failed to start within 30 seconds${NC}"
+    echo -e "${RED}vLLM server failed to start within 10 minutes${NC}"
     return 1
 }
 
@@ -150,6 +150,8 @@ echo -e "   💊 Health check: $API_URL/api/health"
 echo -e "   📊 Metrics: $API_URL/api/metrics"
 echo ""
 
+
+
 # Choose startup method based on environment
 if [ "$1" = "dev" ] || [ "$1" = "development" ]; then
     echo -e "🔧 ${YELLOW}Starting in development mode...${NC}"
@@ -163,6 +165,7 @@ if [ "$1" = "dev" ] || [ "$1" = "development" ]; then
 elif [ "$1" = "prod" ] || [ "$1" = "production" ]; then
     echo -e "🏭 ${YELLOW}Starting in production mode...${NC}"
     echo -e "   🚀 ${GREEN}No artificial limits - vLLM manages everything${NC}"
+    python -c "import main"
     
     # Production: Single process, let vLLM handle all queuing and batching
     python -m uvicorn main:app \
