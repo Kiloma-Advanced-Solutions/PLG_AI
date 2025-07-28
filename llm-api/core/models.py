@@ -12,7 +12,7 @@ from datetime import datetime
 
 
 class Message(BaseModel):
-    """Unified message format - simple and extensible"""
+    """Unified message format"""
     role: Literal["system", "user", "assistant"]
     content: str
 
@@ -38,6 +38,22 @@ class ChatRequest(BaseModel):
         if not v:
             raise ValueError('Messages list cannot be empty')
         return v
+    
+
+
+class TaskItem(BaseModel):
+    assigned_to: str
+    description: str
+    due_date: str
+
+
+class TaskExtractionRequest(BaseModel):
+    email_content: str
+    
+    
+class TaskExtractionResponse(BaseModel):
+    tasks: Dict[str, TaskItem] 
+
 
 
 class HealthStatus(BaseModel):
@@ -66,14 +82,3 @@ class APIError(BaseModel):
     details: Optional[Dict[str, Any]] = None
     timestamp: datetime = Field(default_factory=datetime.now) 
 
-
-class TaskItem(BaseModel):
-    assigned_to: str
-    description: str
-    due_date: str
-
-class TaskExtractionRequest(BaseModel):
-    email_content: str
-    
-class TaskExtractionResponse(BaseModel):
-    tasks: Dict[str, TaskItem] 

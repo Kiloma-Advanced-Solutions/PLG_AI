@@ -110,15 +110,10 @@ class LLMConfig(BaseSettings):
     class Config:
         env_prefix = "LLM_API_"
 
-# Default system prompt for chat
-DEFAULT_CHAT_PROMPT = """אתה עוזר בינה מלאכותית שמטרתו לספק מידע מדויק ואמין בשפה העברית. ענה באופן ברור, מדויק, ומבוסס על עובדות בלבד. אל תנחש – אם אינך בטוח בתשובה, כתוב שאתה לא יודע או שהמידע חסר."""
 
 # Create global config instance
 llm_config = LLMConfig()
 
-def get_default_system_prompt(use_case: str = "chat") -> str:
-    """Get default system prompt for chat"""
-    return DEFAULT_CHAT_PROMPT
 
 def get_model_params() -> Dict[str, Any]:
     """Get model parameters for API requests"""

@@ -17,6 +17,9 @@ async def extract_tasks_from_email(session, email_content):
         "http://localhost:8090/api/tasks/extract",
         json={"email_content": email_content}
     ) as response:
+        response_text = await response.text()
+        print("\nDebug - Raw API Response:")
+        print(response_text)
         return await response.json()
 
 async def run_extraction_tests():
