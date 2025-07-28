@@ -10,6 +10,8 @@ from fastapi.responses import StreamingResponse
 from core.models import ChatRequest, HealthStatus
 from services.chat_service import chat_service
 from utils.health import health_checker
+from services.task_service import TaskService
+from core.models import TaskExtractionRequest, TaskExtractionResponse
 
 logger = logging.getLogger(__name__)
 
@@ -90,6 +92,27 @@ def create_routes(app: FastAPI) -> None:
                 status="unhealthy",
                 vllm_healthy=False,
                 active_sessions=0
+            )
+    
+    @app.post("/tasks/extract", response_model=TaskExtractionResponse)
+    async def extract_tasks(request: TaskExtractionRequest) -> TaskExtractionResponse:
+        """
+        Extract tasks from email content.
+        
+        Args:
+            request: TaskExtractionRequest containing the email content
+            
+        Returns:
+            TaskExtractionResponse containing extracted tasks
+        """
+        try:
+            task_service = TaskService()
+            tasks = await task_service.extract_tasks(request.email_content)
+            return TaskExtractionResponse(tasks=tasks)
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to extract tasks: {str(e)}"
             )
     
     

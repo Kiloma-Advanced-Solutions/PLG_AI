@@ -65,3 +65,15 @@ class APIError(BaseModel):
     retryable: bool = False
     details: Optional[Dict[str, Any]] = None
     timestamp: datetime = Field(default_factory=datetime.now) 
+
+
+class TaskItem(BaseModel):
+    assigned_to: str
+    description: str
+    due_date: str
+
+class TaskExtractionRequest(BaseModel):
+    email_content: str
+    
+class TaskExtractionResponse(BaseModel):
+    tasks: Dict[str, TaskItem] 
