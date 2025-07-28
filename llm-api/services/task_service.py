@@ -1,12 +1,11 @@
 """
 Service for handling task extraction from emails
 """
-from typing import Dict, Optional
+from typing import Dict
 from datetime import datetime
-import json
 import logging
 from core.llm_engine import llm_engine
-from core.models import Task
+from core.models import Message, TaskExtractionResponse
 
 logger = logging.getLogger(__name__)
 
@@ -43,56 +42,41 @@ class TaskService:
         """Get the system prompt for task extraction"""
         # Get today's date in DD-MM-YYYY format
         today = datetime.now().strftime("%d-%m-%Y")
-        return self.TASK_SYSTEM_PROMPT.format(today=today, email_content=email_content)
-    
-    async def extract_tasks(self, email_content: str) -> Dict[str, Dict[str, str]]:
+        return {self.TASK_SYSTEM_PROMPT.format(today=today, email_content=email_content)}
+
+
+    async def extract_tasks(self, email_content: str) -> TaskExtractionResponse:
         """
         Extract tasks from Hebrew email content using LLM.
-        Returns tasks in the format:
+        Returns a validated TaskExtractionResponse containing tasks in the format:
         {
-            "1": {"assigned_to": "person", "description": "task", "due_date": "date"},
-            "2": {"assigned_to": "person", "description": "task", "due_date": "date"},
-            ...
+            "tasks": {
+                "1": {"assigned_to": "person", "description": "task", "due_date": "date"},
+                "2": {"assigned_to": "person", "description": "task", "due_date": "date"},
+                ...
+            }
         }
         """
-
-        # Get response from LLM
         try:
+            # Prepare messages for LLM
+            messages = [
+                Message(role="system", content=self.get_task_system_prompt(email_content))
+            ]
+            
+            # Get structured response from LLM
             logger.info("Sending task extraction request to LLM")
-            response = await get_llm_response(prompt)
-            logger.debug(f"Raw LLM response: {response}")
+            response = await self.engine.get_structured_completion(
+                messages=messages,
+                output_schema=TaskExtractionResponse,
+                session_id="task_extraction"
+            )
             
-            # Basic validation of response format
-            if not isinstance(response, dict):
-                logger.error(f"Invalid response format from LLM - expected dictionary, got {type(response)}")
-                raise ValueError("Invalid response format from LLM - expected dictionary")
-                
-            # Validate each task entry
-            for task_num, task_data in response.items():
-                if not isinstance(task_data, dict):
-                    logger.error(f"Invalid task data format for task {task_num} - expected dictionary, got {type(task_data)}")
-                    raise ValueError(f"Invalid task data format for task {task_num} - expected dictionary")
-                    
-                required_fields = {"assigned_to", "description", "due_date"}
-                missing_fields = required_fields - set(task_data.keys())
-                if missing_fields:
-                    logger.error(f"Missing required fields in task {task_num}: {missing_fields}")
-                    raise ValueError(f"Missing required fields in task {task_num}: {missing_fields}")
-                
-                # Validate date format if not 'unspecified'
-                if task_data["due_date"] != "unspecified":
-                    try:
-                        datetime.strptime(task_data["due_date"], "%d-%m-%Y")
-                    except ValueError as e:
-                        logger.error(f"Invalid date format in task {task_num}. Must be DD-MM-YYYY: {str(e)}")
-                        raise ValueError(f"Invalid date format in task {task_num}. Must be DD-MM-YYYY: {str(e)}")
-            
-            logger.info(f"Successfully extracted {len(response)} tasks")
+            logger.info(f"Successfully extracted {len(response.tasks)} tasks")
             return response
             
         except Exception as e:
             logger.error(f"Failed to extract tasks: {str(e)}")
-            raise Exception(f"Failed to extract tasks: {str(e)}") 
+            raise Exception(f"Failed to extract tasks: {str(e)}")
 
 # Global task service instance
 task_service = TaskService() 
