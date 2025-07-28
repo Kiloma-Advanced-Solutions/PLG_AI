@@ -77,7 +77,3 @@ data/
 *.swp
 *.swo
 
-# LLM API - Future services (not currently used)
-llm-api/services/email_service.py
-llm-api/services/task_service.py
-llm-api/services/completion_service.py
