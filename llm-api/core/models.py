@@ -54,7 +54,8 @@ class TaskExtractionRequest(BaseModel):
 class TaskExtractionResponse(BaseModel):
     tasks: List[TaskItem]
 
-
+# Change this to be a list of TaskItem, not wrapped in a dict
+TaskExtractionResponse = List[TaskItem]
 
 class HealthStatus(BaseModel):
     """Unified health status and metrics model"""

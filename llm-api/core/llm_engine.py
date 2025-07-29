@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from datetime import datetime
 from .config import llm_config, get_model_params
 from .models import Message
+from pydantic import parse_obj_as
 
 logger = logging.getLogger(__name__)
 
@@ -238,12 +239,7 @@ class LLMEngine:
                     content = content.strip()
                     
                     json_data = json.loads(content)
-                    
-                    # Wrap list into dict with "tasks" key
-                    if isinstance(json_data, list):
-                        json_data = {"tasks": json_data}
-                    
-                    result = output_schema.model_validate(json_data)
+                    result = parse_obj_as(output_schema, json_data)
                     logger.info(f"Successfully validated structured completion for session {session_id}")
                     return result
                     

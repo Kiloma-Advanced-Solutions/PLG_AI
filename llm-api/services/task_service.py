@@ -48,13 +48,11 @@ class TaskService:
         """
         Extract tasks from Hebrew email content using LLM.
         Returns a validated TaskExtractionResponse containing tasks in the format:
-        {
-            [
-                {"assigned_to": "person", "description": "task", "due_date": "date"},
-                {"assigned_to": "person", "description": "task", "due_date": "date"},
-                ...
-            ]
-        }
+        [
+            {"assigned_to": "person", "description": "task", "due_date": "date"},
+            {"assigned_to": "person", "description": "task", "due_date": "date"},
+            ...
+        ]
         """
         try:
             # Prepare messages for LLM
@@ -71,7 +69,7 @@ class TaskService:
                 session_id="task_extraction"
             )
             
-            logger.info(f"Successfully extracted {len(response.tasks)} tasks")
+            logger.info(f"Successfully extracted {len(response)} tasks")
             return response
             
         except Exception as e:
