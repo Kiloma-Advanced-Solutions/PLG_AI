@@ -8,8 +8,6 @@ import logging
 from typing import List, Dict, Any, Optional, AsyncGenerator, Tuple, Type
 from pydantic import BaseModel
 from datetime import datetime
-from services.chat_service import get_chat_system_prompt
-from services.task_service import get_task_system_prompt
 from .config import llm_config, get_model_params
 from .models import Message
 
@@ -99,52 +97,9 @@ class LLMEngine:
             "active_sessions": len(self.active_sessions)
         }
 
-    async def get_structured_completion(
-        self,
-        messages: List[Message],
-        output_schema: Type[BaseModel],
-        session_id: str = "structured_completion"
-    ) -> BaseModel:
-        """
-        Get a completion that conforms to a Pydantic model schema
-        
-        Args:
-            messages: List of messages to send to the LLM
-            output_schema: Pydantic model class that defines the expected output structure
-            session_id: Optional session ID for tracking
-            
-        Returns:
-            Instance of the provided Pydantic model
-        """
-        # Build request payload with guided JSON
-        model_params = get_model_params()
-        payload = {
-            **model_params,
-            "messages": [{"role": msg.role, "content": msg.content} for msg in messages],
-            "stream": False,
-            "extra_body": {
-                "guided_json": output_schema.model_json_schema()
-            }
-        }
-        
-        # Make request
-        client = await self.get_client()
-        response = await client.post(self.chat_url, json=payload, headers=llm_config.vllm_headers)
-        
-        if response.status_code != 200:
-            raise ValueError(f"LLM request failed with status {response.status_code}")
-            
-        try:
-            response_json = response.json()
-            if "choices" not in response_json or not response_json["choices"]:
-                raise ValueError("Invalid response format from LLM")
-                
-            content = response_json["choices"][0]["message"]["content"]
-            return output_schema.model_validate_json(content)
-            
-        except Exception as e:
-            logger.error(f"Failed to parse structured response: {e}")
-            raise ValueError(f"Failed to parse LLM response: {str(e)}")
+    def _format_messages(self, messages: List[Message]) -> List[Dict[str, str]]:
+        """Format messages for vLLM API"""
+        return [{"role": msg.role, "content": msg.content} for msg in messages]
 
     async def chat_stream(
         self,
@@ -156,26 +111,18 @@ class LLMEngine:
             yield 'data: {"error": "No messages provided"}\n\n'
             return
         
-        # Add system prompt if first message isn't system
-        formatted_messages = []
-        if not messages or messages[0].role != "system":
-            system_prompt = get_chat_system_prompt()
-            formatted_messages.append(Message(role="system", content=system_prompt))
-        
-        # Add all provided messages
-        formatted_messages.extend(messages)
+        # Track session
+        self.active_sessions[session_id] = datetime.now().isoformat()
+        logger.info(f"Starting chat for session {session_id}")
         
         # Build request payload for vLLM
         model_params = get_model_params()
         payload = {
             **model_params,
-            "messages": [{"role": msg.role, "content": msg.content} for msg in formatted_messages],
+            "messages": self._format_messages(messages),
             "stream": True,
         }
         
-        # Track session
-        self.active_sessions[session_id] = datetime.now().isoformat()
-        logger.info(f"Starting chat for session {session_id}")
         logger.debug(f"Request payload: {json.dumps(payload, ensure_ascii=False)}")
         
         try:
@@ -188,6 +135,7 @@ class LLMEngine:
             # Make streaming request
             client = await self.get_client()
             logger.debug(f"Making request to {self.chat_url}")
+            
             async with client.stream("POST", self.chat_url, json=payload, headers=llm_config.vllm_headers) as response:
                 if response.status_code != 200:
                     logger.error(f"vLLM API error: {response.status_code}")

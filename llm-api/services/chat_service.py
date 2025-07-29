@@ -12,21 +12,17 @@ logger = logging.getLogger(__name__)
 class ChatService:
     """Service for handling chat conversations"""
 
-    # System prompt that defines the AI assistant's behavior
+    # Default system prompt for chat
     CHAT_SYSTEM_PROMPT = """אתה עוזר בינה מלאכותית שמטרתו לספק מידע מדויק ואמין בשפה העברית. ענה באופן ברור, מדויק, ומבוסס על עובדות בלבד. אל תנחש – אם אינך בטוח בתשובה, כתוב שאתה לא יודע או שהמידע חסר."""
-    MAX_CONTEXT_MESSAGES = 20  # Limit conversation history
 
     def __init__(self):
         """Initialize the chat service"""
         self.engine = llm_engine
+        self.max_context_messages = 20  # Limit conversation history
 
     def generate_session_id(self) -> str:
         """Generate a unique session ID for chat sessions"""
         return f"chat_{uuid.uuid4().hex[:12]}"
-    
-    def get_chat_system_prompt(self) -> str:
-        """Get the system prompt for chat conversations"""
-        return self.CHAT_SYSTEM_PROMPT
 
     async def stream_chat(
         self,
@@ -38,12 +34,16 @@ class ChatService:
         
         Args:
             messages: List of Message objects in conversation
-            session_id: Session ID for tracking (provided by routes layer)
+            session_id: Session ID for tracking
         
         Yields:
             Server-sent event formatted strings
         """
         try:
+            # Add system prompt if not present
+            if not messages or messages[0].role != "system":
+                messages = [Message(role="system", content=self.CHAT_SYSTEM_PROMPT)] + messages
+            
             # Prepare conversation context
             validated_messages = self._prepare_conversation(messages)
             
@@ -69,9 +69,13 @@ class ChatService:
             Processed message list ready for LLM
         """
         # Limit context to prevent token overflow
-        if len(messages) > self.MAX_CONTEXT_MESSAGES:
-            logger.info(f"Truncating conversation from {len(messages)} to {self.MAX_CONTEXT_MESSAGES} messages")
-            messages = messages[-self.MAX_CONTEXT_MESSAGES:]
+        if len(messages) > self.max_context_messages:
+            logger.info(f"Truncating conversation from {len(messages)} to {self.max_context_messages} messages")
+            messages = messages[-self.max_context_messages:]
+            
+            # Make sure system prompt is preserved
+            if messages[0].role != "system":
+                messages = [Message(role="system", content=self.CHAT_SYSTEM_PROMPT)] + messages
         
         return messages
 
