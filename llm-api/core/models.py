@@ -52,7 +52,7 @@ class TaskExtractionRequest(BaseModel):
     
     
 class TaskExtractionResponse(BaseModel):
-    tasks: Dict[str, TaskItem] 
+    tasks: List[TaskItem]
 
 
 

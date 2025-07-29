@@ -13,7 +13,7 @@ class TaskService:
     """Service for handling task extraction from emails"""
 
     # System prompt that defines the task extraction behavior
-    TASK_SYSTEM_PROMPT = """חלץ משימות מתוך תוכן האימייל הבא. עבור כל משימה:
+    TASK_SYSTEM_PROMPT = """חלץ משימות מתוך תוכן האימייל הבא שישלח המשתמש. עבור כל משימה:
 - זהה למי היא מוקצית
 - חלץ את תיאור המשימה
 - מצא או הסק את תאריך היעד (אם לא צוין, השתמש ב-'unspecified')
@@ -29,20 +29,19 @@ class TaskService:
 - התוכן של השדות יכול להיות בעברית
 - השתמש בתאריך של היום ({today}) לחישוב תאריכי יעד יחסיים (למשל: "מחר", "בעוד שבוע")
 
-תוכן האימייל:
-{email_content}
+ענה רק עם ה-JSON, ללא טקסט נוסף.
 
-ענה רק עם ה-JSON, ללא טקסט נוסף."""
+בהודעה הבאה תקבל את תוכן האימייל:"""
 
     def __init__(self):
         """Initialize the task service"""
         self.engine = llm_engine
 
-    def get_task_system_prompt(self, email_content: str) -> str:
+    def get_task_system_prompt(self: str) -> str:
         """Get the system prompt for task extraction"""
         # Get today's date in DD-MM-YYYY format
         today = datetime.now().strftime("%d-%m-%Y")
-        return {self.TASK_SYSTEM_PROMPT.format(today=today, email_content=email_content)}
+        return self.TASK_SYSTEM_PROMPT.format(today=today)
 
 
     async def extract_tasks(self, email_content: str) -> TaskExtractionResponse:
@@ -50,17 +49,18 @@ class TaskService:
         Extract tasks from Hebrew email content using LLM.
         Returns a validated TaskExtractionResponse containing tasks in the format:
         {
-            "tasks": {
-                "1": {"assigned_to": "person", "description": "task", "due_date": "date"},
-                "2": {"assigned_to": "person", "description": "task", "due_date": "date"},
+            [
+                {"assigned_to": "person", "description": "task", "due_date": "date"},
+                {"assigned_to": "person", "description": "task", "due_date": "date"},
                 ...
-            }
+            ]
         }
         """
         try:
             # Prepare messages for LLM
             messages = [
-                Message(role="system", content=self.get_task_system_prompt(email_content))
+                Message(role="system", content=self.get_task_system_prompt()),
+                Message(role="user", content=email_content)
             ]
             
             # Get structured response from LLM
@@ -75,8 +75,8 @@ class TaskService:
             return response
             
         except Exception as e:
-            logger.error(f"Failed to extract tasks: {str(e)}")
-            raise Exception(f"Failed to extract tasks: {str(e)}")
+            logger.error(f"Failed to extract tasks: {e}")
+            raise Exception(f"Failed to extract tasks: {e}")
 
 # Global task service instance
 task_service = TaskService() 

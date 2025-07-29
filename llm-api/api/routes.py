@@ -112,13 +112,13 @@ def create_routes(app: FastAPI) -> None:
             TaskExtractionResponse containing extracted tasks
         """
         try:
-            tasks = await task_service.extract_tasks(request.email_content)
-            return TaskExtractionResponse(tasks=tasks)
+            result = await task_service.extract_tasks(request.email_content)
+            return result
         except Exception as e:
             logger.error(f"Task extraction error: {e}")
             raise HTTPException(
                 status_code=500,
-                detail=f"Failed to extract tasks: {str(e)}"
+                detail=f"Failed to extract tasks: {e}"
             )
     
     

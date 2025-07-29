@@ -43,9 +43,12 @@ class LLMEngine:
             client = await self.get_client()
             logger.debug(f"Making {method} request to {url}")
             
+            
             # Add headers if not provided
             if 'headers' not in kwargs:
                 kwargs['headers'] = llm_config.vllm_headers
+
+                logger.debug(f"Headers: {kwargs['headers']}")
             
             response = await client.request(method, url, **kwargs)
             
@@ -62,14 +65,14 @@ class LLMEngine:
                 return False, f"vLLM request failed with status {response.status_code}"
                 
         except httpx.ConnectError as e:
-            logger.error(f"Connection error to {url}: {str(e)}")
+            logger.error(f"Connection error to {url}: {e}")
             return False, f"Cannot connect to vLLM at {llm_config.vllm_url}"
         except httpx.TimeoutException as e:
-            logger.error(f"Timeout connecting to {url}: {str(e)}")
+            logger.error(f"Timeout connecting to {url}: {e}")
             return False, "vLLM request timed out"
         except Exception as e:
-            logger.error(f"Unexpected error connecting to {url}: {str(e)}")
-            return False, f"Unexpected error: {str(e)}"
+            logger.error(f"Unexpected error connecting to {url}: {e}")
+            return False, f"Unexpected error: {e}"
 
     async def check_health(self) -> bool:
         """Check if vLLM server is healthy"""
@@ -90,6 +93,8 @@ class LLMEngine:
                 logger.error(f"Failed to parse metrics response: {e}")
                 return {}
         return {}
+    
+    
 
     def get_session_info(self) -> Dict[str, Any]:
         """Get information about active sessions"""
@@ -118,6 +123,7 @@ class LLMEngine:
         # Build request payload for vLLM
         model_params = get_model_params()
         payload = {
+            "model": llm_config.llm_model_name,
             **model_params,
             "messages": self._format_messages(messages),
             "stream": True,
@@ -169,7 +175,94 @@ class LLMEngine:
         
         except Exception as e:
             logger.error(f"Chat error: {e}")
-            yield f'data: {{"error": "An error occurred: {str(e)}"}}\n\n'
+            yield f'data: {{"error": "An error occurred: {e}"}}\n\n'
+        finally:
+            # Cleanup session
+            if session_id in self.active_sessions:
+                self.active_sessions.pop(session_id, None)
+
+    async def get_structured_completion(
+        self,
+        messages: List[Message],
+        output_schema: Type[BaseModel],
+        session_id: str = "structured_completion"
+    ) -> BaseModel:
+        """Get structured completion for task extraction"""
+        if not messages:
+            raise ValueError("No messages provided")
+        
+        # Track session
+        self.active_sessions[session_id] = datetime.now().isoformat()
+        logger.info(f"Starting structured completion for session {session_id}")
+        
+        # Build request payload for vLLM (non-streaming)
+        model_params = get_model_params()
+        payload = {
+            "model": llm_config.llm_model_name,
+            **model_params,
+            "messages": self._format_messages(messages),
+            "stream": False,
+        }
+        
+        logger.debug(f"Structured completion payload: {json.dumps(payload, ensure_ascii=False)}")
+        
+        try:
+            # Make non-streaming request
+            client = await self.get_client()
+            logger.debug(f"Making structured completion request to {self.chat_url}")
+            
+            response = await client.post(self.chat_url, json=payload, headers=llm_config.vllm_headers)
+            
+            if response.status_code != 200:
+                logger.error(f"vLLM API error: {response.status_code}")
+                response_text = await response.text()
+                logger.error(f"vLLM error response: {response_text}")
+                raise Exception(f"LLM request failed with status {response.status_code}")
+            
+            # Parse response
+            response_data = response.json()
+            logger.debug(f"vLLM response: {json.dumps(response_data, ensure_ascii=False)}")
+            
+            # Extract content from response
+            if "choices" in response_data and len(response_data["choices"]) > 0:
+                content = response_data["choices"][0]["message"]["content"]
+                logger.debug(f"Extracted content: {content}")
+                
+                # Try to parse as JSON and validate against schema
+                try:
+                    # Clean the content - remove any markdown formatting
+                    if content.startswith("```json"):
+                        content = content.split("```json")[1]
+                    if content.endswith("```"):
+                        content = content.rsplit("```", 1)[0]
+                    content = content.strip()
+                    
+                    json_data = json.loads(content)
+                    
+                    # Wrap list into dict with "tasks" key
+                    if isinstance(json_data, list):
+                        json_data = {"tasks": json_data}
+                    
+                    result = output_schema.model_validate(json_data)
+                    logger.info(f"Successfully validated structured completion for session {session_id}")
+                    return result
+                    
+                except json.JSONDecodeError as e:
+                    logger.error(f"Failed to parse JSON from LLM response: {e}")
+                    logger.error(f"Raw content: {content}")
+                    logger.error(f"Payload: {payload}")
+                    raise Exception(f"Failed to parse JSON response: {e}")
+                except Exception as e:
+                    logger.error(f"Failed to validate response against schema: {e}")
+                    logger.error(f"JSON data: {json_data}")
+                    raise Exception(f"Failed to validate response: {e}")
+            else:
+                logger.error("No choices in vLLM response")
+                raise Exception("No response content from LLM")
+        
+        except Exception as e:
+            logger.error(f"Structured completion error: {e}")
+            raise Exception(f"Structured completion failed: {e}")
         finally:
             # Cleanup session
             if session_id in self.active_sessions:
