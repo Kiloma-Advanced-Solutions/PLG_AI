@@ -11,6 +11,7 @@ def load_test_emails():
     with open(test_data_path, "r", encoding="utf-8") as f:
         return json.load(f)
 
+
 async def extract_tasks_from_email(session, email_content):
     """Send email content to task extraction API and return response"""
     async with session.post(
@@ -21,6 +22,7 @@ async def extract_tasks_from_email(session, email_content):
         print("\nDebug - Raw API Response:")
         print(response_text)
         return await response.json()
+
 
 async def run_extraction_tests():
     """Run task extraction tests on all test emails"""
@@ -45,6 +47,7 @@ async def run_extraction_tests():
             
             print("\nPress Enter to continue to next email...")
             input()
+
 
 if __name__ == "__main__":
     print("Task Extraction Test Suite")

@@ -1,12 +1,11 @@
 # api/routes.py - HTTP Endpoints
 """
-API routes and endpoint handlers
+API endpoints and request routing
 """
 
 import logging
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
-
 from core.models import ChatRequest, TaskExtractionRequest, TaskExtractionResponse, HealthStatus
 from services.chat_service import chat_service
 from utils.health import health_checker
@@ -37,8 +36,8 @@ def create_routes(app: FastAPI) -> None:
             
             # Generate session ID if not provided
             session_id = chat_request.session_id or chat_service.generate_session_id()
-            
-            # Log chat request
+
+            # Extract latest user message
             user_msg = chat_service.extract_latest_user_message(chat_request.messages)
             logger.info(f"Chat request - User: {user_msg}")
             
@@ -66,6 +65,35 @@ def create_routes(app: FastAPI) -> None:
                 status_code=500, 
                 detail="Chat service temporarily unavailable"
             )
+        
+
+
+    # ===============================
+    # TASK EXTRACTION ENDPOINT
+    # ===============================
+    
+    @app.post("/api/tasks/extract", response_model=TaskExtractionResponse)
+    async def extract_tasks(request: TaskExtractionRequest) -> TaskExtractionResponse:
+        """
+        Extract tasks from email content.
+        
+        Args:
+            request: TaskExtractionRequest containing the email content
+            
+        Returns:
+            TaskExtractionResponse containing extracted tasks
+        """
+        try:
+            result = await task_service.extract_tasks(request.email_content)
+            return result
+        except Exception as e:
+            logger.error(f"Task extraction error: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to extract tasks: {e}"
+            )
+    
+    
     
     # ===============================
     # HEALTH MONITORING ENDPOINTS
@@ -95,30 +123,4 @@ def create_routes(app: FastAPI) -> None:
                 vllm_healthy=False,
                 active_sessions=0
             )
-    
-    # ===============================
-    # TASK EXTRACTION ENDPOINT
-    # ===============================
-    
-    @app.post("/api/tasks/extract", response_model=TaskExtractionResponse)
-    async def extract_tasks(request: TaskExtractionRequest) -> TaskExtractionResponse:
-        """
-        Extract tasks from email content.
-        
-        Args:
-            request: TaskExtractionRequest containing the email content
-            
-        Returns:
-            TaskExtractionResponse containing extracted tasks
-        """
-        try:
-            result = await task_service.extract_tasks(request.email_content)
-            return result
-        except Exception as e:
-            logger.error(f"Task extraction error: {e}")
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to extract tasks: {e}"
-            )
-    
     

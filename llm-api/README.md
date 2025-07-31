@@ -41,7 +41,7 @@ A unified API server that provides chat functionality using vLLM and Gemma-3-12B
 The script will automatically:
 - Create a virtual environment
 - Install all dependencies
-- Start the vLLM server on port 8000
+- Start the vLLM server on port 8060
 - Start the API server on port 8090
 - Configure proper port mappings
 
@@ -80,7 +80,7 @@ The API uses the following environment variables (all prefixed with `LLM_API_`):
 | `BASE_URL` | `http://localhost` | Base URL for all services |
 | `HOST` | `0.0.0.0` | API server host |
 | `PORT` | `8090` | API server port |
-| `VLLM_PORT` | `8000` | vLLM server port |
+| `VLLM_PORT` | `8060` | vLLM server port |
 | `MODEL_NAME` | `gaunernst/gemma-3-12b-it-qat-autoawq` | Model to load |
 | `LOG_LEVEL` | `INFO` | Logging level |
 
@@ -109,7 +109,7 @@ api_port: int = Field(
     description="API port"
 )
 vllm_port: int = Field(
-    default=8000,  # Your vLLM port
+    default=8060,  # Your vLLM port
     description="vLLM server port"
 )
 ```
@@ -118,7 +118,7 @@ vllm_port: int = Field(
 
 Ensure your cloud instance allows traffic on:
 - Port 8090 (API server)
-- Port 8000 (vLLM server)
+- Port 8060 (vLLM server)
 - Port 3000 (if running frontend)
 
 #### 3. Environment Variables
@@ -129,7 +129,7 @@ Set environment variables for your cloud instance:
 export LLM_API_BASE_URL="http://your-instance-ip"
 export LLM_API_HOST="0.0.0.0"
 export LLM_API_PORT=8090
-export LLM_API_VLLM_PORT=8000
+export LLM_API_VLLM_PORT=8060
 ```
 
 #### 4. GPU Requirements
@@ -167,7 +167,7 @@ COPY . .
 RUN chmod +x start-api.sh
 
 # Expose ports
-EXPOSE 8090 8000
+EXPOSE 8090 8060
 
 # Start the API
 CMD ["./start-api.sh", "prod"]
@@ -197,7 +197,7 @@ spec:
         image: your-registry/llm-api:latest
         ports:
         - containerPort: 8090
-        - containerPort: 8000
+        - containerPort: 8060
         resources:
           limits:
             nvidia.com/gpu: 1
@@ -219,8 +219,8 @@ spec:
     port: 8090
     targetPort: 8090
   - name: vllm
-    port: 8000
-    targetPort: 8000
+    port: 8060
+    targetPort: 8060
   type: LoadBalancer
 ```
 
@@ -229,7 +229,7 @@ spec:
 ### Common Issues
 
 1. **"LLM service is not available"**
-   - Check if vLLM server is running: `curl http://localhost:8000/v1/models`
+   - Check if vLLM server is running: `curl http://localhost:8060/v1/models`
    - Verify port configuration in `core/config.py`
    - Check GPU memory availability
 
@@ -265,7 +265,7 @@ curl http://localhost:8090/api/health
 
 ### vLLM Metrics
 ```bash
-curl http://localhost:8000/metrics
+curl http://localhost:8060/metrics
 ```
 
 ## 🔒 Security Considerations

@@ -58,6 +58,7 @@ class ChatService:
             logger.error(f"Chat service error: {e}")
             yield f'data: {{"error": "Chat service unavailable"}}\n\n'
 
+
     def _prepare_conversation(self, messages: List[Message]) -> List[Message]:
         """
         Prepare conversation context for LLM
@@ -78,6 +79,7 @@ class ChatService:
                 messages = [Message(role="system", content=self.CHAT_SYSTEM_PROMPT)] + messages
         
         return messages
+    
 
     def extract_latest_user_message(self, messages: List[Message]) -> Optional[str]:
         """
@@ -93,6 +95,7 @@ class ChatService:
             if msg.role == "user":
                 return msg.content.strip()
         return None
+
 
     def get_conversation_summary(self, messages: List[Message]) -> Dict[str, Any]:
         """

@@ -1,5 +1,5 @@
 """
-Configuration management for the LLM API
+Configuration settings and environment variables
 """
 from typing import Dict, Any, List
 from pydantic import Field, computed_field
@@ -22,7 +22,7 @@ class LLMConfig(BaseSettings):
         description="API port"
     )
     vllm_port: int = Field(
-        default=8000,  # vLLM server port
+        default=8060,  # vLLM server port
         description="vLLM server port"
     )
 

@@ -33,14 +33,15 @@ class TaskService:
 
 בהודעה הבאה תקבל את תוכן האימייל:"""
 
+
     def __init__(self):
         """Initialize the task service"""
         self.engine = llm_engine
 
+
     def get_task_system_prompt(self: str) -> str:
         """Get the system prompt for task extraction"""
-        # Get today's date in DD-MM-YYYY format
-        today = datetime.now().strftime("%d-%m-%Y")
+        today = datetime.now().strftime("%d-%m-%Y")   # today's date in DD-MM-YYYY format
         return self.TASK_SYSTEM_PROMPT.format(today=today)
 
 
@@ -65,7 +66,7 @@ class TaskService:
             logger.info("Sending task extraction request to LLM")
             response = await self.engine.get_structured_completion(
                 messages=messages,
-                output_schema=TaskExtractionResponse,
+                output_schema=TaskExtractionResponse,   # Expected response format
                 session_id="task_extraction"
             )
             

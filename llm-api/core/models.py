@@ -1,15 +1,15 @@
 # core/models.py - Data Structures
 """
-Define data contracts
-- Request/response schemas
-- Validation rules
-- Type safety
+Data models and request/response schemas for the API
 """
 
 from typing import List, Dict, Any, Optional, Literal
 from pydantic import BaseModel, Field, validator
 from datetime import datetime
 
+# ===============================
+# CHAT MODELS
+# ===============================
 
 class Message(BaseModel):
     """Unified message format"""
@@ -21,7 +21,6 @@ class Message(BaseModel):
         if not v or not v.strip():
             raise ValueError('Message content cannot be empty')
         return v.strip()
-
 
 class ChatRequest(BaseModel):
     """Main request model for chat conversations"""
@@ -41,6 +40,10 @@ class ChatRequest(BaseModel):
     
 
 
+# ===============================
+# TASK EXTRACTION MODELS
+# ===============================
+
 class TaskItem(BaseModel):
     assigned_to: str
     description: str
@@ -51,11 +54,13 @@ class TaskExtractionRequest(BaseModel):
     email_content: str
     
     
-class TaskExtractionResponse(BaseModel):
-    tasks: List[TaskItem]
-
 # Change this to be a list of TaskItem, not wrapped in a dict
 TaskExtractionResponse = List[TaskItem]
+
+
+# ===============================
+# HEALTH CHECK MODELS
+# ===============================
 
 class HealthStatus(BaseModel):
     """Unified health status and metrics model"""

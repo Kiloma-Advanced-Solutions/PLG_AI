@@ -1,5 +1,5 @@
 """
-API middleware configuration
+CORS, security, and request processing
 """
 import logging
 from typing import Callable
@@ -28,7 +28,7 @@ def setup_middleware(app: FastAPI) -> None:
     async def log_requests(request: Request, call_next: Callable) -> Response:
         """Log all incoming requests"""
         try:
-            response = await call_next(request)
+            response = await call_next(request)  # calls the actual endpoint
             logger.info(f"{request.method} {request.url.path} - {response.status_code}")
             return response
         except Exception as e:

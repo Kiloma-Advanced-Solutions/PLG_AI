@@ -24,6 +24,7 @@ class LLMEngine:
         self.active_sessions: Dict[str, str] = {}  # session_id -> started_at
         self._client = None
 
+    # get or create HTTP client with connection pooling
     async def get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client with connection pooling"""
         if self._client is None:
@@ -31,25 +32,22 @@ class LLMEngine:
             self._client = httpx.AsyncClient(
                 timeout=llm_config.request_timeout,
                 limits=httpx.Limits(
-                    max_keepalive_connections=llm_config.max_keepalive_connections,
-                    max_connections=llm_config.connection_pool_size,
-                    keepalive_expiry=llm_config.keepalive_expiry
+                    max_keepalive_connections=llm_config.max_keepalive_connections,    # Maximum number of keepalive connections
+                    max_connections=llm_config.connection_pool_size,    # Maximum number of connections in the pool
+                    keepalive_expiry=llm_config.keepalive_expiry    # Time to keep a connection alive (in seconds)
                 )
             )
         return self._client
 
+    
     async def _make_request(self, method: str, url: str, **kwargs) -> Tuple[bool, Any]:
         """Make HTTP request with error handling"""
         try:
-            client = await self.get_client()
-            logger.debug(f"Making {method} request to {url}")
-            
-            
+            client = await self.get_client()    
+
             # Add headers if not provided
             if 'headers' not in kwargs:
                 kwargs['headers'] = llm_config.vllm_headers
-
-                logger.debug(f"Headers: {kwargs['headers']}")
             
             response = await client.request(method, url, **kwargs)
             
@@ -75,6 +73,7 @@ class LLMEngine:
             logger.error(f"Unexpected error connecting to {url}: {e}")
             return False, f"Unexpected error: {e}"
 
+
     async def check_health(self) -> bool:
         """Check if vLLM server is healthy"""
         success, result = await self._make_request("GET", self.models_url)
@@ -83,6 +82,7 @@ class LLMEngine:
             return True
         logger.warning(f"vLLM health check failed: {result}")
         return False
+
 
     async def get_metrics(self) -> Dict[str, Any]:
         """Get vLLM server metrics"""
@@ -96,16 +96,17 @@ class LLMEngine:
         return {}
     
     
-
     def get_session_info(self) -> Dict[str, Any]:
         """Get information about active sessions"""
         return {
             "active_sessions": len(self.active_sessions)
         }
 
+
     def _format_messages(self, messages: List[Message]) -> List[Dict[str, str]]:
         """Format messages for vLLM API"""
         return [{"role": msg.role, "content": msg.content} for msg in messages]
+
 
     async def chat_stream(
         self,
@@ -129,7 +130,6 @@ class LLMEngine:
             "messages": self._format_messages(messages),
             "stream": True,
         }
-        
         logger.debug(f"Request payload: {json.dumps(payload, ensure_ascii=False)}")
         
         try:
@@ -182,10 +182,11 @@ class LLMEngine:
             if session_id in self.active_sessions:
                 self.active_sessions.pop(session_id, None)
 
+
     async def get_structured_completion(
         self,
         messages: List[Message],
-        output_schema: Type[BaseModel],
+        output_schema: Type[BaseModel], # the class of the output schema
         session_id: str = "structured_completion"
     ) -> BaseModel:
         """Get structured completion for task extraction"""
@@ -244,13 +245,10 @@ class LLMEngine:
                     return result
                     
                 except json.JSONDecodeError as e:
-                    logger.error(f"Failed to parse JSON from LLM response: {e}")
-                    logger.error(f"Raw content: {content}")
-                    logger.error(f"Payload: {payload}")
+                    logger.error(f"Failed to parse JSON from LLM response: {e}\nRaw content: {content}\nPayload: {payload}")
                     raise Exception(f"Failed to parse JSON response: {e}")
                 except Exception as e:
-                    logger.error(f"Failed to validate response against schema: {e}")
-                    logger.error(f"JSON data: {json_data}")
+                    logger.error(f"Failed to validate response against schema: {e}\nJSON data: {json_data}")
                     raise Exception(f"Failed to validate response: {e}")
             else:
                 logger.error("No choices in vLLM response")
