@@ -11,11 +11,9 @@ A production-ready, self-hosted LLM API server providing unified access to advan
 - [Project Structure](#project-structure)
 - [Configuration](#configuration)
 - [API Endpoints](#api-endpoints)
-- [Development](#development)
 - [Deployment](#deployment)
 - [Monitoring & Health](#monitoring-health)
 - [Troubleshooting](#troubleshooting)
-- [Security](#security)
 
 ## Overview
 
@@ -255,53 +253,6 @@ GET /api/metrics
 }
 ```
 
-## Development
-
-### Local Development Setup
-
-1. **Clone and setup:**
-   ```bash
-   git clone https://github.com/Kiloma-Advanced-Solutions/PLG_AI.git
-   cd PLG_AI/llm-api
-   chmod +x start-api.sh
-   ```
-
-2. **Start in development mode:**
-   ```bash
-   ./start-api.sh dev
-   ```
-
-3. **Run tests:**
-   ```bash
-   python -m pytest tests/
-   ```
-
-### Development Workflow
-
-1. **Create feature branch:**
-   ```bash
-   git checkout -b feature/your-feature-name
-   ```
-
-2. **Make changes and test:**
-   ```bash
-   # Test your changes
-   curl http://localhost:8090/api/health
-   ```
-
-3. **Submit pull request:**
-   - Ensure all tests pass
-   - Update documentation if needed
-   - Follow the project's coding standards
-
-### Code Standards
-
-- Use type hints throughout the codebase
-- Follow FastAPI best practices
-- Implement comprehensive error handling
-- Add logging for debugging and monitoring
-- Write tests for new functionality
-
 ## Deployment
 
 ### Production Deployment
@@ -441,34 +392,3 @@ chmod +x start-api.sh
    - Use streaming responses for better UX
    - Monitor average response times via metrics
    - Optimize model configuration for your use case
-
-## Security
-
-### Production Security Checklist
-
-- [ ] Change default ports for production
-- [ ] Implement authentication/authorization
-- [ ] Use HTTPS in production
-- [ ] Restrict network access with firewalls
-- [ ] Monitor resource usage and access logs
-- [ ] Regular security updates and patches
-- [ ] Implement rate limiting
-- [ ] Secure environment variable management
-
-### Security Best Practices
-
-1. **Network Security:**
-   - Use firewalls to restrict access
-   - Implement VPN for remote access
-   - Monitor network traffic
-
-2. **Application Security:**
-   - Validate all input data
-   - Implement proper error handling
-   - Use secure headers and CORS configuration
-
-3. **Infrastructure Security:**
-   - Regular system updates
-   - Secure SSH configuration
-   - Monitor system logs
-
