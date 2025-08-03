@@ -70,6 +70,9 @@
   --primary-text-secondary: rgba(255, 255, 255, 0.8);
   --primary-text-tertiary: rgba(255, 255, 255, 0.6);
   
+  /* Focus animation colors */
+  --focus-shadow-color: rgba(102, 126, 234, 0.2);
+  
   /* Sidebar width variables */
   --sidebar-width-closed: 60px;
   --sidebar-width-closed-mobile: 0px;
@@ -104,6 +107,9 @@
   --primary-text: #ffffff;
   --primary-text-secondary: rgba(255, 255, 255, 0.8);
   --primary-text-tertiary: rgba(255, 255, 255, 0.6);
+  
+  /* Focus animation colors */
+  --focus-shadow-color: rgba(96, 165, 250, 0.2);
 }
 
 * {

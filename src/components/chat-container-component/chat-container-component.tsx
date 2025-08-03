@@ -4,42 +4,49 @@ import { useRef, useEffect } from 'react';
 import { Message } from '../../types';
 import ChatMessageComponent from '../chat-message-component/chat-message-component';
 import InputMessageContainer from '../input-message-container/input-message-container';
+import { formatMessageTimestamp, getCurrentTimestamp } from '../../utils/date';
 import styles from './chat-container-component.module.css';
 
-// the props of the chat container component
+/**
+ * Props for the ChatContainerComponent
+ */
 type ChatContainerComponentProps = {
   messages: Message[];
   onSendMessage: (message: string) => void;
   isLoading?: boolean;
   isSidebarOpen?: boolean;
-  shouldFocusInput?: boolean;
+  streamingMessage?: string;
+  apiError?: string | null;
+  onRetry?: () => Promise<void> | void;
+  triggerInputAnimation?: boolean;
 };
 
-// the chat container component
+/**
+ * Main chat container component that displays messages and handles user input
+ */
 export default function ChatContainerComponent({ 
   messages, 
   onSendMessage, 
   isLoading = false, 
   isSidebarOpen = false,
-  shouldFocusInput = false
+  streamingMessage = '',
+  apiError = null,
+  onRetry,
+  triggerInputAnimation = false
 }: ChatContainerComponentProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
+    /**
+     * Scrolls to the bottom of the messages container
+     */
     const scrollToBottom = () => {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     };
 
-    // scroll to the bottom of the messages container every time the messages array changes
+    // Scroll to bottom when messages or streaming message updates
     useEffect(() => {
       scrollToBottom();
-    }, [messages]);
-
-    const formatTimestamp = (timestamp: string) => {
-      return new Date(timestamp).toLocaleTimeString('he-IL', {
-        hour: '2-digit',
-        minute: '2-digit'
-      });
-    };
+    }, [messages, streamingMessage]);
 
     return (
       <div className={`${styles.chatContainer} ${isSidebarOpen ? styles.shifted : ''}`}>
@@ -50,24 +57,56 @@ export default function ChatContainerComponent({
               <p>התחל שיחה חדשה על ידי שליחת הודעה</p>
             </div>
           ) : (
-            // render the messages
+            // Render all messages
             messages.map((message) => (
               <ChatMessageComponent
                 key={message.id}
                 type={message.type}
                 content={message.content}
-                timestamp={formatTimestamp(message.timestamp)}
+                timestamp={formatMessageTimestamp(message.timestamp)}
               />
             ))
           )}
           
+          {apiError && (
+            <div className={styles.errorMessage}>
+              <div className={styles.errorContent}>
+                <span className={styles.errorIcon}>⚠️</span>
+                <span className={styles.errorText}>{apiError}</span>
+                {onRetry && (
+                  <button 
+                    className={styles.retryButton}
+                    onClick={async () => {
+                      try {
+                        await onRetry();
+                      } catch (error) {
+                        console.error('Retry failed:', error);
+                      }
+                    }}
+                  >
+                    נסה שוב
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+          
           {isLoading && (
             <div className={styles.loadingMessage}>
-              <div className={styles.typingIndicator}>
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
+              {streamingMessage ? (
+                <ChatMessageComponent
+                  type="assistant"
+                  content={streamingMessage}
+                  timestamp={formatMessageTimestamp(getCurrentTimestamp())}
+                  isStreaming={true}
+                />
+              ) : (
+                <div className={styles.typingIndicator}>
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+              )}
             </div>
           )}
           
@@ -77,7 +116,7 @@ export default function ChatContainerComponent({
         <InputMessageContainer 
           onSendMessage={onSendMessage}
           isLoading={isLoading}
-          shouldFocusInput={shouldFocusInput}
+          triggerFocusAnimation={triggerInputAnimation}
         />
       </div>
     );

@@ -18,6 +18,15 @@
   transition: all 0.3s ease;
 }
 
+.inputWrapper:focus-within {
+  border-color: var(--border-color);
+  outline: none !important;
+}
+
+.inputWrapper:focus {
+  outline: none !important;
+}
+
 /* input text area */
 .messageInput {
   flex: 1;
@@ -32,6 +41,22 @@
   min-height: 1.5rem;
   max-height: 6rem;
   padding: 0.25rem 0.75rem;
+}
+
+.inputContainer .inputWrapper .messageInput:focus {
+  outline: none !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.inputContainer .inputWrapper:focus-within {
+  border-color: var(--border-color) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.messageInput:focus {
+  outline: none !important;
 }
 
 .messageInput::placeholder {
@@ -96,13 +121,13 @@
   }
   50% {
     transform: scale(1.02);
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--focus-shadow-color);
   }
   100% {
     transform: scale(1);
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0 var(--focus-shadow-color);
   }
 }
 

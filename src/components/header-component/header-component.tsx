@@ -1,18 +1,35 @@
 'use client';
 
 import ThemeToggleComponent from '../theme-toggle-component/theme-toggle-component';
+import { useNavigationHelpers } from '../../hooks/useNavigationHelpers';
 import styles from './header-component.module.css';
 
-// the props of the header component
+/**
+ * Props for the HeaderComponent
+ */
 type HeaderComponentProps = {
   isSidebarOpen: boolean;
-  onCreateNewChat: () => void;
   onToggleSidebar: () => void;
+  onNewChatClick?: () => void;
 };
 
-// the header component
-export default function HeaderComponent({ isSidebarOpen, onCreateNewChat, onToggleSidebar }: HeaderComponentProps) {
-  // render the header component
+/**
+ * Header component that displays app branding and navigation controls
+ */
+export default function HeaderComponent({ 
+  isSidebarOpen, 
+  onToggleSidebar, 
+  onNewChatClick 
+}: HeaderComponentProps) {
+  const { goToNewChat } = useNavigationHelpers();
+  
+  /**
+   * Handles new chat creation from header click
+   */
+  const handleCreateNewChat = () => {
+    goToNewChat(undefined, onNewChatClick);
+  };
+  
   return (
     <header className={`${styles.header} ${isSidebarOpen ? styles.shifted : ''}`}>
       <div className={styles.leftSection}>
@@ -26,7 +43,7 @@ export default function HeaderComponent({ isSidebarOpen, onCreateNewChat, onTogg
       </div>
       
       <div className={`${styles.appName} ${isSidebarOpen ? styles.shifted : ''}`}>
-        <h1 onClick={onCreateNewChat} className={styles.clickable}>ChatPLG</h1>
+        <h1 onClick={handleCreateNewChat} className={styles.clickable}>ChatPLG</h1>
       </div>
 
       {/* Mobile controls - only visible on mobile */}
@@ -41,7 +58,6 @@ export default function HeaderComponent({ isSidebarOpen, onCreateNewChat, onTogg
           </svg>
         </button>
       </div>
-      
     </header>
   );
 } 

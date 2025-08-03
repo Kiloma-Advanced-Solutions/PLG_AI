@@ -2,42 +2,48 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+/**
+ * Type definition for the theme context
+ */
 type ThemeContextType = {
+  /** Whether dark mode is currently active */
   isDark: boolean;
+  /** Function to toggle between light and dark themes */
   toggleTheme: () => void;
 };
 
+/**
+ * React context for managing theme state
+ */
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+/**
+ * Theme provider component that manages light/dark mode state
+ * Persists theme preference in localStorage and applies CSS classes
+ */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [isDark, setIsDark] = useState(false);
 
+  // Initialize theme from localStorage on component mount
   useEffect(() => {
-    // Check for saved theme preference or default to light mode
+    // Check for saved theme preference, default to light mode
     const savedTheme = localStorage.getItem('theme');
+    const isInitiallyDark = savedTheme === 'dark';
     
-    if (savedTheme === 'dark') {
-      setIsDark(true);
-      document.documentElement.classList.add('dark');
-    } else {
-      // Default to light mode
-      setIsDark(false);
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
+    setIsDark(isInitiallyDark);
+    document.documentElement.classList.toggle('dark', isInitiallyDark);
   }, []);
 
+  /**
+   * Toggles between light and dark themes
+   * Updates state, localStorage, and document class
+   */
   const toggleTheme = () => {
-    const newTheme = !isDark;
-    setIsDark(newTheme);
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
     
-    if (newTheme) {
-      document.documentElement.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
-    }
+    document.documentElement.classList.toggle('dark', newIsDark);
+    localStorage.setItem('theme', newIsDark ? 'dark' : 'light');
   };
 
   return (
@@ -47,6 +53,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Hook to access the theme context
+ * Throws an error if used outside of ThemeProvider
+ */
 export function useTheme() {
   const context = useContext(ThemeContext);
   if (context === undefined) {

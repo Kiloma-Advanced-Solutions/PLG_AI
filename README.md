@@ -1,163 +1,125 @@
-# ChatPLG - Hebrew RTL Chatbot
+# ChatPLG-UI with Unified LLM API
 
-A modern Hebrew RTL (Right-to-Left) chatbot application built with React, Next.js, and TypeScript. This application is specifically designed for Hebrew text and includes a beautiful, responsive UI with dark/light theme support.
+A simple Hebrew chatbot with real-time AI responses, powered by a reusable LLM API for multiple AI applications.
 
-## Features
+![Next.js](https://img.shields.io/badge/Next.js-15.3.4-black?style=for-the-badge&logo=next.js)
+![FastAPI](https://img.shields.io/badge/FastAPI-latest-009688?style=for-the-badge&logo=fastapi)
 
-### 🎯 Core Features
-- **Hebrew RTL Support**: Fully optimized for Hebrew text with proper RTL layout
-- **Real-time Chat**: Interactive chat interface with message history
-- **Conversation Management**: Create, switch between, and manage multiple conversations
-- **Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
+## 🚀 Quick Start
 
-### 🎨 UI Components
-- **Header**: App name "ChatPLG" with logo and theme toggle
-- **Sidebar**: Previous conversations list with hover functionality
-- **Chat Interface**: Main conversation area with user and assistant messages
-- **Theme Toggle**: Switch between light and dark modes
-- **Message Components**: Beautiful message bubbles with timestamps
-
-### 🔧 Technical Features
-- **TypeScript**: Full type safety throughout the application
-- **CSS Modules**: Scoped styling for each component
-- **Local Storage**: Persistent conversation history
-- **Responsive Design**: Mobile-first approach
-- **Accessibility**: ARIA labels and keyboard navigation support
-
-## Project Structure
-
-```
-src/
-├── app/
-│   ├── globals.css          # Global styles and RTL support
-│   ├── layout.tsx           # Root layout with Hebrew metadata
-│   └── page.tsx             # Main application page
-├── components/
-│   ├── chat-component/      # Main chat interface
-│   ├── header-component/    # App header with logo and theme toggle
-│   ├── message-component/   # Individual message display
-│   ├── sidebar-component/   # Conversations sidebar
-│   └── theme-toggle-component/ # Dark/light mode toggle
-```
-
-## Getting Started
-
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-
-### Installation
-
-1. Clone the repository:
+### 1. Start vLLM Server
 ```bash
-git clone <repository-url>
-cd chatui
+python3 -m vllm.entrypoints.openai.api_server \
+  --model gaunernst/gemma-3-12b-it-qat-autoawq \
+  --max-model-len 131072 \
+  --port 8000 \
+  --tensor-parallel-size 2
 ```
 
-2. Install dependencies:
+### 2. Start LLM API
+```bash
+cd llm-api
+./start-unified-api.sh
+```
+
+### 3. Start Frontend
 ```bash
 npm install
-```
-
-3. Run the development server:
-```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser.
+### 4. Open Chatbot
+- **Chatbot**: http://localhost:3000
+- **API Docs**: http://localhost:8090/docs
 
-## Usage
+## 🏗️ Project Structure
 
-### Starting a New Chat
-- Click the "צור שיחה חדשה" (Create New Chat) button in the sidebar
-- Or simply start typing in the message input
+```
+ChatPLG-UI/
+├── llm-api/                    # Unified LLM API (reusable)
+│   ├── core/                   # Core LLM functionality
+│   ├── services/               # AI services (chat, email, tasks)
+│   ├── api/                    # REST API endpoints
+│   ├── utils/                  # Health monitoring
+│   ├── main.py                 # FastAPI entry point
+│   └── start-unified-api.sh    # API startup script
+├── src/                        # Frontend chatbot
+│   ├── app/                    # Next.js pages
+│   ├── components/             # React components
+│   └── utils/                  # Frontend utilities
+└── package.json                # Frontend dependencies
+```
 
-### Managing Conversations
-- Hover over the right edge to open the sidebar
-- Click on any previous conversation to switch to it
-- Conversations are automatically saved to localStorage
+## 🔧 Configuration
 
-### Theme Switching
-- Click the sun/moon icon in the header to toggle between light and dark modes
-- Theme preference is saved and persists across sessions
+### LLM API Configuration
+Create `llm-api/.env` for custom settings:
+```bash
+LLM_API_vllm_api_url=http://localhost:8000/v1/chat/completions
+LLM_API_MODEL_NAME=gaunernst/gemma-3-12b-it-qat-autoawq
+LLM_API_PORT=8090
+LLM_API_LOG_LEVEL=INFO
+```
 
-### Sending Messages
-- Type your message in Hebrew (or any language)
-- Press Enter to send
-- Use Shift+Enter for new lines
+### Frontend Configuration
+Edit `src/utils/streaming-api.ts`:
+```typescript
+const API_BASE_URL = 'http://localhost:8090';
+```
 
-## Component Architecture
+## 🔌 Using the API for Other Applications
 
-Each component follows a consistent structure:
-- `component-name.tsx` - React component with TypeScript
-- `component-name.module.css` - Scoped CSS styles
-- Proper TypeScript interfaces for props
-- RTL support and responsive design
+The unified API can be reused for multiple AI applications:
 
-### Key Components
+### Email Summarization
+```python
+import httpx
 
-#### HeaderComponent
-- Displays app logo and name "ChatPLG"
-- Includes theme toggle functionality
-- Responsive design with proper RTL layout
+async def summarize_email(email_content):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            "http://localhost:8090/api/email/summary",
+            json={"email_content": email_content}
+        )
+        return response.json()
+```
 
-#### SidebarComponent
-- Shows previous conversations
-- Hover-to-open functionality
-- "Create New Chat" button
-- Active conversation highlighting
+### Task Extraction
+```javascript
+const extractTasks = async (text) => {
+  const response = await fetch('http://localhost:8090/api/tasks/extract', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text_content: text })
+  });
+  return response.json();
+};
+```
 
-#### ChatComponent
-- Main conversation interface
-- Message input with send button
-- Loading states and typing indicators
-- Auto-scroll to latest messages
+## 📋 Available Endpoints
 
-#### MessageComponent
-- Individual message display
-- Different styles for user vs assistant
-- Timestamp display
-- RTL text alignment
+### Chatbot (Currently Used)
+- `POST /api/chat/stream` - Stream chat completions
+- `GET /api/health` - Health check
 
-## Styling
+### Future Applications
+- `POST /api/email/summary` - Email summarization
+- `POST /api/tasks/extract` - Task extraction
+- `POST /api/completion` - General text completion
 
-The application uses CSS Modules for component-scoped styling with:
-- CSS custom properties for theming
-- RTL-specific styles
-- Dark mode support
-- Responsive breakpoints
-- Smooth animations and transitions
+## 🛠️ Troubleshooting
 
-## Browser Support
+| Issue | Solution |
+|-------|----------|
+| API connection refused | Start API: `cd llm-api && ./start-unified-api.sh` |
+| vLLM not responding | Start vLLM server on port 8000 |
+| Port conflicts | Check `lsof -i :3000` and `lsof -i :8090` |
 
-- Chrome 90+
-- Firefox 88+
-- Safari 14+
-- Edge 90+
+### Quick Health Check
+```bash
+curl http://localhost:8090/api/health
+```
 
-## Contributing
+## 📄 License
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
-
-## License
-
-This project is licensed under the MIT License.
-
-## Future Enhancements
-
-- [ ] Real AI integration (OpenAI, Claude, etc.)
-- [ ] Voice input/output support
-- [ ] File upload capabilities
-- [ ] Export conversation history
-- [ ] User authentication
-- [ ] Multi-language support
-- [ ] Advanced conversation search
-- [ ] Conversation sharing
-
----
-
-Built with ❤️ for Hebrew speakers worldwide
+MIT License
