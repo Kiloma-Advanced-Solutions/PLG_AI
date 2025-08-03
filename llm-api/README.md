@@ -276,8 +276,6 @@ export LLM_API_LOG_LEVEL="INFO"
 
 ### Cloud Deployment
 
-#### AWS EC2 / Google Cloud / Azure VM
-
 1. **Port Configuration:**
    Edit `core/config.py` to match your cloud instance:
 
