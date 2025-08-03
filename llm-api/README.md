@@ -1,4 +1,4 @@
-# PLG-AI LLM API
+# ChatPLG Unified LLM API
 
 A production-ready, self-hosted LLM API server providing unified access to advanced language model capabilities through a RESTful interface. Built with FastAPI and vLLM, optimized for secure, air-gapped environments with support for streaming responses, multi-user sessions, and concurrent processing.
 
@@ -16,11 +16,10 @@ A production-ready, self-hosted LLM API server providing unified access to advan
 - [Monitoring & Health](#monitoring--health)
 - [Troubleshooting](#troubleshooting)
 - [Security](#security)
-- [Contributing](#contributing)
 
 ## 🎯 Overview
 
-The PLG-AI LLM API is designed for organizations requiring secure, self-hosted AI capabilities without external dependencies. The system provides:
+The ChatPLG Unified LLM API is designed for organizations requiring secure, self-hosted AI capabilities without external dependencies. The system provides:
 
 - **Unified API Interface**: Single API for multiple AI tasks (chat, email summarization, task extraction)
 - **High-Performance Hardware**: Optimized for dual RTX 4090 GPU configuration
