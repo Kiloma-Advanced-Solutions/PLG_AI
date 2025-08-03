@@ -6,11 +6,10 @@ import asyncio
 import httpx
 import logging
 from typing import List, Dict, Any, Optional, AsyncGenerator, Tuple, Type
-from pydantic import BaseModel
+from pydantic import BaseModel, TypeAdapter
 from datetime import datetime
 from .config import llm_config
 from .models import Message
-from pydantic import parse_obj_as
 
 logger = logging.getLogger(__name__)
 
@@ -241,7 +240,8 @@ class LLMEngine:
                     content = content.strip()
                     
                     json_data = json.loads(content)
-                    result = parse_obj_as(output_schema, json_data)
+                    adapter = TypeAdapter(output_schema)
+                    result = adapter.validate_python(json_data)
                     logger.info(f"Successfully validated structured completion for session {session_id}")
                     return result
                     

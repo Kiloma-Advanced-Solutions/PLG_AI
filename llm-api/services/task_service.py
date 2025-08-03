@@ -80,7 +80,6 @@ class TaskService:
             return response
             
         except Exception as e:
-            logger.error(f"Failed to extract tasks: {e}")
             raise Exception(f"Failed to extract tasks: {e}")
 
 # Global task service instance

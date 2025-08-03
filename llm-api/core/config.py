@@ -10,9 +10,9 @@ class LLMConfig:
     def __init__(self):
         # Base URLs for services
         self.base_url: str = os.getenv("LLM_API_BASE_URL", "http://localhost")
-        self.cloud_ip: str = os.getenv("LLM_API_CLOUD_IP", "")  # The public IP of the cloud instance
-        self.frontend_port: int = int(os.getenv("LLM_API_FRONTEND_PORT", "19694"))  # 3000 mapped port
-        self.api_port: int = int(os.getenv("LLM_API_API_PORT", "19184"))  # 8090 mapped port
+        self.cloud_ip: str = os.getenv("LLM_API_CLOUD_IP", "175.155.64.187")  # The public IP of the cloud instance
+        self.frontend_port: int = int(os.getenv("LLM_API_FRONTEND_PORT", "19739"))  # 3000 mapped port
+        self.api_port: int = int(os.getenv("LLM_API_API_PORT", "19458"))  # 8090 mapped port
         self.vllm_port: int = int(os.getenv("LLM_API_VLLM_PORT", "8060"))  # vLLM server port
 
         # Server settings
@@ -56,12 +56,12 @@ class LLMConfig:
     @property
     def cloud_frontend_url(self) -> str:
         """Get cloud frontend URL"""
-        return f"{self.cloud_ip}:{self.frontend_port}"
+        return f"http://{self.cloud_ip}:{self.frontend_port}"
     
     @property
     def cloud_api_url(self) -> str:
         """Get cloud API URL"""
-        return f"{self.cloud_ip}:{self.api_port}"
+        return f"http://{self.cloud_ip}:{self.api_port}"
 
     @property
     def vllm_url(self) -> str:

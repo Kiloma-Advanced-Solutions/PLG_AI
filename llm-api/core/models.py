@@ -55,16 +55,6 @@ class TaskItem(BaseModel):
     description: str
     due_date: Optional[date]
 
-    @field_validator("sending_date", "due_date", pre=True)
-    @classmethod
-    def parse_date(cls, v):
-        if v is None:
-            return v
-        try:
-            return datetime.strptime(v, "%d/%m/%Y").date()
-        except ValueError:
-            raise ValueError(f"Could not parse {v} to DD/MM/YYYY format")
-
 
 class TaskExtractionRequest(BaseModel):
     email_content: str

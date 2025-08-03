@@ -60,13 +60,11 @@ start_vllm() {
     python3 -m vllm.entrypoints.openai.api_server \
         --model $LLM_API_MODEL_NAME \
         --max-model-len 131072 \
-        --port 8000 \
+        --port 8060 \
         --tensor-parallel-size 2 | grep -Ev "Received request chatcmpl|Added request chatcmpl|HTTP/1.1\" 200 OK" &
-    
-    # Wait for vLLM to start
-    echo -e "${YELLOW}Waiting for vLLM server to start...${NC}"
+        
     for i in {1..600}; do
-        if curl -s http://localhost:8000/v1/models > /dev/null; then
+        if curl -s http://localhost:8060/v1/models > /dev/null; then
             echo -e "${GREEN}vLLM server is ready!${NC}"
             return 0
         fi
@@ -98,20 +96,20 @@ source venv/bin/activate
 
 # Install dependencies
 echo -e "📚 ${YELLOW}Installing dependencies...${NC}"
+echo -e "📍 ${BLUE}Using requirements file: $(pwd)/requirements.txt${NC}"
 pip install -r requirements.txt > /dev/null
 
 # Get port mappings from Python config
 echo -e "🔍 ${YELLOW}Loading configuration...${NC}"
 CONFIG=$(python -c "
 from core.config import llm_config
-print(f'''{llm_config.frontend_port}
-{llm_config.api_port}
-{llm_config.vllm_port}
-{llm_config.frontend_url}
-{llm_config.api_url}
-{llm_config.vllm_url}
-{llm_config.vllm_api_url}
-''')
+print(llm_config.frontend_port)
+print(llm_config.api_port)
+print(llm_config.vllm_port)
+print(llm_config.frontend_url)
+print(llm_config.api_url)
+print(llm_config.vllm_url)
+print(llm_config.vllm_api_url)
 ")
 
 # Read port mappings and URLs into variables
@@ -119,14 +117,6 @@ IFS=$'\n' read -r FRONTEND_PORT API_PORT VLLM_PORT FRONTEND_URL API_URL VLLM_URL
 
 # Stop any existing vLLM server
 stop_vllm
-
-# Ensure vLLM is installed
-echo -e "📦 ${YELLOW}Installing vLLM...${NC}"
-pip install -q vllm || {
-    echo -e "${RED}Failed to install vLLM. Please install it manually:${NC}"
-    echo "pip install vllm"
-    exit 1
-}
 
 # Start vLLM server
 start_vllm
