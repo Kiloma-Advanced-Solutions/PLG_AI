@@ -1,14 +1,14 @@
 """
-LLM engine for handling vLLM server communication
+LLM Engine for handling model inference and chat completions
 """
-import httpx
-import asyncio
 import json
+import asyncio
+import httpx
 import logging
 from typing import List, Dict, Any, Optional, AsyncGenerator, Tuple, Type
 from pydantic import BaseModel
 from datetime import datetime
-from .config import llm_config, get_model_params
+from .config import llm_config
 from .models import Message
 from pydantic import parse_obj_as
 
@@ -108,6 +108,7 @@ class LLMEngine:
         return [{"role": msg.role, "content": msg.content} for msg in messages]
 
 
+
     async def chat_stream(
         self,
         messages: List[Message],
@@ -123,7 +124,7 @@ class LLMEngine:
         logger.info(f"Starting chat for session {session_id}")
         
         # Build request payload for vLLM
-        model_params = get_model_params()
+        model_params = llm_config.get_model_params()
         payload = {
             "model": llm_config.llm_model_name,
             **model_params,
@@ -198,7 +199,7 @@ class LLMEngine:
         logger.info(f"Starting structured completion for session {session_id}")
         
         # Build request payload for vLLM (non-streaming)
-        model_params = get_model_params()
+        model_params = llm_config.get_model_params()
         payload = {
             "model": llm_config.llm_model_name,
             **model_params,

@@ -1,52 +1,40 @@
 """
 Configuration settings and environment variables
 """
+import os
 from typing import Dict, Any, List
-from pydantic import Field, computed_field
-from pydantic_settings import BaseSettings
 
-class LLMConfig(BaseSettings):
+class LLMConfig:
     """Configuration settings for the LLM API"""
     
-    # Base URLs for services
-    base_url: str = Field(
-        default="http://localhost",
-        description="Base URL for all services"
-    )
-    frontend_port: int = Field(
-        default=19694,  # 3000 mapped port
-        description="Frontend port"
-    )
-    api_port: int = Field(
-        default=19184,  # 8090 mapped port
-        description="API port"
-    )
-    vllm_port: int = Field(
-        default=8060,  # vLLM server port
-        description="vLLM server port"
-    )
+    def __init__(self):
+        # Base URLs for services
+        self.base_url: str = os.getenv("LLM_API_BASE_URL", "http://localhost")
+        self.cloud_ip: str = os.getenv("LLM_API_CLOUD_IP", "")  # The public IP of the cloud instance
+        self.frontend_port: int = int(os.getenv("LLM_API_FRONTEND_PORT", "19694"))  # 3000 mapped port
+        self.api_port: int = int(os.getenv("LLM_API_API_PORT", "19184"))  # 8090 mapped port
+        self.vllm_port: int = int(os.getenv("LLM_API_VLLM_PORT", "8060"))  # vLLM server port
 
-    # Server settings
-    host: str = "0.0.0.0"
-    port: int = 8090
-    log_level: str = "INFO"
-    
-    # Model Configuration
-    llm_model_name: str = "gaunernst/gemma-3-12b-it-qat-autoawq"
-    
-    # Model Parameters
-    max_tokens: int = 2048
-    temperature: float = 0.7
-    top_p: float = 0.9
-    
-    # Connection Settings
-    request_timeout: int = 300
-    health_check_timeout: int = 5
-    connection_pool_size: int = 100
-    max_keepalive_connections: int = 50
-    keepalive_expiry: float = 60.0
+        # Server settings
+        self.host: str = os.getenv("LLM_API_HOST", "0.0.0.0")
+        self.port: int = int(os.getenv("LLM_API_PORT", "8090"))
+        self.log_level: str = os.getenv("LLM_API_LOG_LEVEL", "INFO")
+        
+        # Model Configuration
+        self.llm_model_name: str = os.getenv("LLM_API_LLM_MODEL_NAME", "gaunernst/gemma-3-12b-it-qat-autoawq")
+        
+        # Model Parameters
+        self.max_tokens: int = int(os.getenv("LLM_API_MAX_TOKENS", "2048"))
+        self.temperature: float = float(os.getenv("LLM_API_TEMPERATURE", "0.7"))
+        self.top_p: float = float(os.getenv("LLM_API_TOP_P", "0.9"))
+        
+        # Connection Settings
+        self.request_timeout: int = int(os.getenv("LLM_API_REQUEST_TIMEOUT", "300"))
+        self.health_check_timeout: int = int(os.getenv("LLM_API_HEALTH_CHECK_TIMEOUT", "5"))
+        self.connection_pool_size: int = int(os.getenv("LLM_API_CONNECTION_POOL_SIZE", "100"))
+        self.max_keepalive_connections: int = int(os.getenv("LLM_API_MAX_KEEPALIVE_CONNECTIONS", "50"))
+        self.keepalive_expiry: float = float(os.getenv("LLM_API_KEEPALIVE_EXPIRY", "60.0"))
 
-    @computed_field
     @property
     def frontend_url(self) -> str:
         """Get frontend URL"""
@@ -56,7 +44,6 @@ class LLMConfig(BaseSettings):
             base = self.base_url
         return f"{base}:{self.frontend_port}"
 
-    @computed_field
     @property
     def api_url(self) -> str:
         """Get API URL"""
@@ -65,8 +52,17 @@ class LLMConfig(BaseSettings):
         else:
             base = self.base_url
         return f"{base}:{self.api_port}"
+    
+    @property
+    def cloud_frontend_url(self) -> str:
+        """Get cloud frontend URL"""
+        return f"{self.cloud_ip}:{self.frontend_port}"
+    
+    @property
+    def cloud_api_url(self) -> str:
+        """Get cloud API URL"""
+        return f"{self.cloud_ip}:{self.api_port}"
 
-    @computed_field
     @property
     def vllm_url(self) -> str:
         """Get vLLM base URL"""
@@ -76,49 +72,39 @@ class LLMConfig(BaseSettings):
             base = self.base_url
         return f"{base}:{self.vllm_port}"
 
-    @computed_field
     @property
     def vllm_api_url(self) -> str:
         """Get vLLM API endpoint"""
         return f"{self.vllm_url}/v1/chat/completions"
 
-    @computed_field
     @property
     def vllm_metrics_url(self) -> str:
         """Get vLLM metrics endpoint"""
         return f"{self.vllm_url}/metrics"
 
-    @computed_field
     @property
     def vllm_headers(self) -> Dict[str, str]:
         """Get headers for vLLM API requests"""
         return {"Content-Type": "application/json"}
 
-    @computed_field
     @property
     def allowed_origins(self) -> List[str]:
         """Get allowed CORS origins"""
         return [
             self.frontend_url,
             self.api_url,
-            "http://localhost:3000",  # Local development
-            "http://localhost:8090",   # Local API
-            "http://175.155.64.187:19694",  # Cloud frontend URL
-            "http://175.155.64.187:19184",  # Cloud API URL
+            self.cloud_frontend_url,
+            self.cloud_api_url,
         ]
 
-    class Config:
-        env_prefix = "LLM_API_"
+    def get_model_params(self) -> Dict[str, Any]:
+        """Get model parameters for API requests"""
+        return {
+            "max_tokens": self.max_tokens,
+            "temperature": self.temperature,
+            "top_p": self.top_p,
+        }
 
 
 # Create global config instance
-llm_config = LLMConfig()
-
-
-def get_model_params() -> Dict[str, Any]:
-    """Get model parameters for API requests"""
-    return {
-        "max_tokens": llm_config.max_tokens,
-        "temperature": llm_config.temperature,
-        "top_p": llm_config.top_p,
-    } 
+llm_config = LLMConfig() 

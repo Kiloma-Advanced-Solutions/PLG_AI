@@ -4,8 +4,8 @@ Data models and request/response schemas for the API
 """
 
 from typing import List, Dict, Any, Optional, Literal
-from pydantic import BaseModel, Field, validator
-from datetime import datetime
+from pydantic import BaseModel, Field, field_validator
+from datetime import datetime, date
 
 # ===============================
 # CHAT MODELS
@@ -16,11 +16,13 @@ class Message(BaseModel):
     role: Literal["system", "user", "assistant"]
     content: str
 
-    @validator('content')
+    @field_validator('content')
+    @classmethod
     def content_not_empty(cls, v):
         if not v or not v.strip():
             raise ValueError('Message content cannot be empty')
         return v.strip()
+
 
 class ChatRequest(BaseModel):
     """Main request model for chat conversations"""
@@ -32,7 +34,8 @@ class ChatRequest(BaseModel):
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
     
-    @validator('messages')
+    @field_validator('messages')
+    @classmethod
     def messages_not_empty(cls, v):
         if not v:
             raise ValueError('Messages list cannot be empty')
@@ -45,9 +48,22 @@ class ChatRequest(BaseModel):
 # ===============================
 
 class TaskItem(BaseModel):
+    sender: Optional[str]
+    sending_date: Optional[date]
     assigned_to: str
+    title: str
     description: str
-    due_date: str
+    due_date: Optional[date]
+
+    @field_validator("sending_date", "due_date", pre=True)
+    @classmethod
+    def parse_date(cls, v):
+        if v is None:
+            return v
+        try:
+            return datetime.strptime(v, "%d/%m/%Y").date()
+        except ValueError:
+            raise ValueError(f"Could not parse {v} to DD/MM/YYYY format")
 
 
 class TaskExtractionRequest(BaseModel):

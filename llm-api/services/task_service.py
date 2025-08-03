@@ -14,20 +14,26 @@ class TaskService:
 
     # System prompt that defines the task extraction behavior
     TASK_SYSTEM_PROMPT = """חלץ משימות מתוך תוכן האימייל הבא שישלח המשתמש. עבור כל משימה:
+- זהה מי שלח את המשימה (שולח המייל). אם לא צוין, השאר כ-null.
+- זהה מתי נשלחה המשימה (תאריך שליחת המייל). אם לא צוין, השאר כ-null.
 - זהה למי היא מוקצית
-- חלץ את תיאור המשימה
-- מצא או הסק את תאריך היעד (אם לא צוין, השתמש ב-'unspecified')
+- נסח כותרת המתארת את המשימה
+- נסח את תיאור המשימה
+- מצא או הסק את תאריך היעד. אם לא צוין,השאר כ-null.
 
 פרמט את התשובה כאובייקט JSON כאשר כל משימה ממוספרת ומכילה:
-- assigned_to: האדם האחראי
+- sender: האדם ששלח את המשימה
+- sending_date: תאריך הקצאת המשימה בפורמט YYYY-MM-DD או null
+- assigned_to: האדם האחראי על המשימה
+- title: כותרת המשימה
 - description: תיאור ברור של המשימה
-- due_date: תאריך היעד בפורמט DD-MM-YYYY או 'unspecified'
+- due_date: תאריך היעד בפורמט YYYY-MM-DD או null
 
 שים לב:
-- תאריכים בעברית כמו "מחר", "בשבוע הבא", "בעוד יומיים" יש להמיר לפורמט DD-MM-YYYY
-- יש לשמור על שמות השדות באנגלית (assigned_to, description, due_date)
+- תאריכים בעברית כמו "מחר", "בשבוע הבא", "בעוד יומיים" יש להמיר לפורמט YYYY-MM-DD
+- יש לשמור על שמות השדות באנגלית (sender, sending_date, assigned_to, title, description, due_date)
 - התוכן של השדות יכול להיות בעברית
-- השתמש בתאריך של היום ({today}) לחישוב תאריכי יעד יחסיים (למשל: "מחר", "בעוד שבוע")
+- השתמש בתאריך של היום ({today}, בפורמט YYYY-MM-DD) לחישוב תאריכי יעד יחסיים (למשל: "מחר", "בעוד שבוע")
 
 ענה רק עם ה-JSON, ללא טקסט נוסף.
 
@@ -41,7 +47,7 @@ class TaskService:
 
     def get_task_system_prompt(self: str) -> str:
         """Get the system prompt for task extraction"""
-        today = datetime.now().strftime("%d-%m-%Y")   # today's date in DD-MM-YYYY format
+        today = datetime.now().strftime("%Y-%m-%d")   # today's date in YYYY-MM-DD format
         return self.TASK_SYSTEM_PROMPT.format(today=today)
 
 
@@ -50,8 +56,8 @@ class TaskService:
         Extract tasks from Hebrew email content using LLM.
         Returns a validated TaskExtractionResponse containing tasks in the format:
         [
-            {"assigned_to": "person", "description": "task", "due_date": "date"},
-            {"assigned_to": "person", "description": "task", "due_date": "date"},
+            {"sender": "task sender's email", "sending_date": "sending date", "assigned_to": "person", "title": "task title", "description": "task description", "due_date": "task due date"},
+            {"sender": "task sender's email", "sending_date": "sending date", "assigned_to": "person", "title": "task title", "description": "task description", "due_date": "task due date"},
             ...
         ]
         """
