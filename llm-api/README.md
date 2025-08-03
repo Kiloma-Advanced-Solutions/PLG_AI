@@ -1,4 +1,4 @@
-# ChatPLG Unified LLM API
+# PLG-AI LLM API
 
 A production-ready, self-hosted LLM API server providing unified access to advanced language model capabilities through a RESTful interface. Built with FastAPI and vLLM, optimized for secure, air-gapped environments with support for streaming responses, multi-user sessions, and concurrent processing.
 
@@ -7,19 +7,19 @@ A production-ready, self-hosted LLM API server providing unified access to advan
 - [Overview](#overview)
 - [Architecture](#architecture)
 - [Prerequisites](#prerequisites)
-- [Quick Start](#quickstart)
-- [Project Structure](#projectstructure)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
 - [Configuration](#configuration)
-- [API Endpoints](#apiendpoints)
+- [API Endpoints](#api-endpoints)
 - [Development](#development)
 - [Deployment](#deployment)
-- [Monitoring & Health](#monitoringhealth)
+- [Monitoring & Health](#monitoring-health)
 - [Troubleshooting](#troubleshooting)
 - [Security](#security)
 
-## 🎯 Overview
+## Overview
 
-The ChatPLG Unified LLM API is designed for organizations requiring secure, self-hosted AI capabilities without external dependencies. The system provides:
+The PLG-AI LLM API is designed for organizations requiring secure, self-hosted AI capabilities without external dependencies. The system provides:
 
 - **Unified API Interface**: Single API for multiple AI tasks (chat, email summarization, task extraction)
 - **High-Performance Hardware**: Optimized for dual RTX 4090 GPU configuration
@@ -39,7 +39,7 @@ The ChatPLG Unified LLM API is designed for organizations requiring secure, self
 - ✅ vLLM integration for optimized model inference
 - ✅ Configurable model deployment with tensor parallelism
 
-## 🏗️ Architecture
+## Architecture
 
 ### Technology Stack
 
@@ -59,7 +59,7 @@ The ChatPLG Unified LLM API is designed for organizations requiring secure, self
 - **Network**: Local network only (no internet connectivity required)
 - **Cooling**: Enterprise-grade cooling for sustained dual GPU operation
 
-## ⚙️ Prerequisites
+## Prerequisites
 
 - Python 3.8+
 - CUDA-compatible GPU (for vLLM)
@@ -67,7 +67,7 @@ The ChatPLG Unified LLM API is designed for organizations requiring secure, self
 - Linux/macOS environment
 - NVIDIA drivers and CUDA toolkit installed
 
-## 🚀 Quick Start
+## Quick Start
 
 ### 1. Clone and Navigate
 
@@ -124,7 +124,7 @@ curl -X POST http://localhost:8090/api/chat/stream \
   --no-buffer
 ```
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 llm-api/
@@ -157,7 +157,7 @@ llm-api/
 - **`services/chat_service.py`**: Chat functionality with streaming support
 - **`services/task_service.py`**: Task extraction and processing capabilities
 
-## ⚙️ Configuration
+## Configuration
 
 ### Environment Variables
 
@@ -186,7 +186,7 @@ The default model is `gaunernst/gemma-3-12b-it-qat-autoawq`, a quantized version
 - **Quantization**: AutoAWQ for memory efficiency
 - **Languages**: Hebrew and English support
 
-## 🔌 API Endpoints
+## API Endpoints
 
 ### Core Chat API
 
@@ -255,7 +255,7 @@ GET /api/metrics
 }
 ```
 
-## 🛠️ Development
+## Development
 
 ### Local Development Setup
 
@@ -302,7 +302,7 @@ GET /api/metrics
 - Add logging for debugging and monitoring
 - Write tests for new functionality
 
-## 🚀 Deployment
+## Deployment
 
 ### Production Deployment
 
@@ -347,7 +347,7 @@ Ensure your cloud instance has:
 - At least 16GB GPU memory
 - CUDA drivers installed
 
-## 📊 Monitoring & Health
+## Monitoring & Health
 
 ### Health Checks
 
@@ -384,7 +384,7 @@ tail -f /var/log/llm-api.log
 tail -f /var/log/vllm.log
 ```
 
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### Common Issues
 
@@ -442,7 +442,7 @@ chmod +x start-api.sh
    - Monitor average response times via metrics
    - Optimize model configuration for your use case
 
-## 🔒 Security
+## Security
 
 ### Production Security Checklist
 
