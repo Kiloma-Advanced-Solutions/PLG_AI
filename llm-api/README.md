@@ -1,59 +1,115 @@
-# ChatPLG Unified LLM API
+# PLG-AI LLM API
 
-A unified API server that provides chat functionality using vLLM and Gemma-3-12B model. This API can be used by multiple AI applications and supports streaming responses.
+A production-ready, self-hosted LLM API server providing unified access to advanced language model capabilities through a RESTful interface. Built with FastAPI and vLLM, optimized for secure, air-gapped environments with support for streaming responses, multi-user sessions, and concurrent processing.
 
-## 🚀 Quick Start
+## 📋 Table of Contents
 
-### Prerequisites
+- [Overview](#overview)
+- [Architecture](#architecture)
+- [Prerequisites](#prerequisites)
+- [Quick Start](#quick-start)
+- [Project Structure](#project-structure)
+- [Configuration](#configuration)
+- [API Endpoints](#api-endpoints)
+- [Development](#development)
+- [Deployment](#deployment)
+- [Monitoring & Health](#monitoring--health)
+- [Troubleshooting](#troubleshooting)
+- [Security](#security)
+- [Contributing](#contributing)
+
+## 🎯 Overview
+
+The PLG-AI LLM API is designed for organizations requiring secure, self-hosted AI capabilities without external dependencies. The system provides:
+
+- **Unified API Interface**: Single API for multiple AI tasks (chat, email summarization, task extraction)
+- **High-Performance Hardware**: Optimized for dual RTX 4090 GPU configuration
+- **Multi-User Concurrent Access**: Support for the use of multiple simultaneous users
+- **Air-Gapped Deployment**: Complete self-hosted solution with no external dependencies
+- **Real-time Streaming**: Server-Sent Events for responsive user experiences
+- **Production-Ready**: Comprehensive error handling, logging, and monitoring
+
+### Key Features
+
+- ✅ RESTful API with FastAPI framework and async support
+- ✅ Real-time streaming responses via Server-Sent Events
+- ✅ Session-based conversation management for multiple users
+- ✅ Multi-language support (Hebrew/English)
+- ✅ Health monitoring and metrics endpoints
+- ✅ Production-ready error handling and logging
+- ✅ vLLM integration for optimized model inference
+- ✅ Configurable model deployment with tensor parallelism
+
+## 🏗️ Architecture
+
+### Technology Stack
+
+- **Backend Framework**: FastAPI 0.104+ for high-concurrency support
+- **AI/ML Integration**: Local vLLM server with optimized model deployment
+- **Model**: Gemma 3-12b IT Quantized (AutoAWQ) - locally stored
+- **Context Window**: 131,072 tokens per session
+- **Languages**: Hebrew (primary), English (secondary)
+- **Deployment**: Local vLLM server with tensor parallelism across dual RTX 4090
+
+### Hardware Requirements
+
+- **GPU Configuration**: Dual NVIDIA RTX 4090 (24GB VRAM each)
+- **CPU**: Minimum 16-core CPU (Intel i7-13700K or AMD Ryzen 9 7900X equivalent)
+- **RAM**: 64GB DDR4/DDR5 (minimum), 128GB recommended for heavy concurrent usage
+- **Storage**: 2TB NVMe SSD for model storage and temporary data
+- **Network**: Local network only (no internet connectivity required)
+- **Cooling**: Enterprise-grade cooling for sustained dual GPU operation
+
+## ⚙️ Prerequisites
 
 - Python 3.8+
 - CUDA-compatible GPU (for vLLM)
 - At least 16GB GPU memory (for Gemma-3-12B model)
 - Linux/macOS environment
+- NVIDIA drivers and CUDA toolkit installed
 
-### Installation & Running
+## 🚀 Quick Start
 
-1. **Clone the repository and navigate to the API directory:**
-   ```bash
-   git clone https://github.com/pelegel/ChatPLG-UI.git
-   cd ChatPLG-UI
-   git checkout new-api
-   cd llm-api
-   ```
+### 1. Clone and Navigate
 
-2. **Make the startup script executable:**
-   ```bash
-   chmod +x start-api.sh
-   ```
-
-3. **Run the API server:**
-   ```bash
-   # For production mode
-   ./start-api.sh prod
-   
-   # For development mode (with auto-reload)
-   ./start-api.sh dev
-   
-   # For default mode
-   ./start-api.sh
-   ```
-
-The script will automatically:
-- Create a virtual environment
-- Install all dependencies
-- Start the vLLM server on port 8060
-- Start the API server on port 8090
-- Configure proper port mappings
-
-## 📋 API Endpoints
-
-### Health Check
 ```bash
-curl http://localhost:8090/api/health
+git clone https://github.com/Kiloma-Advanced-Solutions/PLG_AI.git
+cd PLG_AI/llm-api
 ```
 
-### Streaming Chat
+### 2. Make Startup Script Executable
+
 ```bash
+chmod +x start-api.sh
+```
+
+### 3. Run the API Server
+
+```bash
+# Production mode (recommended)
+./start-api.sh prod
+
+# Development mode (with auto-reload)
+./start-api.sh dev
+
+# Default mode
+./start-api.sh
+```
+
+The startup script automatically:
+- Creates a virtual environment
+- Installs all dependencies
+- Starts the vLLM server on port 8060
+- Starts the API server on port 8090
+- Configures proper port mappings and CORS on config.py
+
+### 4. Verify Installation
+
+```bash
+# Health check
+curl http://localhost:8090/api/health
+
+# Test streaming chat
 curl -X POST http://localhost:8090/api/chat/stream \
   -H "Content-Type: application/json" \
   -H "Accept: text/event-stream" \
@@ -61,7 +117,7 @@ curl -X POST http://localhost:8090/api/chat/stream \
     "messages": [
       {
         "role": "user",
-        "content": "Hello! Can you tell me a short joke?"
+        "content": "שלום! תוכל לספר לי בדיחה?"
       }
     ],
     "stream": true
@@ -69,11 +125,44 @@ curl -X POST http://localhost:8090/api/chat/stream \
   --no-buffer
 ```
 
-## 🔧 Configuration
+## 📁 Project Structure
+
+```
+llm-api/
+├── main.py               # FastAPI application entry point
+├── start-api.sh          # Production startup script
+├── requirements.txt      # Python dependencies
+├── core/                 # Core application modules
+│   ├── config.py         # Configuration management
+│   ├── llm_engine.py     # vLLM integration and model management
+│   └── models.py         # Pydantic data models
+├── api/                  # API layer
+│   ├── routes.py         # API endpoint definitions
+│   └── middleware.py     # CORS, error handling middleware
+├── services/             # Business logic services
+│   ├── chat_service.py   # Chat functionality implementation
+│   └── task_service.py   # Task extraction and processing
+├── utils/                # Utility functions
+│   └── health.py         # Health check utilities
+└── tests/                # Test suite
+    ├── test_emails.json  # Test data
+    └── test_task_extraction.py
+```
+
+### Core Components
+
+- **`main.py`**: FastAPI application initialization and configuration
+- **`core/config.py`**: Centralized configuration management with environment variable support
+- **`core/llm_engine.py`**: vLLM server integration and model inference logic
+- **`api/routes.py`**: RESTful API endpoint definitions and request/response handling
+- **`services/chat_service.py`**: Chat functionality with streaming support
+- **`services/task_service.py`**: Task extraction and processing capabilities
+
+## ⚙️ Configuration
 
 ### Environment Variables
 
-The API uses the following environment variables (all prefixed with `LLM_API_`):
+All configuration uses the `LLM_API_` prefix for consistency:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -83,213 +172,304 @@ The API uses the following environment variables (all prefixed with `LLM_API_`):
 | `VLLM_PORT` | `8060` | vLLM server port |
 | `MODEL_NAME` | `gaunernst/gemma-3-12b-it-qat-autoawq` | Model to load |
 | `LOG_LEVEL` | `INFO` | Logging level |
+| `REQUEST_TIMEOUT` | `300` | Request timeout in seconds |
+| `HEALTH_CHECK_TIMEOUT` | `5` | Health check timeout |
+| `CONNECTION_POOL_SIZE` | `100` | HTTP connection pool size |
+| `MAX_KEEPALIVE_CONNECTIONS` | `50` | Maximum keepalive connections |
+| `KEEPALIVE_EXPIRY` | `60.0` | Keepalive expiry time |
 
 ### Model Configuration
 
-The default model is `gaunernst/gemma-3-12b-it-qat-autoawq`, which is a quantized version of Gemma-3-12B optimized for inference.
+The default model is `gaunernst/gemma-3-12b-it-qat-autoawq`, a quantized version of Gemma-3-12B optimized for inference with:
 
-## ☁️ Cloud Deployment
+- **Context Window**: 131,072 tokens
+- **Tensor Parallelism**: 2 (optimized for dual RTX 4090)
+- **Quantization**: AutoAWQ for memory efficiency
+- **Languages**: Hebrew and English support
 
-### AWS EC2 / Google Cloud / Azure VM
+## 🔌 API Endpoints
 
-For cloud deployment, you'll need to modify the configuration based on your setup:
+### Core Chat API
 
-#### 1. Port Configuration
+#### Streaming Chat
+```http
+POST /api/chat/stream
+Content-Type: application/json
+Accept: text/event-stream
 
-Edit `core/config.py` to match your cloud instance ports:
-
-```python
-# For cloud instances, you might need to change these defaults
-frontend_port: int = Field(
-    default=3000,  # Your frontend port
-    description="Frontend port"
-)
-api_port: int = Field(
-    default=8090,  # Your API port
-    description="API port"
-)
-vllm_port: int = Field(
-    default=8060,  # Your vLLM port
-    description="vLLM server port"
-)
+{
+  "messages": [
+    {"role": "user", "content": "שלום, איך אתה?"},
+    {"role": "assistant", "content": "שלום! אני בסדר, תודה."}
+  ],
+  "session_id": "chat_abc123def456",
+  "language": "hebrew",
+  "stream": true
+}
 ```
 
-#### 2. Security Groups / Firewall
+**Response (Server-Sent Events):**
+```
+data: {"type": "content", "content": "שלום! "}
+data: {"type": "content", "content": "איך "}
+data: {"type": "content", "content": "אני יכול לעזור?"}
+data: {"type": "done", "session_id": "chat_abc123def456"}
+```
 
-Ensure your cloud instance allows traffic on:
-- Port 8090 (API server)
-- Port 8060 (vLLM server)
-- Port 3000 (if running frontend)
+### Health & Monitoring
 
-#### 3. Environment Variables
+#### Health Check
+```http
+GET /api/health
+```
 
-Set environment variables for your cloud instance:
+**Response:**
+```json
+{
+  "status": "healthy",
+  "vllm_healthy": true,
+  "active_sessions": 247,
+  "vllm_running_requests": 12,
+  "vllm_waiting_requests": 3,
+  "timestamp": "2024-12-15T10:30:00Z"
+}
+```
+
+#### Metrics
+```http
+GET /api/metrics
+```
+
+**Response:**
+```json
+{
+  "active_sessions": 247,
+  "total_requests_24h": 15420,
+  "average_response_time": 1.8,
+  "error_rate": 0.02,
+  "uptime": 99.97,
+  "resource_usage": {
+    "memory": "12.4GB",
+    "gpu_memory": "18.2GB",
+    "cpu_percent": 67
+  }
+}
+```
+
+## 🛠️ Development
+
+### Local Development Setup
+
+1. **Clone and setup:**
+   ```bash
+   git clone https://github.com/Kiloma-Advanced-Solutions/PLG_AI.git
+   cd PLG_AI/llm-api
+   chmod +x start-api.sh
+   ```
+
+2. **Start in development mode:**
+   ```bash
+   ./start-api.sh dev
+   ```
+
+3. **Run tests:**
+   ```bash
+   python -m pytest tests/
+   ```
+
+### Development Workflow
+
+1. **Create feature branch:**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Make changes and test:**
+   ```bash
+   # Test your changes
+   curl http://localhost:8090/api/health
+   ```
+
+3. **Submit pull request:**
+   - Ensure all tests pass
+   - Update documentation if needed
+   - Follow the project's coding standards
+
+### Code Standards
+
+- Use type hints throughout the codebase
+- Follow FastAPI best practices
+- Implement comprehensive error handling
+- Add logging for debugging and monitoring
+- Write tests for new functionality
+
+## 🚀 Deployment
+
+### Production Deployment
+
+#### 1. Environment Setup
 
 ```bash
-export LLM_API_BASE_URL="http://your-instance-ip"
+# Set production environment variables
+export LLM_API_BASE_URL="http://your-production-domain"
 export LLM_API_HOST="0.0.0.0"
 export LLM_API_PORT=8090
 export LLM_API_VLLM_PORT=8060
+export LLM_API_LOG_LEVEL="INFO"
 ```
 
-#### 4. GPU Requirements
+#### 2. Start Production Server
+
+```bash
+./start-api.sh prod
+```
+
+### Cloud Deployment
+
+#### AWS EC2 / Google Cloud / Azure VM
+
+1. **Port Configuration:**
+   Edit `core/config.py` to match your cloud instance:
+
+   ```python
+   frontend_port: int = Field(default=3000, description="Frontend port")
+   api_port: int = Field(default=8090, description="API port")
+   vllm_port: int = Field(default=8060, description="vLLM server port")
+   ```
+
+2. **Security Groups / Firewall:**
+   Ensure your cloud instance allows traffic on:
+   - Port 8090 (API server)
+   - Port 8060 (vLLM server)
+   - Port 3000 (if running frontend)
 
 Ensure your cloud instance has:
 - CUDA-compatible GPU
 - At least 16GB GPU memory
 - CUDA drivers installed
 
-### Docker Deployment
+## 📊 Monitoring & Health
 
-For containerized deployment, create a `Dockerfile`:
+### Health Checks
 
-```dockerfile
-FROM nvidia/cuda:12.1-devel-ubuntu22.04
+```bash
+# API health
+curl http://localhost:8090/api/health
 
-# Install Python and dependencies
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+# vLLM health
+curl http://localhost:8060/v1/models
 
-# Set working directory
-WORKDIR /app
-
-# Copy requirements and install Python dependencies
-COPY requirements.txt .
-RUN pip3 install -r requirements.txt
-
-# Copy application code
-COPY . .
-
-# Make startup script executable
-RUN chmod +x start-api.sh
-
-# Expose ports
-EXPOSE 8090 8060
-
-# Start the API
-CMD ["./start-api.sh", "prod"]
+# Basic connectivity
+curl http://localhost:8090/ping
 ```
 
-### Kubernetes Deployment
+### Metrics Collection
 
-For Kubernetes, create deployment manifests:
+```bash
+# API metrics
+curl http://localhost:8090/api/metrics
 
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: llm-api
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: llm-api
-  template:
-    metadata:
-      labels:
-        app: llm-api
-    spec:
-      containers:
-      - name: llm-api
-        image: your-registry/llm-api:latest
-        ports:
-        - containerPort: 8090
-        - containerPort: 8060
-        resources:
-          limits:
-            nvidia.com/gpu: 1
-            memory: "32Gi"
-            cpu: "8"
-          requests:
-            memory: "16Gi"
-            cpu: "4"
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: llm-api-service
-spec:
-  selector:
-    app: llm-api
-  ports:
-  - name: api
-    port: 8090
-    targetPort: 8090
-  - name: vllm
-    port: 8060
-    targetPort: 8060
-  type: LoadBalancer
+# vLLM metrics
+curl http://localhost:8060/metrics
+```
+
+### Logging
+
+The application uses structured logging with configurable levels:
+
+```bash
+# View API logs
+tail -f /var/log/llm-api.log
+
+# View vLLM logs
+tail -f /var/log/vllm.log
 ```
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
 
-1. **"LLM service is not available"**
-   - Check if vLLM server is running: `curl http://localhost:8060/v1/models`
-   - Verify port configuration in `core/config.py`
-   - Check GPU memory availability
-
-2. **Port already in use**
-   - Stop existing processes: `pkill -f "uvicorn main:app"`
-   - Change ports in configuration
-
-3. **GPU out of memory**
-   - Reduce `tensor-parallel-size` in `start-api.sh`
-   - Use a smaller model
-   - Increase GPU memory
-
-4. **Permission denied on start-api.sh**
-   - Make executable: `chmod +x start-api.sh`
-
-### Logs
-
-Check logs for debugging:
+#### 1. "LLM service is not available"
 ```bash
-# API server logs
-tail -f /var/log/llm-api.log
+# Check if vLLM server is running
+curl http://localhost:8060/v1/models
 
-# vLLM logs
-tail -f /var/log/vllm.log
+# Verify port configuration
+cat core/config.py | grep vllm_port
+
+# Check GPU memory availability
+nvidia-smi
 ```
 
-## 📊 Monitoring
-
-### Health Endpoint
+#### 2. Port already in use
 ```bash
-curl http://localhost:8090/api/health
+# Stop existing processes
+pkill -f "uvicorn main:app"
+pkill -f "vllm serve"
+
+# Check what's using the ports
+lsof -i :8090
+lsof -i :8060
 ```
 
-### vLLM Metrics
+#### 3. GPU out of memory
 ```bash
-curl http://localhost:8060/metrics
+# Reduce tensor parallelism in start-api.sh
+# Change --tensor-parallel-size from 2 to 1
+
+# Monitor GPU usage
+watch -n 1 nvidia-smi
 ```
 
-## 🔒 Security Considerations
+#### 4. Permission denied on start-api.sh
+```bash
+chmod +x start-api.sh
+```
 
-- Change default ports for production
-- Implement authentication/authorization
-- Use HTTPS in production
-- Restrict network access with firewalls
-- Monitor resource usage
+### Performance Optimization
 
-## 📝 API Documentation
+1. **GPU Memory Management:**
+   - Monitor GPU memory usage: `nvidia-smi`
+   - Adjust tensor parallelism based on available memory
+   - Consider model quantization for memory efficiency
 
-For detailed API documentation, see:
-- `API_OVERVIEW.md` - API structure and design
-- `PRD-ChatPLG-Unified-LLM-API.md` - Product requirements
+2. **Concurrent Users:**
+   - vLLM handles request queuing automatically
+   - Monitor active sessions via health endpoint
+   - Scale based on hardware capabilities
 
-## 🤝 Contributing
+3. **Response Time Optimization:**
+   - Use streaming responses for better UX
+   - Monitor average response times via metrics
+   - Optimize model configuration for your use case
 
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
+## 🔒 Security
 
-## 📄 License
+### Production Security Checklist
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+- [ ] Change default ports for production
+- [ ] Implement authentication/authorization
+- [ ] Use HTTPS in production
+- [ ] Restrict network access with firewalls
+- [ ] Monitor resource usage and access logs
+- [ ] Regular security updates and patches
+- [ ] Implement rate limiting
+- [ ] Secure environment variable management
+
+### Security Best Practices
+
+1. **Network Security:**
+   - Use firewalls to restrict access
+   - Implement VPN for remote access
+   - Monitor network traffic
+
+2. **Application Security:**
+   - Validate all input data
+   - Implement proper error handling
+   - Use secure headers and CORS configuration
+
+3. **Infrastructure Security:**
+   - Regular system updates
+   - Secure SSH configuration
+   - Monitor system logs
+
