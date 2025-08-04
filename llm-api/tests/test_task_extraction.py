@@ -184,7 +184,8 @@ class TaskExtractionTester:
             if is_valid:
                 logger.info(f"Format valid, getting ChatGPT judgment for {email_id}")
                 judgment = await self.judge_extraction(email_content, extracted_dict)
-                result.update(judgment)
+                # Adds the key-value pairs from judgment into the result dictionary
+                result.update(judgment) 
             else:
                 logger.warning(f"Format invalid for {email_id}: {validation_msg}")
                 result.update({
