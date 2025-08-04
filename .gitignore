@@ -33,6 +33,10 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# API Keys and documentation files that might contain keys
+**/QUICK_API_SETUP.md
+llm-api/tests/QUICK_API_SETUP.md
+
 # vercel
 .vercel
 
