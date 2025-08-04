@@ -127,6 +127,8 @@ class TaskExtractionTester:
             )
             
             judgment = response.choices[0].message.content
+
+            print(judgment)
             
             # Parse the judgment to extract score
             score = None
@@ -164,7 +166,7 @@ class TaskExtractionTester:
             extracted_response = await task_service.extract_tasks(email_content)
             
             # Convert to dict for validation and judging
-            extracted_dict = [task.dict() for task in extracted_response]
+            extracted_dict = [task.model_dump() for task in extracted_response]
             
             # First validation: JSON format
             is_valid, validation_msg = self.validate_json_format(extracted_dict)
