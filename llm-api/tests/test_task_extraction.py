@@ -130,7 +130,7 @@ class TaskExtractionTester:
             prompt = self.get_judge_prompt(email_content, extracted_tasks)
             
             response = self.openai_client.chat.completions.create(
-                model="gpt-4o-mini",
+                model="gpt-3.5-turbo",
                 messages=[
                     {"role": "system", "content": "אתה מעריך מומחה של מערכות חילוץ משימות. היה יסודי והוגן בהערכתך."},
                     {"role": "user", "content": prompt}
@@ -155,7 +155,7 @@ class TaskExtractionTester:
             return {
                 "score": score,
                 "judgment": judgment,
-                "model_used": "gpt-4o-mini"
+                "model_used": "gpt-3.5-turbo"
             }
             
         except Exception as e:
@@ -163,7 +163,7 @@ class TaskExtractionTester:
             return {
                 "score": None,
                 "judgment": f"Error during judgment: {e}",
-                "model_used": "gpt-4o-mini"
+                "model_used": "gpt-3.5-turbo"
             }
 
     async def test_single_email(self, test_case: Dict[str, Any]) -> Dict[str, Any]:
