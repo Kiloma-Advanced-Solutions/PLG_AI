@@ -89,7 +89,7 @@ class TaskExtractionTester:
 על המשימות להכיל אך ורק את הפרטים המצויינים באימייל ולא להמציא מידע שלא מופיע בו.
 
 עלייך להעריך את טיב חילוץ המשימות בהתבסס עם ההנחיות הבאות:
-{task_service.TASK_SYSTEM_PROMPT}
+{task_service.get_task_system_prompt()}
 
 
 קריטריונים להערכה:
