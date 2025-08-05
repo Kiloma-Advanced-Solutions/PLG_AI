@@ -50,7 +50,7 @@ class ChatRequest(BaseModel):
 class TaskItem(BaseModel):
     sender: Optional[str] = None
     sending_date: Optional[date] = None
-    assigned_to: Optional[str] = None  # Allow None for ambiguous assignments
+    assigned_to: str
     title: str
     description: str
     due_date: Optional[date] = None
