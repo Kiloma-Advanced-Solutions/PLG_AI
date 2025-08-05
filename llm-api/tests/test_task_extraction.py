@@ -26,16 +26,21 @@ class TaskExtractionTester:
     def _setup_openai(self):
         """Setup OpenAI client for judging"""
         try:
-            import openai
             import os
+            from utils.openai_logger import OpenAILogger
             
             # Get API key from environment
             api_key = os.getenv('OPENAI_API_KEY')
             if not api_key:
                 raise ValueError("OPENAI_API_KEY environment variable not set")
             
-            self.openai_client = openai.OpenAI(api_key=api_key)
-            logger.info("OpenAI client initialized successfully")
+            self.openai_client = OpenAILogger(
+                api_key=api_key,
+                log_dir="logs/openai_requests/test_task_extraction",
+                max_retries=0,  # Disable auto-retries
+                timeout=60      # 60 second timeout
+            )            
+            logger.info("OpenAI client initialized successfully with automatic logging")
             
         except ImportError:
             raise ImportError("OpenAI package not installed. Run: pip install openai")
@@ -63,12 +68,13 @@ class TaskExtractionTester:
             
             # Validate each item as TaskItem
             validated_items = []
-            for i, item in enumerate(response_data):
-                try:
-                    task_item = TaskItem(**item)
-                    validated_items.append(task_item)
-                except ValidationError as e:
-                    return False, f"Item {i} validation failed: {e}"
+            if response_data:
+                for i, item in enumerate(response_data):
+                    try:
+                        task_item = TaskItem(**item)
+                        validated_items.append(task_item)
+                    except ValidationError as e:
+                        return False, f"Item {i} validation failed: {e}"
             
             logger.info(f"JSON format validation passed: {len(validated_items)} tasks")
             return True, "Valid format"
@@ -80,6 +86,11 @@ class TaskExtractionTester:
         """Create prompt for ChatGPT judge"""
         return f"""
 אתה שופט מומחה להערכת איכות חילוץ משימות מאימיילים בעברית.
+על המשימות להכיל אך ורק את הפרטים המצויינים באימייל ולא להמציא מידע שלא מופיע בו.
+
+עלייך להעריך את טיב חילוץ המשימות בהתבסס עם ההנחיות הבאות:
+{task_service.TASK_SYSTEM_PROMPT}
+
 
 קריטריונים להערכה:
 1. **שלמות** (0-40 נקודות): האם המודל חילץ את כל המשימות שהוזכרו באימייל?
@@ -96,8 +107,8 @@ class TaskExtractionTester:
 תוכן האימייל:
 {email_content}
 
-משימות שחולצו:
-{json.dumps(extracted_tasks, ensure_ascii=False, indent=2)}
+המשימות שחולצו:
+{json.dumps(extracted_tasks, ensure_ascii=False, indent=2, default=str)}
 
 אנא ספק:
 1. ציון (0-100)
@@ -109,7 +120,8 @@ class TaskExtractionTester:
 ציון: [מספר]
 נקודות חוזק: [מה נעשה טוב]
 נקודות חולשה: [מה הוחמץ/לא נכון]
-משימות מצופות: [רשום מה היה צריך למצוא]
+משימות מצופות: [כל המשימות שניתן לחלץ מהאימייל בהתאם להנחיות שהתקבלו - חייבות להכיל את שם האדם הספציפי לו מוקצית המשימה (לא בעל תפקיד/ צוות וכו׳), כותרת ותיאור. שדות אלו לא יכולים להיות ריקים]
+
 """
 
     async def judge_extraction(self, email_content: str, extracted_tasks: List[Dict]) -> Dict[str, Any]:
@@ -118,22 +130,23 @@ class TaskExtractionTester:
             prompt = self.get_judge_prompt(email_content, extracted_tasks)
             
             response = self.openai_client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-4o-mini",
                 messages=[
                     {"role": "system", "content": "אתה מעריך מומחה של מערכות חילוץ משימות. היה יסודי והוגן בהערכתך."},
                     {"role": "user", "content": prompt}
                 ],
                 temperature=0.1  # Low temperature for consistent evaluation
             )
-            
+
             judgment = response.choices[0].message.content
 
+            print("***Judgement:**")
             print(judgment)
             
             # Parse the judgment to extract score
             score = None
             for line in judgment.split('\n'):
-                if line.startswith('ציון:') or line.startswith('SCORE:'):
+                if line.startswith('ציון:') or line.lower().startswith('score:'):
                     try:
                         score = int(line.split(':')[1].strip())
                     except:
@@ -142,7 +155,7 @@ class TaskExtractionTester:
             return {
                 "score": score,
                 "judgment": judgment,
-                "model_used": "gpt-4"
+                "model_used": "gpt-4o-mini"
             }
             
         except Exception as e:
@@ -150,7 +163,7 @@ class TaskExtractionTester:
             return {
                 "score": None,
                 "judgment": f"Error during judgment: {e}",
-                "model_used": "gpt-4"
+                "model_used": "gpt-4o-mini"
             }
 
     async def test_single_email(self, test_case: Dict[str, Any]) -> Dict[str, Any]:
@@ -159,7 +172,7 @@ class TaskExtractionTester:
         email_content = test_case['email_content']
         description = test_case['description']
         
-        logger.info(f"Testing email: {email_id}")
+        logger.info(f"\n\nTesting email: {email_id}")
         
         try:
             # Extract tasks using our model
@@ -167,6 +180,9 @@ class TaskExtractionTester:
             
             # Convert to dict for validation and judging
             extracted_dict = [task.model_dump() for task in extracted_response]
+
+            print("---Extracted Tasks:---")
+            print(extracted_dict)
             
             # First validation: JSON format
             is_valid, validation_msg = self.validate_json_format(extracted_dict)
@@ -176,6 +192,7 @@ class TaskExtractionTester:
                 "description": description,
                 "format_valid": is_valid,
                 "validation_message": validation_msg,
+                "email_content": email_content,
                 "extracted_tasks": extracted_dict,
                 "num_tasks_extracted": len(extracted_dict)
             }

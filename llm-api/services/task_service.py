@@ -12,47 +12,53 @@ logger = logging.getLogger(__name__)
 class TaskService:
     """Service for handling task extraction from emails"""
 
-    # System prompt that defines the task extraction behavior
-    TASK_SYSTEM_PROMPT = """חלץ משימות מתוך תוכן האימייל הבא שישלח המשתמש. עבור כל משימה:
-- זהה מי שלח את המשימה (שולח המייל). אם לא צוין, השאר כ-null.
-- זהה מתי נשלחה המשימה (תאריך שליחת המייל). אם לא צוין, השאר כ-null.
-- זהה למי היא מוקצית
-- נסח כותרת המתארת את המשימה
-- נסח את תיאור המשימה
-- מצא או הסק את תאריך היעד. אם לא צוין,השאר כ-null.
-
-פרמט את התשובה כאובייקט JSON כאשר כל משימה ממוספרת ומכילה:
-- sender: האדם ששלח את המשימה או null
-- sending_date: תאריך הקצאת המשימה בפורמט YYYY-MM-DD או null
-- assigned_to: האדם האחראי על המשימה
-- title: כותרת המשימה
-- description: תיאור ברור של המשימה
-- due_date: תאריך היעד בפורמט YYYY-MM-DD או null
-
-חשוב:
-- אם האימייל הוא אינפורמטיבי בלבד (עדכונים, הודעות) ללא משימות ממשיות - החזר רשימה ריקה []
-- תאריכים יחסיים בעברית כמו "מחר", "בשבוע הבא", "בעוד יומיים" יש להמיר לפורמט YYYY-MM-DD
-- חשב תאריכים יחסיים מתאריך שליחת האימייל (לא מהיום הנוכחי!)
-- אם יש תאריך שליחה באימייל - השתמש בו כנקודת התייחסות
-- אם אין תאריך שליחה - השתמש בתאריך של היום ({today})
-- יש לשמור על שמות השדות באנגלית (sender, sending_date, assigned_to, title, description, due_date)
-- התוכן של השדות יכול להיות בעברית
-- העזר בתאריך של היום ({today}, בפורמט YYYY-MM-DD) לחישוב תאריכי יעד יחסיים (למשל: "מחר", "בעוד שבוע")
-
-ענה רק עם ה-JSON, ללא טקסט נוסף.
-
-בהודעה הבאה תקבל את תוכן האימייל:"""
-
-
     def __init__(self):
         """Initialize the task service"""
         self.engine = llm_engine
+            
+
+    def get_task_system_prompt(self):
+        today = datetime.now().strftime("%Y-%m-%d")
+        return f"""
+    חלץ מתוך האימייל הבא את המשימות הנדרשות לביצוע המתוארות בו — כלומר, משימות שטרם בוצעו והוקצו לאדם מסוים.
+    שים לב שיתכן ויתקבלו מיילים ללא משימות כלל. במקרה זה יש להחזיר רשימה ריקה ([]).
+    
+    
+    **הפורמט הנדרש לתשובה הוא רשימה של משימות מסוג JSON**, שכל אחת מכילה כל השדות הבאים:
+    - sender: שם השולח או null
+    - sending_date: תאריך שליחת האימייל בפורמט YYYY-MM-DD או null
+    - assigned_to: שם האדם שאליו מוקצת המשימה. ערך זה לא יכול להיות ריק
+    - title: כותרת קצרה למשימה. ערך זה לא יכול להיות ריק
+    - description: תיאור מפורט של המשימה. ערך זה לא יכול להיות ריק
+    - due_date: תאריך היעד בפורמט YYYY-MM-DD או null
+    
+    
+    **חלץ רק משימות שעונות על כל הקריטריונים הבאים**:
+    - המשימה מוקצית במפורש לאדם מסוים (למשל: "דני כהן", "רותם"), ולא לנמענים כלליים ("כולם", "הצוות", "מי שיכול").
+    - המשימה כוללת פעולה ברורה שיש לבצע, לא הודעות אינפורמטיביות או עדכונים כלליים.
+    - המשימה מנוסחת באופן ברור וכוללת אחריות אישית.
+    
+    
+    **אל תכלול משימות** אם מתקיים אחד מהבאים:
+    - אל תחזיר את המשימה בכלל אם לפחות אחד מהשדות assigned_to, title, description לא קיים או ריק (מחרוזת ריקה, null או None). 
+    - לא צוין שם אדם מפורש ב־assigned_to (למשל מופיע: "מישהו", "מי שיכול", "כולם", "הצוות").
+    - מדובר בעדכון, הודעה כללית, סיכום, או מידע אינפורמטיבי בלבד.
+    
+    
+    אם יש תאריכים יחסיים בעברית (כגון "מחר", "בעוד יומיים", "שבוע הבא") — המר אותם לתאריך מפורש בפורמט YYYY-MM-DD, על סמך תאריך שליחת האימייל.
+    אם תאריך שליחה אינו מצוין — השתמש בתאריך של היום: {today}.
+    
+    הקפד להשתמש באנגלית רק לשמות השדות ב-JSON. התוכן עצמו (שמות, כותרות, תיאורים) יכול להיות בעברית.
+    
+    ענה אך ורק עם רשימת ה-JSON, ללא הסברים, טקסט נוסף או הקדמה.
+    
+    בהודעה הבאה תקבל את תוכן האימייל.
+        """
 
 
-    def get_task_system_prompt(self) -> str:
-        """Get the system prompt for task extraction"""
-        today = datetime.now().strftime("%Y-%m-%d")   # today's date in YYYY-MM-DD format
-        return self.TASK_SYSTEM_PROMPT.format(today=today)
+    @staticmethod
+    def is_field_valid(value):
+        return isinstance(value, str) and value.strip() and value.strip().lower() not in {"none", "null"}
 
 
     async def extract_tasks(self, email_content: str) -> TaskExtractionResponse:
@@ -79,9 +85,15 @@ class TaskService:
                 output_schema=TaskExtractionResponse,   # Expected response format
                 session_id="task_extraction"
             )
-            
-            logger.info(f"Successfully extracted {len(response)} tasks")
-            return response
+
+            # Filter out tasks without required fields
+            filtered_tasks = [
+                task for task in response 
+                    if self.is_field_valid(task.assigned_to) and self.is_field_valid(task.title) and self.is_field_valid(task.description)
+            ]
+
+            logger.info(f"Successfully extracted {len(filtered_tasks)} tasks")
+            return filtered_tasks
             
         except Exception as e:
             raise Exception(f"Failed to extract tasks: {e}")

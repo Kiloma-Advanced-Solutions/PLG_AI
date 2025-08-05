@@ -50,9 +50,9 @@ class ChatRequest(BaseModel):
 class TaskItem(BaseModel):
     sender: Optional[str] = None
     sending_date: Optional[date] = None
-    assigned_to: str
-    title: str
-    description: str
+    assigned_to: Optional[str] = None
+    title: Optional[str] = None
+    description: Optional[str] = None
     due_date: Optional[date] = None
 
 

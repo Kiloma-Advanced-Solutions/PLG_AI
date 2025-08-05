@@ -12,24 +12,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test_task_extraction import TaskExtractionTester
 
-def setup_logging():
-    """Setup logging for the test run"""
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(),
-            logging.FileHandler('tests/test_run.log')
-        ]
-    )
-
 async def main():
     """Main test runner"""
     print("🚀 Starting Task Extraction Tests")
     print("=" * 50)
-    
-    # Setup logging
-    setup_logging()
     
     try:
         # Initialize tester
