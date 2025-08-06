@@ -4,6 +4,7 @@ Unit tests for task extraction functionality using ChatGPT as LLM judge
 import json
 import asyncio
 import logging
+import re
 from typing import List, Dict, Any
 from datetime import date, datetime
 import pytest
@@ -36,7 +37,7 @@ class TaskExtractionTester:
             
             self.openai_client = OpenAILogger(
                 api_key=api_key,
-                log_dir="logs/openai_requests/test_task_extraction",
+                log_dir="tests/logs/test_task_extraction/openai_requests",
                 max_retries=0,  # Disable auto-retries
                 timeout=60      # 60 second timeout
             )            
@@ -81,45 +82,57 @@ class TaskExtractionTester:
             
         except Exception as e:
             return False, f"Validation error: {e}"
-    
-    def get_judge_prompt(self, email_content: str, extracted_tasks: List[Dict]) -> str:
-        """Create prompt for ChatGPT judge"""
-        return f"""
-אתה שופט מומחה להערכת איכות חילוץ משימות מאימיילים בעברית.
-על המשימות להכיל אך ורק את הפרטים המצויינים באימייל ולא להמציא מידע שלא מופיע בו.
 
-עלייך להעריך את טיב חילוץ המשימות בהתבסס עם ההנחיות הבאות:
+    
+    def get_messages(self, email_content: str, extracted_tasks: List[Dict]) -> str:
+        messages = [
+
+            {"role": "system", "content": 
+             f"""
+אתה שופט מומחה להערכת איכות ביצועי מערכת חדשה שנבחנת לחילוץ משימות מאימיילים בעברית.
+**חשוב מאוד- על המשימות המחולצות להכיל אך ורק את הפרטים המופיעים באימייל ולא להמציא מידע שלא מופיע בו חשוב להקפיד שהמשימות המחולצות משויכות נכונה לאדם שצריך לבצע אותן לפי תוכן המייל (assigned_to).
+
+המערכת קיבלה את ההנחיות הבאות לצורך חילוץ המשימות מהמיילים. **עלייך להעריך את טיב חילוץ המשימות בהתאם להנחיות הללו:**
 {task_service.get_task_system_prompt()}
 
-
 קריטריונים להערכה:
-1. **שלמות** (0-40 נקודות): האם המודל חילץ את כל המשימות שהוזכרו באימייל?
-2. **דיוק** (0-40 נקודות): האם פרטי המשימות שחולצו נכונים?
-3. **איכות שדות** (0-20 נקודות): האם כל השדות (שולח, תאריכים, מוקצה, וכו') מולאו בצורה מדויקת?
+**1. שלמות המשימות** (0-40 נקודות): האם המערכת זיהתה נכונה את המשימות המופיעות במייל? 
+**2. איכות השדות** (0-60 נקודות. 10 נקודות בעבור כל שדה): האם כל השדות (שולח המשימה, תאריכים, האדם שצריך לבצע את המשימה, וכו') מולאו בצורה מדויקת?
+חשוב שתהיה ביקורתי והוגן בהערכתך. הורד ניקוד משמעותי אם המערכת לא הצליחה לזהות את כל המשימות המופיעות במייל, או לחילופין חילצה משימות שלא היו אמורות להיות מחולצות בהתאם להנחיות שקיבלה.
 
-תוכן האימייל:
+
+לצורך מתן הערכה נכונה ומדויקת על איכות ביצועי המערכת, תחילה, זהה את המשימות שניתן היה לחלץ מהאימייל בהתאם להנחיות שהתקבלו. על המשימות שחילצה המערכת להיות זהות ככל הניתן לאלו שאתה זיהית.
+לאחר שזיהית את המשימות שהיו אמורות להיות מחולצות על ידי המערכת, עצב את התשובה שלך כך:
+
+ציון: [0-100. מידת ההצלחה של המערכת בחילוץ המשימות בהתאם להנחיות. אם לא הופיעו משימות במייל והמערכת אכן לא חילצה אף משימה, תן ציון 100]
+נקודות חולשה: [מה הוחמץ/לא נכון]
+המשימות הקיימות במייל: [כל המשימות שאתה זיהית שניתן היה לחלץ מהאימייל בהתאם להנחיות שהתקבלו]
+
+בהודעה הבאה תקבל את תוכן האימייל ואת המשימות שחולצו ממנו:
+             """
+            },
+            {"role": "user", "content": 
+             f"""
+             תוכן האימייל:
 {email_content}
 
-המשימות שחולצו:
+המשימות שחולצו מהאימייל על ידי המערכת:
 {json.dumps(extracted_tasks, ensure_ascii=False, indent=2, default=str)}
+             """   
+            }   
+        ]
 
-עצב את התשובה שלך כך:
-ציון: [מספר 0-100]
-נקודות חולשה: [מה הוחמץ/לא נכון]
-משימות מצופות: [כל המשימות שניתן לחלץ מהאימייל בהתאם להנחיות שהתקבלו - חייבות להכיל את שם האדם הספציפי לו מוקצית המשימה (לא בעל תפקיד/ צוות וכו׳), כותרת ותיאור. שדות אלו לא יכולים להיות ריקים]
-"""
+
+        return messages
+
 
     async def judge_extraction(self, email_content: str, extracted_tasks: List[Dict]) -> Dict[str, Any]:
         """Use ChatGPT to judge the extraction quality"""
         try:
-            prompt = self.get_judge_prompt(email_content, extracted_tasks)
             
             response = self.openai_client.chat.completions.create(
                 model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "אתה מעריך מומחה של מערכות חילוץ משימות. היה יסודי והוגן בהערכתך."},
-                    {"role": "user", "content": prompt}
-                ],
+                messages=self.get_messages(email_content, extracted_tasks),
                 temperature=0.1  # Low temperature for consistent evaluation
             )
 
@@ -133,7 +146,12 @@ class TaskExtractionTester:
             for line in judgment.split('\n'):
                 if line.startswith('ציון:') or line.lower().startswith('score:'):
                     try:
-                        score = int(line.split(':')[1].strip())
+                        # Extract the part after the colon
+                        score_part = line.split(':')[1].strip()
+                        # Extract only the numeric part (handle cases like "100. המערכת הצליחה...")
+                        score_match = re.search(r'\d+', score_part)
+                        if score_match:
+                            score = int(score_match.group())
                     except:
                         pass
             
@@ -253,7 +271,7 @@ class TaskExtractionTester:
         """Save test results to JSON file"""
         if filename is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"tests/task_extraction_results_{timestamp}.json"
+            filename = f"tests/logs/test_task_extraction/task_extraction_results_{timestamp}.json"
         
         try:
             with open(filename, 'w', encoding='utf-8') as f:

@@ -199,12 +199,20 @@ class LLMEngine:
         
         # Build request payload for vLLM (non-streaming)
         model_params = llm_config.get_model_params()
+        formatted_messages = self._format_messages(messages)
         payload = {
             "model": llm_config.llm_model_name,
             **model_params,
-            "messages": self._format_messages(messages),
+            "messages": formatted_messages,
             "stream": False,
         }
+        
+        # Log the formatted messages being sent to the model
+        logger.info("=== LLM ENGINE - Formatted messages sent to vLLM ===")
+        for i, msg in enumerate(formatted_messages):
+            logger.info(f"Formatted Message {i+1} [{msg['role']}]:")
+            logger.info(f"Content: {msg['content']}")
+            logger.info("=" * 50)
         
         logger.debug(f"Structured completion payload: {json.dumps(payload, ensure_ascii=False)}")
         
