@@ -10,7 +10,7 @@ import pytest
 from pydantic import ValidationError
 
 # Import our models and services
-from core.models import TaskItem, TaskExtractionResponse
+from core.models import TaskItem
 from services.task_service import task_service
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ class TaskExtractionTester:
     
     def validate_json_format(self, response_data: Any) -> tuple[bool, str]:
         """
-        Validate if the response is in correct TaskExtractionResponse format
+        Validate if the response is a list of TaskItems
         Returns: (is_valid, error_message)
         """
         try:
