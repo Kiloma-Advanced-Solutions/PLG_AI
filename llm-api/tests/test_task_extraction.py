@@ -37,7 +37,7 @@ class TaskExtractionTester:
             
             self.openai_client = OpenAILogger(
                 api_key=api_key,
-                log_dir="tests/logs/test_task_extraction/openai_requests",
+                log_dir="logs/test_task_extraction/openai_requests",
                 max_retries=0,  # Disable auto-retries
                 timeout=60      # 60 second timeout
             )            
@@ -51,7 +51,7 @@ class TaskExtractionTester:
     def load_test_emails(self) -> List[Dict[str, Any]]:
         """Load test emails from JSON file"""
         try:
-            with open('tests/test_emails.json', 'r', encoding='utf-8') as f:
+            with open('test_emails.json', 'r', encoding='utf-8') as f:
                 data = json.load(f)
             return data['test_emails']
         except Exception as e:
@@ -83,41 +83,35 @@ class TaskExtractionTester:
         except Exception as e:
             return False, f"Validation error: {e}"
 
-    
-    def get_messages(self, email_content: str, extracted_tasks: List[Dict]) -> str:
+
+    def make_judgment(self, extracted_tasks: List[Dict], tasks_extreacted_by_judge: List[Dict]) -> str:
         messages = [
 
             {"role": "system", "content": 
              f"""
-אתה שופט מומחה להערכת איכות ביצועי מערכת חדשה שנבחנת לחילוץ משימות מאימיילים בעברית.
-**חשוב מאוד- על המשימות המחולצות להכיל אך ורק את הפרטים המופיעים באימייל ולא להמציא מידע שלא מופיע בו חשוב להקפיד שהמשימות המחולצות משויכות נכונה לאדם שצריך לבצע אותן לפי תוכן המייל (assigned_to).
+אתה שופט מומחה להערכת איכות ביצועי מערכת חדשה שנבחנת לחילוץ משימות. עלייך להעריך עד כמה המשימות שציינה המערכת זהות למשימות הקיימות.
 
-המערכת קיבלה את ההנחיות הבאות לצורך חילוץ המשימות מהמיילים. **עלייך להעריך את טיב חילוץ המשימות בהתאם להנחיות הללו:**
-{task_service.get_task_system_prompt()}
+בהודעה הבאה תקבל את המשימות הקיימות (המשימות שהמערכת הייתה צריכה לחלץ) ואת המשימות שהמערכת חילצה.
 
 קריטריונים להערכה:
-**1. שלמות המשימות** (0-40 נקודות): האם המערכת זיהתה נכונה את המשימות המופיעות במייל? 
-**2. איכות השדות** (0-60 נקודות. 10 נקודות בעבור כל שדה): האם כל השדות (שולח המשימה, תאריכים, האדם שצריך לבצע את המשימה, וכו') מולאו בצורה מדויקת?
-חשוב שתהיה ביקורתי והוגן בהערכתך. הורד ניקוד משמעותי אם המערכת לא הצליחה לזהות את כל המשימות המופיעות במייל, או לחילופין חילצה משימות שלא היו אמורות להיות מחולצות בהתאם להנחיות שקיבלה.
+**1. שלמות המשימות** (0-40 נקודות): האם המערכת זיהתה נכונה את המשימות הקיימות? 
+**2. איכות השדות** (0-60 נקודות. 10 נקודות בעבור כל שדה): האם כל השדות (שולח המשימה, תאריכים, האדם שצריך לבצע את המשימה, וכו') מולאו בצורה מדויקת? (במידה ואין משימות קיימות, ציון מלא יינתן אם המערכת לא מילאה את השדות כלל)
+חשוב שתהיה ביקורתי והוגן בהערכתך. הורד ניקוד משמעותי אם המערכת לא הצליחה לזהות את כל המשימות, אם היא חילצה משימות שלא קיימות, או אם היא מילאה את השדות בצורה לא מדויקת.
 
+עצב את התשובה שלך כך:
+ציון: [0-100. מידת ההצלחה של המערכת בחילוץ המשימות. **חשוב! אם רשימת המשימות הקיימות ריקה והמערכת אכן לא חילצה אף משימה (החזירה רשימה ריקה []), תן ציון 100]**
+הערות: [מה הוחמץ/לא נכון]
 
-לצורך מתן הערכה נכונה ומדויקת על איכות ביצועי המערכת, תחילה, זהה את המשימות שניתן היה לחלץ מהאימייל בהתאם להנחיות שהתקבלו. על המשימות שחילצה המערכת להיות זהות ככל הניתן לאלו שאתה זיהית.
-לאחר שזיהית את המשימות שהיו אמורות להיות מחולצות על ידי המערכת, עצב את התשובה שלך כך:
-
-ציון: [0-100. מידת ההצלחה של המערכת בחילוץ המשימות בהתאם להנחיות. אם לא הופיעו משימות במייל והמערכת אכן לא חילצה אף משימה, תן ציון 100]
-נקודות חולשה: [מה הוחמץ/לא נכון]
-המשימות הקיימות במייל: [כל המשימות שאתה זיהית שניתן היה לחלץ מהאימייל בהתאם להנחיות שהתקבלו]
-
-בהודעה הבאה תקבל את תוכן האימייל ואת המשימות שחולצו ממנו:
              """
             },
             {"role": "user", "content": 
              f"""
-             תוכן האימייל:
-{email_content}
+המשימות הקיימות:
+{json.dumps(tasks_extreacted_by_judge, ensure_ascii=False, indent=2, default=str)}
 
-המשימות שחולצו מהאימייל על ידי המערכת:
+המשימות שחולצו על ידי המערכת:
 {json.dumps(extracted_tasks, ensure_ascii=False, indent=2, default=str)}
+
              """   
             }   
         ]
@@ -129,16 +123,32 @@ class TaskExtractionTester:
     async def judge_extraction(self, email_content: str, extracted_tasks: List[Dict]) -> Dict[str, Any]:
         """Use ChatGPT to judge the extraction quality"""
         try:
-            
-            response = self.openai_client.chat.completions.create(
+            # Ask the judge model to extract the tasks
+            tasks_extreacted_by_judge = self.openai_client.chat.completions.create(
                 model="gpt-3.5-turbo",
-                messages=self.get_messages(email_content, extracted_tasks),
+                messages=[
+                    {"role": "system", "content": task_service.get_task_system_prompt()},
+                    {"role": "user", "content": email_content}
+                ],
                 temperature=0.1  # Low temperature for consistent evaluation
             )
 
-            judgment = response.choices[0].message.content
+            tasks_extreacted_by_judge = tasks_extreacted_by_judge.choices[0].message.content
 
-            print("***Judgement:**")
+            print("***Tasks Extreacted By Judge:**")
+            print(tasks_extreacted_by_judge)
+
+
+            # Ask the judge model to make a judgment
+            judgment = self.openai_client.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=self.make_judgment(extracted_tasks, tasks_extreacted_by_judge),
+                temperature=0.1  # Low temperature for consistent evaluation
+            )
+
+            judgment = judgment.choices[0].message.content
+
+            print("***Judgment:**")
             print(judgment)
             
             # Parse the judgment to extract score
@@ -271,7 +281,7 @@ class TaskExtractionTester:
         """Save test results to JSON file"""
         if filename is None:
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-            filename = f"tests/logs/test_task_extraction/task_extraction_results_{timestamp}.json"
+            filename = f"logs/test_task_extraction/task_extraction_results_{timestamp}.json"
         
         try:
             with open(filename, 'w', encoding='utf-8') as f:

@@ -10,9 +10,9 @@ class LLMConfig:
     def __init__(self):
         # Base URLs for services
         self.base_url: str = os.getenv("LLM_API_BASE_URL", "http://localhost")
-        self.cloud_ip: str = os.getenv("LLM_API_CLOUD_IP", "71.36.178.233")  # The public IP of the cloud instance
-        self.frontend_port: int = int(os.getenv("LLM_API_FRONTEND_PORT", "41081"))  # 3000 mapped port
-        self.api_port: int = int(os.getenv("LLM_API_API_PORT", "41026"))  # 8090 mapped port
+        self.cloud_ip: str = os.getenv("LLM_API_CLOUD_IP", "82.141.118.3")  # The public IP of the cloud instance
+        self.frontend_port: int = int(os.getenv("LLM_API_FRONTEND_PORT", "2319"))  # 3000 mapped port
+        self.api_port: int = int(os.getenv("LLM_API_API_PORT", "2616"))  # 8090 mapped port
         self.vllm_port: int = int(os.getenv("LLM_API_VLLM_PORT", "8060"))  # vLLM server port
 
         # Server settings
