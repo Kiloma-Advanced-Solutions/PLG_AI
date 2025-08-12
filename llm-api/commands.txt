@@ -1,0 +1,47 @@
+## Run vllm server
+    python3 -m vllm.entrypoints.openai.api_server \
+        --model "gaunernst/gemma-3-12b-it-qat-autoawq", \  # or "/root/models/gemma3"
+        --max-model-len 131072 \
+        --port 8060 \
+        --tensor-parallel-size 2 | grep -Ev "Received request chatcmpl|Added request chatcmpl|HTTP/1.1\" 200 OK" &
+
+
+## Run uvicorn server
+    python -m uvicorn main:app         
+        --host "0.0.0.0"         
+        --port "8090"         
+        --log-level "info"         
+        --timeout-keep-alive 60
+
+
+## Check health
+    curl http://43.100.46.13:41671/api/health   # mapped 8090 port
+
+
+## Infer model
+    curl -X POST http://43.100.46.13:41641/v1/chat/completions   -H "Content-Type: application/json"   -d '{
+        "model": "gaunernst/gemma-3-12b-it-qat-autoawq",  # or "/root/models/gemma3"
+        "messages": [
+          {"role": "user", "content": "Hello, how are you?"}
+        ],
+        "max_tokens": 50,
+        "temperature": 0.7
+      }'
+
+
+## If the connection to Huggingface was closed before downloading model:
+    export HF_HUB_DOWNLOAD_TIMEOUT=3000 
+
+    huggingface-cli download gaunernst/gemma-3-12b-it-qat-autoawq --local-dir /root/models/gemma3 --local-dir-use-symlinks False
+
+    # Then run vllm pointing to the local path:
+
+    python3 -m vllm.entrypoints.openai.api_server \
+      --model /root/models/gemma3 \
+      --max-model-len 131072 \
+      --tensor-parallel-size 2 \
+      --max-num-seqs 4
+
+    # referances:
+    1. https://claude.ai/chat/d2d3a33d-5d0c-40e9-909f-f4edc028b335
+    2. https://chatgpt.com/c/689afb91-a4d8-8329-92c5-d79e8b1457da
