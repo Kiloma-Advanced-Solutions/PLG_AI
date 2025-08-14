@@ -3,6 +3,11 @@
 import ReactMarkdown from 'react-markdown';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
+import rehypeRaw from 'rehype-raw';
+import katex from 'katex';
 import styles from './chat-message-component.module.css';
 
 /**
@@ -32,15 +37,36 @@ export default function ChatMessageComponent({
   return (
     <div className={`${styles.messageContainer} ${styles[type]}`}>
       <div className={styles.messageBox}>
-        <div className={styles.messageText} dir="rtl">
+        <div className={`${styles.messageText} ${type === 'assistant' ? styles.assistantText : styles.userText}`} dir="rtl">
           {type === 'assistant' ? (
             <ReactMarkdown
+              remarkPlugins={[remarkGfm, remarkMath]}
+              rehypePlugins={[rehypeKatex, rehypeRaw]}
               components={{
                 code(props) {
-                  const { children, className, ...rest } = props;
+                  const { children, className, inline, ...rest } = props as unknown as {
+                    children: React.ReactNode;
+                    className?: string;
+                    inline?: boolean;
+                  };
                   const match = /language-(\w+)/.exec(className || '');
                   const language = match ? match[1] : '';
                   
+                  if (language === 'latex') {
+                    const latexSource = String(children).replace(/\n$/, '');
+                    const html = katex.renderToString(latexSource, {
+                      throwOnError: false,
+                      displayMode: !inline,
+                      strict: 'ignore'
+                    });
+                    return (
+                      <span
+                        // KaTeX returns HTML that is safe to inject here
+                        dangerouslySetInnerHTML={{ __html: html }}
+                      />
+                    );
+                  }
+
                   return match ? (
                     <SyntaxHighlighter
                       PreTag="div"
@@ -55,7 +81,7 @@ export default function ChatMessageComponent({
                       {String(children).replace(/\n$/, '')}
                     </SyntaxHighlighter>
                   ) : (
-                    <code {...rest} className={`${className} ${styles.inlineCode}`}>
+                    <code {...rest} className={`${className || ''} ${styles.inlineCode}`}>
                       {children}
                     </code>
                   );
@@ -64,6 +90,10 @@ export default function ChatMessageComponent({
                 ul: ({ children }) => <ul className={styles.list}>{children}</ul>,
                 ol: ({ children }) => <ol className={styles.orderedList}>{children}</ol>,
                 li: ({ children }) => <li className={styles.listItem}>{children}</li>,
+                table: ({ children }) => <table className={styles.table}>{children}</table>,
+                thead: ({ children }) => <thead className={styles.thead}>{children}</thead>,
+                th: ({ children }) => <th className={styles.th}>{children}</th>,
+                td: ({ children }) => <td className={styles.td}>{children}</td>,
                 h1: ({ children }) => <h1 className={styles.heading1}>{children}</h1>,
                 h2: ({ children }) => <h2 className={styles.heading2}>{children}</h2>,
                 h3: ({ children }) => <h3 className={styles.heading3}>{children}</h3>,
@@ -73,6 +103,7 @@ export default function ChatMessageComponent({
                     {children}
                   </a>
                 ),
+                // Allow basic HTML like <u>, <div> via rehypeRaw; no special mapping needed here
               }}
             >
               {content}

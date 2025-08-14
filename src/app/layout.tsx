@@ -1,6 +1,7 @@
 import "./globals.css";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { ConversationProvider } from "../contexts/ConversationContext";
+import 'katex/dist/katex.min.css';
 
 /**
  * Metadata configuration for the Next.js application
