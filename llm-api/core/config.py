@@ -10,9 +10,9 @@ class LLMConfig:
     def __init__(self):
         # Base URLs for services
         self.base_url: str = os.getenv("LLM_API_BASE_URL", "http://localhost")
-        self.cloud_ip: str = os.getenv("LLM_API_CLOUD_IP", "43.100.46.13")  # The public IP of the cloud instance
-        self.frontend_port: int = int(os.getenv("LLM_API_FRONTEND_PORT", "41653"))  # 3000 mapped port
-        self.api_port: int = int(os.getenv("LLM_API_API_PORT", "41671"))  # 8090 mapped port
+        self.cloud_ip: str = os.getenv("LLM_API_CLOUD_IP", "81.182.12.170")  # The public IP of the cloud instance
+        self.frontend_port: int = int(os.getenv("LLM_API_FRONTEND_PORT", "49028"))  # 3000 mapped port
+        self.api_port: int = int(os.getenv("LLM_API_API_PORT", "49127"))  # 8090 mapped port
         self.vllm_port: int = int(os.getenv("LLM_API_VLLM_PORT", "8060"))  # vLLM server port
 
         # Server settings
@@ -21,7 +21,7 @@ class LLMConfig:
         self.log_level: str = os.getenv("LLM_API_LOG_LEVEL", "INFO")
         
         # Model Configuration
-        self.llm_model_name: str = os.getenv("LLM_API_LLM_MODEL_NAME", "/root/models/gemma3")
+        self.llm_model_name: str = os.getenv("LLM_API_LLM_MODEL_NAME", "gaunernst/gemma-3-12b-it-qat-autoawq")
         
         # Model Parameters
         self.max_tokens: int = int(os.getenv("LLM_API_MAX_TOKENS", "2048"))
