@@ -37,7 +37,7 @@ export default function ChatMessageComponent({
   return (
     <div className={`${styles.messageContainer} ${styles[type]}`}>
       <div className={styles.messageBox}>
-        <div className={`${styles.messageText} ${type === 'assistant' ? styles.assistantText : styles.userText}`} dir="rtl">
+        <div className={`${styles.messageText} ${type === 'assistant' ? '' : styles.userText}`} dir="rtl">
           {type === 'assistant' ? (
             <ReactMarkdown
               remarkPlugins={[remarkGfm, remarkMath]}
