@@ -25,11 +25,13 @@ export default function ChatPage() {
     getConversationSafely, 
     sendMessage, 
     retryLastMessage,
+    stopStreaming,
     conversations,
     setNavigationLoading
   } = useConversationHelpers();
   
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [prefilledMessage, setPrefilledMessage] = useState('');
   const currentConversation = getConversationSafely(conversationId);
 
   // Handle navigation loading state - stop loading when conversation is ready
@@ -57,6 +59,23 @@ export default function ChatPage() {
     if (currentConversation) {
       await sendMessage(currentConversation.id, messageContent);
     }
+  };
+
+  /**
+   * Handles stopping the streaming response
+   */
+  const handleStop = () => {
+    const restoredMessage = stopStreaming();
+    if (restoredMessage) {
+      setPrefilledMessage(restoredMessage);
+    }
+  };
+
+  /**
+   * Handles clearing the prefilled message
+   */
+  const handlePrefilledMessageCleared = () => {
+    setPrefilledMessage('');
   };
 
   /**
@@ -105,6 +124,9 @@ export default function ChatPage() {
           streamingMessage={streamingMessage}
           apiError={apiError}
           onRetry={retryLastMessage}
+          onStop={handleStop}
+          prefilledMessage={prefilledMessage}
+          onPrefilledMessageCleared={handlePrefilledMessageCleared}
         />
       </main>
       

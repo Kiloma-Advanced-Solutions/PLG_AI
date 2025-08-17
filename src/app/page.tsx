@@ -15,7 +15,7 @@ export default function Home() {
     router.push('/chat/new');
   }, [router]);
 
-  // Show loading state while redirecting
+  // Show brief loading state during redirect
   return (
     <div style={{ 
       display: 'flex', 

@@ -13,6 +13,12 @@ type InputMessageContainerProps = {
   isLoading?: boolean;
   /** Whether to trigger the focus animation effect */
   triggerFocusAnimation?: boolean;
+  /** Pre-filled message value for restoration */
+  prefilledMessage?: string;
+  /** Callback when prefilled message is used or cleared */
+  onPrefilledMessageCleared?: () => void;
+  /** Callback function called when user clicks stop button */
+  onStop?: () => void;
 };
 
 /**
@@ -23,11 +29,28 @@ export default function InputMessageContainer({
   onSendMessage, 
   isLoading = false,
   triggerFocusAnimation = false,
+  prefilledMessage = '',
+  onPrefilledMessageCleared,
+  onStop,
 }: InputMessageContainerProps) {
 
   const [inputValue, setInputValue] = useState('');
   const [showFocusAnimation, setShowFocusAnimation] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Handle prefilled message when it changes
+  useEffect(() => {
+    if (prefilledMessage && prefilledMessage !== inputValue) {
+      setInputValue(prefilledMessage);
+    }
+  }, [prefilledMessage, inputValue]);
+
+  // Clear prefilled message when input changes (user starts editing)
+  useEffect(() => {
+    if (prefilledMessage && inputValue !== prefilledMessage && onPrefilledMessageCleared) {
+      onPrefilledMessageCleared();
+    }
+  }, [inputValue, prefilledMessage, onPrefilledMessageCleared]);
 
   // Trigger focus animation when prop changes
   useEffect(() => {
@@ -87,19 +110,35 @@ export default function InputMessageContainer({
           placeholder="הקלד הודעה..."
           className={styles.messageInput} 
           rows={1}
-          disabled={isLoading}
           dir="rtl"
         />
-        <button
-          type="submit"
-          className={styles.sendButton}
-          disabled={!inputValue.trim() || isLoading}
-          aria-label="Send message"
-        >
-          <svg className={styles.sendIcon} fill="currentColor" viewBox="0 0 20 20">
-            <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
-          </svg>
-        </button>
+        {isLoading && onStop ? (
+          <button
+            type="button"
+            className={styles.sendButton}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              onStop();
+            }}
+            aria-label="עצור יצירת תגובה"
+          >
+            <svg className={styles.sendIcon} fill="currentColor" viewBox="0 0 20 20">
+              <rect x="6" y="6" width="8" height="8" rx="1" />
+            </svg>
+          </button>
+        ) : (
+          <button
+            type="submit"
+            className={styles.sendButton}
+            disabled={!inputValue.trim() || isLoading}
+            aria-label="Send message"
+          >
+            <svg className={styles.sendIcon} fill="currentColor" viewBox="0 0 20 20">
+              <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
+            </svg>
+          </button>
+        )}
       </div>
     </form>
   );

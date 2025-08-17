@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import HeaderComponent from '../../../components/header-component/header-component';
 import SidebarComponent from '../../../components/sidebar-component/sidebar-component';
@@ -17,11 +17,13 @@ export default function NewChatPage() {
     conversationsWithMessages,
     isLoading, 
     isNavigationLoading,
+    isInitializing,
     streamingMessage, 
     apiError, 
     createConversation, 
     sendMessage, 
     retryLastMessage,
+    stopStreaming,
     conversations,
     setNavigationLoading
   } = useConversationHelpers();
@@ -29,11 +31,10 @@ export default function NewChatPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [triggerInputAnimation, setTriggerInputAnimation] = useState(false);
+  const [prefilledMessage, setPrefilledMessage] = useState('');
+  const shouldNavigateRef = useRef(false);
 
-  // Handle initial page loading state - stop loading immediately when page is ready
-  useEffect(() => {
-    setNavigationLoading(false);
-  }, [setNavigationLoading]);
+
 
   /**
    * Handles new chat click animation trigger
@@ -54,11 +55,44 @@ export default function NewChatPage() {
     const newConversation = createConversation();
     setCurrentConversationId(newConversation.id);
     
-    // Send the message
+    // Set flag to navigate after successful completion
+    shouldNavigateRef.current = true;
+    
+    // Send the message (this will start streaming)
     await sendMessage(newConversation.id, messageContent);
     
-    // Navigate to the conversation page
-    router.push(`/chat/${newConversation.id}`);
+    // If we reach here and shouldNavigate is still true, navigate
+    if (shouldNavigateRef.current) {
+      router.push(`/chat/${newConversation.id}`);
+    }
+  };
+
+  /**
+   * Handles stopping the streaming response
+   */
+  const handleStop = () => {
+    // Cancel any pending navigation
+    shouldNavigateRef.current = false;
+    
+    const restoredMessage = stopStreaming();
+    
+    // Reset conversation state on new chat page immediately
+    setCurrentConversationId(null);
+    
+    // Ensure no navigation loading state interferes
+    setNavigationLoading(false);
+    
+    // Set prefilled message immediately
+    if (restoredMessage) {
+      setPrefilledMessage(restoredMessage);
+    }
+  };
+
+  /**
+   * Handles clearing the prefilled message
+   */
+  const handlePrefilledMessageCleared = () => {
+    setPrefilledMessage('');
   };
 
   // Get the current conversation and its messages for display
@@ -66,34 +100,25 @@ export default function NewChatPage() {
     conversations.find(conv => conv.id === currentConversationId) : null;
   const displayMessages = currentConversation?.messages || [];
 
-  // Show loading state briefly for smooth navigation experience
-  if (isNavigationLoading) {
+  // Don't show loading state when we have a prefilled message (after stop)
+  const shouldShowInitializing = isInitializing && !prefilledMessage;
+
+  // Show loading state only during initial context setup and not when we have a prefilled message
+  if (shouldShowInitializing) {
     return (
-      <div className={styles.container} dir="rtl">
-        <HeaderComponent 
-          isSidebarOpen={isSidebarOpen}
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-        />
-        
-        <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', flex: 1 }}>
-            <div className={styles.loadingContainer}>
-              <div className={styles.spinner}></div>
-              <p>טוען...</p>
-            </div>
-          </div>
-        </main>
-        
-        <SidebarComponent
-          conversations={conversationsWithMessages}
-          currentConversationId={currentConversationId || undefined}
-          isOpen={isSidebarOpen}
-          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-          onNewChatClick={handleNewChatClick}
-        />
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        direction: 'rtl' 
+      }}>
+        <p>טוען...</p>
       </div>
     );
   }
+
+  // Main component render
 
   return (
     <div className={styles.container} dir="rtl">
@@ -112,7 +137,10 @@ export default function NewChatPage() {
           streamingMessage={streamingMessage}
           apiError={apiError}
           onRetry={retryLastMessage}
+          onStop={handleStop}
           triggerInputAnimation={triggerInputAnimation}
+          prefilledMessage={prefilledMessage}
+          onPrefilledMessageCleared={handlePrefilledMessageCleared}
         />
       </main>
       

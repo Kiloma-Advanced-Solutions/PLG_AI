@@ -11,7 +11,7 @@ import { Message } from '../types';
 
 const API_CONFIG = {
   // API URL - Set via environment variable
-  baseUrl: 'http://95.253.220.115:49965',
+  baseUrl: 'http://195.142.145.66:15591',
   
   // API Endpoints
   endpoints: {
@@ -126,7 +126,7 @@ export const streamChatResponse = async (
           session_id: sessionId,
           stream: true
         }),
-        signal: abortController?.signal
+        signal: abortController?.signal   // Abort the request if the user clicks stop
       }
     );
 
@@ -152,7 +152,13 @@ export const streamChatResponse = async (
     const decoder = new TextDecoder();
     let buffer = '';
 
-    while (true) {
+    while (true) { // Loop until the request is complete with multiple safety nets to stop generating tokens immediately
+      // Check for abort before each reading each chunk
+      if (abortController?.signal.aborted) {
+        reader.cancel();  // Cancel the request (the ReadableStream reader)
+        return; 
+      }
+
       const { done, value } = await reader.read();
       
       if (done) {
@@ -160,11 +166,23 @@ export const streamChatResponse = async (
         break;
       }
 
+      // Check for abort after read
+      if (abortController?.signal.aborted) {
+        reader.cancel();
+        return;
+      }
+
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
       buffer = lines.pop() || '';
 
       for (const line of lines) {
+        // Check for abort during processing
+        if (abortController?.signal.aborted) {
+          reader.cancel();
+          return;
+        }
+
         if (!line.startsWith('data: ')) continue;
         
         const data = line.slice(6).trim();
