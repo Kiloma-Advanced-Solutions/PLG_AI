@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import HeaderComponent from '../../../components/header-component/header-component';
 import SidebarComponent from '../../../components/sidebar-component/sidebar-component';
 import ChatContainerComponent from '../../../components/chat-container-component/chat-container-component';
-import { useConversationHelpers } from '../../../hooks/useConversations';
+import { useConversationContext } from '../../../contexts/ConversationContext';
+import { getConversationsWithMessages } from '../../../utils/conversation';
 import styles from '../../page.module.css';
 
 /**
@@ -14,26 +15,23 @@ import styles from '../../page.module.css';
 export default function NewChatPage() {
   const router = useRouter();
   const { 
-    conversationsWithMessages,
+    conversations,
     isLoading, 
-    isNavigationLoading,
     streamingMessage, 
     apiError, 
     createConversation, 
     sendMessage, 
     retryLastMessage,
     createStopHandler,
-    conversations,
     setNavigationLoading
-  } = useConversationHelpers();
+  } = useConversationContext();
   
+  const conversationsWithMessages = getConversationsWithMessages(conversations);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [triggerInputAnimation, setTriggerInputAnimation] = useState(false);
   const [prefilledMessage, setPrefilledMessage] = useState('');
   const shouldNavigateRef = useRef(false);
-
-
 
   /**
    * Handles new chat click
@@ -68,12 +66,6 @@ export default function NewChatPage() {
     
     // If we reach here and shouldNavigate is still true, navigate
     if (shouldNavigateRef.current) {
-      // Preserve any input content that was typed during streaming
-      const currentInput = document.querySelector('textarea')?.value || '';
-      if (currentInput.trim()) {
-        // Store in sessionStorage to preserve across navigation
-        sessionStorage.setItem('preserved-input', currentInput);
-      }
       router.push(`/chat/${newConversation.id}`);
     }
   };

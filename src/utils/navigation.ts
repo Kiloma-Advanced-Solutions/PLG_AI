@@ -1,61 +1,37 @@
 /**
- * Navigation utilities for smooth transitions
+ * Simple navigation utilities
  */
 
 import { AppRouterInstance } from 'next/dist/shared/lib/app-router-context.shared-runtime';
 
 /**
- * Standard delay used for navigation transitions to allow animations to complete
- */
-const NAVIGATION_DELAY = 10;
-
-/**
- * Navigates to a conversation with a delay to allow UI transitions
+ * Navigates to a conversation immediately
  * @param conversationId - ID of the conversation to navigate to
  * @param router - Next.js router instance
- * @param onBeforeNavigate - Optional callback to execute before navigation (e.g., close sidebar)
+ * @param closeSidebar - Optional callback to close sidebar
  */
 export const navigateToConversation = (
   conversationId: string,
   router: AppRouterInstance,
-  onBeforeNavigate?: () => void
+  closeSidebar?: () => void
 ): void => {
-  if (onBeforeNavigate) {
-    onBeforeNavigate();
+  if (closeSidebar) {
+    closeSidebar();
   }
-  
-  setTimeout(() => {
-    router.push(`/chat/${conversationId}`);
-  }, NAVIGATION_DELAY);
+  router.push(`/chat/${conversationId}`);
 };
 
 /**
- * Navigates to new chat page with a delay to allow UI transitions
+ * Navigates to new chat page immediately
  * @param router - Next.js router instance
- * @param currentPath - Current pathname to check if already on new chat page
- * @param onBeforeNavigate - Optional callback to execute before navigation (e.g., close sidebar)
- * @param onNewChatClick - Optional callback for custom new chat handling (e.g., animations)
+ * @param closeSidebar - Optional callback to close sidebar
  */
 export const navigateToNewChat = (
   router: AppRouterInstance,
-  currentPath: string,
-  onBeforeNavigate?: () => void,
-  onNewChatClick?: () => void
+  closeSidebar?: () => void
 ): void => {
-  if (onBeforeNavigate) {
-    onBeforeNavigate();
+  if (closeSidebar) {
+    closeSidebar();
   }
-  
-  setTimeout(() => {
-    // If already on new chat page, just trigger the callback without redirecting
-    if (currentPath === '/chat/new' && onNewChatClick) {
-      onNewChatClick();
-    } else {
-      // Navigate to new chat page
-      if (onNewChatClick) {
-        onNewChatClick();
-      }
-      router.push('/chat/new');
-    }
-  }, NAVIGATION_DELAY);
+  router.push('/chat/new');
 }; 

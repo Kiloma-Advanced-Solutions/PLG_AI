@@ -347,27 +347,24 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   /**
-   * Creates a standardized stop handler for pages with optional prefill logic
+   * Creates a standardized stop handler for pages
    */
   const createStopHandler = (
     setPrefilledMessage: (message: string) => void,
     onAdditionalCleanup?: () => void
-  ) => {
-    return (currentInputValue: string) => {
-      // Call any additional cleanup first
-      if (onAdditionalCleanup) {
-        onAdditionalCleanup();
-      }
-      
-      // Stop streaming and get restored message
-      const restoredMessage = stopStreaming();
-      
-      // Only set prefilled message if input is completely empty
-      // Never overwrite user input under any circumstances
-      if (restoredMessage && (!currentInputValue || currentInputValue.trim() === '')) {
-        setPrefilledMessage(restoredMessage);
-      }
-    };
+  ) => (currentInputValue: string) => {
+    // Call any additional cleanup first
+    if (onAdditionalCleanup) {
+      onAdditionalCleanup();
+    }
+    
+    // Stop streaming and get restored message
+    const restoredMessage = stopStreaming();
+    
+    // Only set prefilled message if input is empty
+    if (restoredMessage && (!currentInputValue || currentInputValue.trim() === '')) {
+      setPrefilledMessage(restoredMessage);
+    }
   };
 
   const value: ConversationContextType = {

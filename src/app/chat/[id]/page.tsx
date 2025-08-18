@@ -5,7 +5,8 @@ import { useRouter, useParams } from 'next/navigation';
 import HeaderComponent from '../../../components/header-component/header-component';
 import SidebarComponent from '../../../components/sidebar-component/sidebar-component';
 import ChatContainerComponent from '../../../components/chat-container-component/chat-container-component';
-import { useConversationHelpers } from '../../../hooks/useConversations';
+import { useConversationContext } from '../../../contexts/ConversationContext';
+import { getConversationsWithMessages } from '../../../utils/conversation';
 import styles from '../../page.module.css';
 
 /**
@@ -17,31 +18,22 @@ export default function ChatPage() {
   const conversationId = params.id as string;
   
   const { 
-    conversationsWithMessages,
+    conversations,
     isLoading, 
     isNavigationLoading,
     streamingMessage, 
     apiError, 
-    getConversationSafely, 
+    getConversation, 
     sendMessage, 
     retryLastMessage,
     createStopHandler,
-    conversations,
     setNavigationLoading
-  } = useConversationHelpers();
+  } = useConversationContext();
   
+  const conversationsWithMessages = getConversationsWithMessages(conversations);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [prefilledMessage, setPrefilledMessage] = useState('');
-  const currentConversation = getConversationSafely(conversationId);
-
-  // Restore preserved input from navigation if available
-  useEffect(() => {
-    const preservedInput = sessionStorage.getItem('preserved-input');
-    if (preservedInput) {
-      setPrefilledMessage(preservedInput);
-      sessionStorage.removeItem('preserved-input');
-    }
-  }, []);
+  const currentConversation = getConversation(conversationId);
 
   // Handle navigation loading state - stop loading when conversation is ready
   useEffect(() => {
