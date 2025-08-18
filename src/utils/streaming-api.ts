@@ -35,7 +35,7 @@ if (!API_CONFIG.baseUrl) {
 // ========================================
 
 export interface StreamError {
-  type: 'connection' | 'api' | 'streaming' | 'timeout';
+  type: 'connection' | 'api' | 'streaming' | 'timeout' | 'parsing';
   message: string;
   retryable?: boolean;
 }
@@ -77,12 +77,12 @@ const getHeaders = () => ({
 export const checkApiHealth = async (): Promise<boolean> => {
   try {
     const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.health}`);
-    if (!response.ok) return false;
+    if (!response.ok) return false;   // Uvicorn server is down
     
     const data = await response.json();
     return data.status === 'healthy';
-  } catch (error) {
-    console.error('Health check failed:', error);
+  } 
+  catch (error) {
     return false;
   }
 };
@@ -101,17 +101,6 @@ export const streamChatResponse = async (
   const sessionId = getSessionId();
   
   try {
-    // Check API health before request
-    const isHealthy = await checkApiHealth();
-    if (!isHealthy) {
-      onError({
-        type: 'connection',
-        message: 'שירות הבינה המלאכותית אינו זמין כרגע',
-        retryable: true
-      });
-      return;
-    }
-    
     // Make request to API
     const response = await fetch(
       `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.chat}`,
@@ -197,7 +186,7 @@ export const streamChatResponse = async (
           
           if (parsed.error) {
             onError({ 
-              type: 'api', 
+              type: 'parsing', 
               message: parsed.error, 
               retryable: true 
             });
@@ -218,9 +207,8 @@ export const streamChatResponse = async (
   } catch (error) {
     if (abortController?.signal.aborted) return;
     
-    console.error('Stream error:', error);
     onError({
-      type: 'connection',
+      type: 'api',
       message: 'שגיאה בחיבור לשרת',
       retryable: true
     });

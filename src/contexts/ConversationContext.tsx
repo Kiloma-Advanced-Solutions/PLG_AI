@@ -195,15 +195,14 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           messagesBeforeError: currentConversation?.messages || []
         });
         
-        // If error occurred during streaming, remove any partial assistant response
+        // If error occurred during streaming, keep user message but remove any partial assistant response
         setConversations(prev => prev.map(conv => {
           if (conv.id === conversationId) {
+            const messagesWithUser = currentConversation ? [...currentConversation.messages, userMessage] : [userMessage];
             return {
               ...conv,
-              messages: currentConversation?.messages || [],
-              lastMessage: currentConversation?.messages && currentConversation.messages.length > 0 
-                ? currentConversation.messages[currentConversation.messages.length - 1].content 
-                : '',
+              messages: messagesWithUser,
+              lastMessage: userMessage.content,
               timestamp: getCurrentTimestamp()
             };
           }
@@ -264,28 +263,76 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return;
     }
 
-    const { conversationId, lastUserMessage, messagesBeforeError } = retryState;
+    const { conversationId, lastUserMessage } = retryState;
     
-    // Reset conversation to state before the failed message
-    setConversations(prev => prev.map(conv => {
-      if (conv.id === conversationId) {
-        return {
-          ...conv,
-          messages: messagesBeforeError,
-          lastMessage: messagesBeforeError.length > 0 
-            ? messagesBeforeError[messagesBeforeError.length - 1].content 
-            : '',
-          timestamp: getCurrentTimestamp()
-        };
-      }
-      return conv;
-    }));
-
-    // Clear error state
+    // Clear error state but keep conversation as is (with user message)
     setApiError(null);
     
-    // Resend the message
-    await sendMessage(conversationId, lastUserMessage);
+    // Get current conversation with user message already included
+    const currentConversation = conversations.find(conv => conv.id === conversationId);
+    if (!currentConversation) return;
+
+    // Initialize streaming state
+    setIsLoading(true);
+    setStreamingMessage('');
+    streamingContentRef.current = '';
+
+    // Create new AbortController for retry
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    // Store references for potential stop/revert
+    lastUserMessageRef.current = lastUserMessage;
+    currentConversationIdRef.current = conversationId;
+
+    // Retry streaming with existing messages (user message already in conversation)
+    await streamChatResponse(
+      currentConversation.messages,
+      // Token callback
+      (token: string) => {
+        streamingContentRef.current += token;
+        setStreamingMessage(streamingContentRef.current);
+      },
+      // Error callback
+      (error: StreamError) => {
+        console.error('❌ Retry streaming error:', error);
+        setApiError(error.message);
+        setIsLoading(false);
+        setStreamingMessage('');
+        streamingContentRef.current = '';
+        abortControllerRef.current = null;
+      },
+      // Complete callback
+      () => {
+        if (streamingContentRef.current) {
+          const assistantMessage: Message = {
+            id: generateMessageId(),
+            type: 'assistant',
+            content: streamingContentRef.current,
+            timestamp: getCurrentTimestamp()
+          };
+
+          setConversations(prev => prev.map(conv => {
+            if (conv.id === conversationId) {
+              return {
+                ...conv,
+                messages: [...conv.messages, assistantMessage],
+                lastMessage: assistantMessage.content,
+                timestamp: getCurrentTimestamp()
+              };
+            }
+            return conv;
+          }));
+        }
+
+        setIsLoading(false);
+        setStreamingMessage('');
+        streamingContentRef.current = '';
+        abortControllerRef.current = null;
+        setRetryState(null);
+      },
+      abortController
+    );
   };
 
   /**
