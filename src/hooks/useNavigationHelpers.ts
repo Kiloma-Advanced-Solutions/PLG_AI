@@ -36,12 +36,15 @@ import { navigateToConversation, navigateToNewChat } from '../utils/navigation';
       // Always stop any ongoing streaming first
       stopStreaming();
       
-      // If we're already on the new chat page, just close sidebar and don't navigate
+      // If we're already on the new chat page, just close sidebar and trigger animation
       if (pathname === '/chat/new') {
         if (closeSidebar) {
           closeSidebar();
         }
-        // Don't call onNewChatClick to avoid unwanted animations/state changes
+        // Call onNewChatClick to trigger input focus animation
+        if (onNewChatClick) {
+          onNewChatClick();
+        }
         return;
       }
       

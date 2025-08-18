@@ -1,30 +1,10 @@
-'use client';
-
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { redirect } from 'next/navigation';
 
 /**
  * Main entry point component for the application
- * Immediately redirects users to the new chat page
+ * Immediately redirects users to the new chat page using server-side redirect
  */
 export default function Home() {
-  const router = useRouter();
-
-  useEffect(() => {
-    // Always redirect to new chat page
-    router.push('/chat/new');
-  }, [router]);
-
-  // Show brief loading state during redirect
-  return (
-    <div style={{ 
-      display: 'flex', 
-      justifyContent: 'center', 
-      alignItems: 'center', 
-      height: '100vh',
-      direction: 'rtl' 
-    }}>
-      <p>טוען...</p>
-    </div>
-  );
+  // Server-side redirect - happens before any rendering
+  redirect('/chat/new');
 }

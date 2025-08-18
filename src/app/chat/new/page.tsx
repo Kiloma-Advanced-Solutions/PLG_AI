@@ -16,7 +16,7 @@ export default function NewChatPage() {
   const { 
     conversationsWithMessages,
     isLoading, 
-    isInitializing,
+    isNavigationLoading,
     streamingMessage, 
     apiError, 
     createConversation, 
@@ -100,26 +100,7 @@ export default function NewChatPage() {
     conversations.find(conv => conv.id === currentConversationId) : null;
   const displayMessages = currentConversation?.messages || [];
 
-  // Don't show loading state when we have a prefilled message (after stop)
-  const shouldShowInitializing = isInitializing && !prefilledMessage;
-
-  // Show loading state only during initial context setup and not when we have a prefilled message
-  if (shouldShowInitializing) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        direction: 'rtl' 
-      }}>
-        <p>טוען...</p>
-      </div>
-    );
-  }
-
-  // Main component render
-
+  // New chat page is always ready - no loading needed
   return (
     <div className={styles.container} dir="rtl">
       <HeaderComponent 

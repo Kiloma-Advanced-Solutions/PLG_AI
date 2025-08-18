@@ -62,6 +62,15 @@ export default function InputMessageContainer({
     }
   }, [triggerFocusAnimation]);
 
+  // Focus input immediately on component mount for instant typing
+  useEffect(() => {
+    const input = inputRef.current;
+    if (input) {
+      // Immediate focus for best UX
+      input.focus();
+    }
+  }, []); // Empty dependency array - runs only on mount
+
   /**
    * Handles form submission when user sends a message
    */
@@ -112,7 +121,7 @@ export default function InputMessageContainer({
     input.style.height = 'auto';
     input.style.height = `${input.scrollHeight}px`;
 
-    // Focus input when not loading
+    // Focus input when not loading (for maintaining focus during interactions)
     if (!isLoading) {
       input.focus();
     }
@@ -131,6 +140,7 @@ export default function InputMessageContainer({
           className={styles.messageInput} 
           rows={1}
           dir="rtl"
+          autoFocus
         />
         {isLoading && onStop ? (
           <button
@@ -144,7 +154,7 @@ export default function InputMessageContainer({
             aria-label="עצור יצירת תגובה"
           >
             <svg className={styles.sendIcon} fill="currentColor" viewBox="0 0 20 20">
-              <rect x="5" y="5" width="10" height="10" rx="1" />
+              <rect x="6" y="6" width="8" height="8" rx="1" />
             </svg>
           </button>
         ) : (

@@ -13,7 +13,6 @@ type ConversationContextType = {
   conversations: Conversation[];
   isLoading: boolean;
   isNavigationLoading: boolean;
-  isInitializing: boolean;
   streamingMessage: string;
   apiError: string | null;
   createConversation: () => Conversation;
@@ -58,13 +57,24 @@ export const useConversationContext = () => {
  * Manages all conversation state, localStorage persistence, and API communication
  */
 export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  // Initialize conversations from localStorage immediately (client-side only)
+  const [conversations, setConversations] = useState<Conversation[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('chatplg-conversations');
+        return saved ? JSON.parse(saved) : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+  
   const [isLoading, setIsLoading] = useState(false);
   const [isNavigationLoading, setIsNavigationLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [apiError, setApiError] = useState<string | null>(null);
   const [retryState, setRetryState] = useState<RetryState>(null);
-  const [isInitializing, setIsInitializing] = useState(true);
   
   // Refs for managing streaming state
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -72,19 +82,11 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const lastUserMessageRef = useRef<string | null>(null);
   const currentConversationIdRef = useRef<string | null>(null);
 
-  // Load conversations from localStorage on component mount
-  useEffect(() => {
-    const savedConversations = localStorage.getItem('chatplg-conversations');
-    if (savedConversations) {
-      setConversations(JSON.parse(savedConversations));
-    }
-    // Mark initialization as complete
-    setIsInitializing(false);
-  }, []);
-
   // Persist conversations to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('chatplg-conversations', JSON.stringify(conversations));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('chatplg-conversations', JSON.stringify(conversations));
+    }
   }, [conversations]);
 
   /**
@@ -372,7 +374,6 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     conversations,
     isLoading,
     isNavigationLoading,
-    isInitializing,
     streamingMessage,
     apiError,
     createConversation,

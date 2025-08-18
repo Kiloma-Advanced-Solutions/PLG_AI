@@ -121,7 +121,7 @@ export default function ChatPage() {
       
       <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
         <ChatContainerComponent
-          messages={currentConversation.messages}
+          messages={currentConversation!.messages}
           onSendMessage={handleSendMessage}
           isLoading={isLoading}
           isSidebarOpen={isSidebarOpen}
