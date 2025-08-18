@@ -18,7 +18,7 @@ type ChatContainerComponentProps = {
   streamingMessage?: string;
   apiError?: string | null;
   onRetry?: () => Promise<void> | void;
-  onStop?: () => void;
+  onStop?: (currentInputValue: string) => void;
   triggerInputAnimation?: boolean;
   prefilledMessage?: string;
   onPrefilledMessageCleared?: () => void;

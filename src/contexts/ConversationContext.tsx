@@ -23,6 +23,7 @@ type ConversationContextType = {
   getConversation: (id: string) => Conversation | null;
   retryLastMessage: () => Promise<void>;
   stopStreaming: () => string | null;
+  createStopHandler: (setPrefilledMessage: (message: string) => void, onAdditionalCleanup?: () => void) => (currentInputValue: string) => void;
   setNavigationLoading: (loading: boolean) => void;
 };
 
@@ -343,6 +344,30 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return userMessageToRestore;
   };
 
+  /**
+   * Creates a standardized stop handler for pages with optional prefill logic
+   */
+  const createStopHandler = (
+    setPrefilledMessage: (message: string) => void,
+    onAdditionalCleanup?: () => void
+  ) => {
+    return (currentInputValue: string) => {
+      // Call any additional cleanup first
+      if (onAdditionalCleanup) {
+        onAdditionalCleanup();
+      }
+      
+      // Stop streaming and get restored message
+      const restoredMessage = stopStreaming();
+      
+      // Only set prefilled message if input is completely empty
+      // Never overwrite user input under any circumstances
+      if (restoredMessage && (!currentInputValue || currentInputValue.trim() === '')) {
+        setPrefilledMessage(restoredMessage);
+      }
+    };
+  };
+
   const value: ConversationContextType = {
     conversations,
     isLoading,
@@ -357,6 +382,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     getConversation,
     retryLastMessage,
     stopStreaming,
+    createStopHandler,
     setNavigationLoading: setIsNavigationLoading,
   };
 

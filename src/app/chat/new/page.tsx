@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import HeaderComponent from '../../../components/header-component/header-component';
 import SidebarComponent from '../../../components/sidebar-component/sidebar-component';
@@ -16,14 +16,13 @@ export default function NewChatPage() {
   const { 
     conversationsWithMessages,
     isLoading, 
-    isNavigationLoading,
     isInitializing,
     streamingMessage, 
     apiError, 
     createConversation, 
     sendMessage, 
     retryLastMessage,
-    stopStreaming,
+    createStopHandler,
     conversations,
     setNavigationLoading
   } = useConversationHelpers();
@@ -37,9 +36,15 @@ export default function NewChatPage() {
 
 
   /**
-   * Handles new chat click animation trigger
+   * Handles new chat click
    */
   const handleNewChatClick = () => {
+    // If currently loading/streaming, use the proper stop handler to respect input state
+    if (isLoading) {
+      handleStop(''); // Use empty string to ensure no input overwrite
+      return;
+    }
+    
     // Only trigger animation if we're on an empty conversation
     if (!currentConversationId && !displayMessages.length) {
       setTriggerInputAnimation(true);
@@ -63,6 +68,12 @@ export default function NewChatPage() {
     
     // If we reach here and shouldNavigate is still true, navigate
     if (shouldNavigateRef.current) {
+      // Preserve any input content that was typed during streaming
+      const currentInput = document.querySelector('textarea')?.value || '';
+      if (currentInput.trim()) {
+        // Store in sessionStorage to preserve across navigation
+        sessionStorage.setItem('preserved-input', currentInput);
+      }
       router.push(`/chat/${newConversation.id}`);
     }
   };
@@ -70,23 +81,12 @@ export default function NewChatPage() {
   /**
    * Handles stopping the streaming response
    */
-  const handleStop = () => {
-    // Cancel any pending navigation
+  const handleStop = createStopHandler(setPrefilledMessage, () => {
+    // Additional cleanup specific to new chat page
     shouldNavigateRef.current = false;
-    
-    const restoredMessage = stopStreaming();
-    
-    // Reset conversation state on new chat page immediately
     setCurrentConversationId(null);
-    
-    // Ensure no navigation loading state interferes
     setNavigationLoading(false);
-    
-    // Set prefilled message immediately
-    if (restoredMessage) {
-      setPrefilledMessage(restoredMessage);
-    }
-  };
+  });
 
   /**
    * Handles clearing the prefilled message

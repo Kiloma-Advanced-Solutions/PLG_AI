@@ -18,7 +18,7 @@ type InputMessageContainerProps = {
   /** Callback when prefilled message is used or cleared */
   onPrefilledMessageCleared?: () => void;
   /** Callback function called when user clicks stop button */
-  onStop?: () => void;
+  onStop?: (currentInputValue: string) => void;
 };
 
 /**
@@ -37,10 +37,11 @@ export default function InputMessageContainer({
   const [inputValue, setInputValue] = useState('');
   const [showFocusAnimation, setShowFocusAnimation] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const wasLoadingRef = useRef(isLoading);
 
-  // Handle prefilled message when it changes
+  // Handle prefilled message when it changes - only if input is empty
   useEffect(() => {
-    if (prefilledMessage && prefilledMessage !== inputValue) {
+    if (prefilledMessage && prefilledMessage !== inputValue && (!inputValue || inputValue.trim() === '')) {
       setInputValue(prefilledMessage);
     }
   }, [prefilledMessage, inputValue]);
@@ -66,9 +67,13 @@ export default function InputMessageContainer({
    */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Only allow submission if we have content and we're not currently loading
     if (inputValue.trim() && !isLoading) {
+      console.log('Submitting message:', inputValue.trim());
       onSendMessage(inputValue.trim());
       setInputValue('');
+    } else if (isLoading) {
+      console.log('Blocked form submission during loading, input value:', inputValue);
     }
   };
 
@@ -79,9 +84,24 @@ export default function InputMessageContainer({
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit(e);
+      // Only submit if not loading to prevent accidental submissions
+      if (!isLoading) {
+        handleSubmit(e);
+      } else {
+        console.log('Blocked Enter key submission during loading');
+      }
     }
   };
+
+  // Track loading state changes to preserve input during streaming completion
+  useEffect(() => {
+    // If loading just finished and we have content, preserve it
+    if (wasLoadingRef.current && !isLoading && inputValue.trim()) {
+      // User typed content during streaming - preserve it
+      console.log('Preserving input during loading completion:', inputValue);
+    }
+    wasLoadingRef.current = isLoading;
+  }, [isLoading, inputValue]);
 
   // Auto-resize textarea and manage focus
   useEffect(() => {
@@ -119,12 +139,12 @@ export default function InputMessageContainer({
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
-              onStop();
+              onStop(inputValue);
             }}
             aria-label="עצור יצירת תגובה"
           >
             <svg className={styles.sendIcon} fill="currentColor" viewBox="0 0 20 20">
-              <rect x="6" y="6" width="8" height="8" rx="1" />
+              <rect x="5" y="5" width="10" height="10" rx="1" />
             </svg>
           </button>
         ) : (

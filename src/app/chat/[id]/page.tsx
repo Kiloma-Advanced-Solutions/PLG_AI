@@ -25,7 +25,7 @@ export default function ChatPage() {
     getConversationSafely, 
     sendMessage, 
     retryLastMessage,
-    stopStreaming,
+    createStopHandler,
     conversations,
     setNavigationLoading
   } = useConversationHelpers();
@@ -33,6 +33,15 @@ export default function ChatPage() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [prefilledMessage, setPrefilledMessage] = useState('');
   const currentConversation = getConversationSafely(conversationId);
+
+  // Restore preserved input from navigation if available
+  useEffect(() => {
+    const preservedInput = sessionStorage.getItem('preserved-input');
+    if (preservedInput) {
+      setPrefilledMessage(preservedInput);
+      sessionStorage.removeItem('preserved-input');
+    }
+  }, []);
 
   // Handle navigation loading state - stop loading when conversation is ready
   useEffect(() => {
@@ -62,14 +71,9 @@ export default function ChatPage() {
   };
 
   /**
-   * Handles stopping the streaming response
+   * Handles stopping the streaming response - using simplified unified handler
    */
-  const handleStop = () => {
-    const restoredMessage = stopStreaming();
-    if (restoredMessage) {
-      setPrefilledMessage(restoredMessage);
-    }
-  };
+  const handleStop = createStopHandler(setPrefilledMessage);
 
   /**
    * Handles clearing the prefilled message
