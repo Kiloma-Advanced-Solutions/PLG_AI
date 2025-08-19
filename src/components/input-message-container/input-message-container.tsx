@@ -120,7 +120,7 @@ export default function InputMessageContainer({
             aria-label="עצור יצירת תגובה"
           >
             <svg className={styles.sendIcon} fill="currentColor" viewBox="0 0 20 20">
-              <rect x="6" y="6" width="8" height="8" rx="1" />
+              <rect x="5" y="5" width="10" height="10" rx="1" />
             </svg>
           </button>
         ) : (

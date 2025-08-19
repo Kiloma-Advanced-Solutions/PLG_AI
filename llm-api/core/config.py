@@ -10,9 +10,9 @@ class LLMConfig:
     def __init__(self):
         # Base URLs for services
         self.base_url: str = os.getenv("LLM_API_BASE_URL", "http://localhost")
-        self.cloud_ip: str = os.getenv("LLM_API_CLOUD_IP", "195.142.145.66")  # The public IP of the cloud instance
-        self.frontend_port: int = int(os.getenv("LLM_API_FRONTEND_PORT", "15720"))  # 3000 mapped port
-        self.api_port: int = int(os.getenv("LLM_API_API_PORT", "15548"))  # 8090 mapped port
+        self.cloud_ip: str = os.getenv("LLM_API_CLOUD_IP", "172.81.127.6")  # The public IP of the cloud instance
+        self.frontend_port: int = int(os.getenv("LLM_API_FRONTEND_PORT", "10239"))  # 3000 mapped port
+        self.api_port: int = int(os.getenv("LLM_API_API_PORT", "10599"))  # 8090 mapped port
         self.vllm_port: int = int(os.getenv("LLM_API_VLLM_PORT", "8060"))  # vLLM server port
 
         # Server settings
@@ -95,6 +95,11 @@ class LLMConfig:
             self.api_url,
             self.cloud_frontend_url,
             self.cloud_api_url,
+            # Add current cloud instance URLs
+            "http://172.81.127.6:10239",  # Current frontend
+            "http://172.81.127.6:10599",  # Current API
+            # Allow all origins for development (remove in production)
+            "*"
         ]
 
     def get_model_params(self) -> Dict[str, Any]:

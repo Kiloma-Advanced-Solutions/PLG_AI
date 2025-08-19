@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { Message, Conversation } from '../types';
-import { streamChatResponse, StreamError } from '../utils/streaming-api';
+import { streamChatResponse } from '../utils/streaming-api';
+import { AppError, getErrorDisplayMessage } from '../utils/error-handling';
 import { generateConversationId, generateMessageId } from '../utils/conversation';
 import { getCurrentTimestamp } from '../utils/date';
 
@@ -185,7 +186,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setStreamingMessage(streamingContentRef.current);
       },
       // Error callback - called when streaming fails
-      (error: StreamError) => {
+      (error: AppError) => {
         console.error('❌ Streaming error:', error);
         
         // Store retry information for the failed message
@@ -294,13 +295,18 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setStreamingMessage(streamingContentRef.current);
       },
       // Error callback
-      (error: StreamError) => {
+      (error: AppError) => {
         console.error('❌ Retry streaming error:', error);
+        
+        // Preserve retry state so user can retry again
+        // retryState is already set, no need to change it
+        
         setApiError(error.message);
         setIsLoading(false);
         setStreamingMessage('');
         streamingContentRef.current = '';
         abortControllerRef.current = null;
+        // Don't clear retryState here - keep it for future retries
       },
       // Complete callback
       () => {

@@ -4,14 +4,15 @@
  */
 
 import { Message } from '../types';
+import { AppError, createAppError } from './error-handling';
 
 // ========================================
 // CONFIGURATION
 // ========================================
 
 const API_CONFIG = {
-  // API URL - Set via environment variable
-  baseUrl: 'http://195.142.145.66:15548',
+  // API URL - Set via environment variable or use cloud instance
+  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://172.81.127.6:10599',
   
   // API Endpoints
   endpoints: {
@@ -25,20 +26,13 @@ const API_CONFIG = {
   }
 } as const;
 
-// Validate configuration
-if (!API_CONFIG.baseUrl) {
-  throw new Error('NEXT_PUBLIC_API_URL environment variable is required');
-}
+// Configuration is now set with fallback, no validation needed
 
 // ========================================
 // TYPES
 // ========================================
 
-export interface StreamError {
-  type: 'connection' | 'api' | 'streaming' | 'timeout' | 'parsing';
-  message: string;
-  retryable?: boolean;
-}
+// Using standardized AppError from error-handling.ts
 
 // ========================================
 // SESSION MANAGEMENT
@@ -51,12 +45,17 @@ export const generateSessionId = (): string => {
 export const getSessionId = (): string => {
   if (typeof window === 'undefined') return generateSessionId();
   
-  let sessionId = sessionStorage.getItem(API_CONFIG.storage.sessionId);
-  if (!sessionId) {
-    sessionId = generateSessionId();
-    sessionStorage.setItem(API_CONFIG.storage.sessionId, sessionId);
+  try {
+    let sessionId = sessionStorage.getItem(API_CONFIG.storage.sessionId);
+    if (!sessionId) {
+      sessionId = generateSessionId();
+      sessionStorage.setItem(API_CONFIG.storage.sessionId, sessionId);
+    }
+    return sessionId;
+  } catch (error) {
+    // Fallback if sessionStorage access fails (private browsing, storage quota, etc.)
+    return generateSessionId();
   }
-  return sessionId;
 };
 
 // ========================================
@@ -77,7 +76,8 @@ const getHeaders = () => ({
 export const checkApiHealth = async (): Promise<boolean> => {
   try {
     const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.health}`);
-    if (!response.ok) return false;   // Uvicorn server is down
+    // Network failure or non-200 response from health endpoint (vicorn server is down)
+    if (!response.ok) return false;
     
     const data = await response.json();
     return data.status === 'healthy';
@@ -94,47 +94,63 @@ export const checkApiHealth = async (): Promise<boolean> => {
 export const streamChatResponse = async (
   messages: Message[],
   onToken: (token: string) => void,
-  onError: (error: StreamError) => void,
+  onError: (error: AppError) => void,
   onComplete: () => void,
   abortController?: AbortController
 ): Promise<void> => {
   const sessionId = getSessionId();
   
   try {
+    // Prepare request body
+    let requestBody: string;
+    try {
+      requestBody = JSON.stringify({
+        messages: messages.map(msg => ({
+          role: msg.type === 'user' ? 'user' : 'assistant',
+          content: msg.content
+        })),
+        session_id: sessionId,
+        stream: true
+      });
+    } catch (error) {
+      onError(createAppError(
+        'validation',
+        'שגיאה בעיבוד ההודעות',
+        false
+      ));
+      return;
+    }
+
     // Make request to API
     const response = await fetch(
       `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.chat}`,
       {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({
-          messages: messages.map(msg => ({
-            role: msg.type === 'user' ? 'user' : 'assistant',
-            content: msg.content
-          })),
-          session_id: sessionId,
-          stream: true
-        }),
+        body: requestBody,
         signal: abortController?.signal   // Abort the request if the user clicks stop
       }
     );
 
+    // Non-200 HTTP status codes from chat API
     if (!response.ok) {
-      onError({
-        type: 'streaming',
-        message: `שגיאה בשרת: ${response.status}`,
-        retryable: response.status >= 500
-      });
+      onError(createAppError(
+        'api',
+        `שגיאה בשרת: ${response.status}`,
+        response.status >= 500
+      ));
       return;
     }
 
     // Process streaming response
     const reader = response.body?.getReader();
+    // response.body is null/undefined
     if (!reader) {
-      onError({ 
-        type: 'streaming', 
-        message: 'לא ניתן לקרוא תגובה מהשרת' 
-      });
+      onError(createAppError(
+        'api', 
+        'לא ניתן לקרוא תגובה מהשרת',
+        true
+      ));
       return;
     }
 
@@ -184,12 +200,13 @@ export const streamChatResponse = async (
         try {
           const parsed = JSON.parse(data);
           
+          // API sends an error object in the SSE stream
           if (parsed.error) {
-            onError({ 
-              type: 'parsing', 
-              message: parsed.error, 
-              retryable: true 
-            });
+            onError(createAppError(
+              'api', 
+              parsed.error, 
+              true 
+            ));
             return;
           }
           
@@ -197,20 +214,29 @@ export const streamChatResponse = async (
           if (parsed.choices?.[0]?.delta?.content) {
             onToken(parsed.choices[0].delta.content);
           }
-        } catch (e) {
-          // Log parse errors but continue
+        } 
+        // Invalid JSON in SSE data stream
+        catch (e) {
           console.warn('Invalid SSE data:', e);
+          onError(createAppError(
+            'streaming',
+            'נתונים לא תקינים מהשרת',
+            true
+          ));
+          return;
         }
       }
     }
 
-  } catch (error) {
+  } 
+  //Network failures, fetch errors, or other unhandled exceptions
+  catch (error) {
     if (abortController?.signal.aborted) return;
-    
-    onError({
-      type: 'api',
-      message: 'שגיאה בחיבור לשרת',
-      retryable: true
-    });
+ 
+    onError(createAppError(
+      'network',
+      'שגיאה בחיבור לשרת',
+      true
+    ));
   }
 }; 
