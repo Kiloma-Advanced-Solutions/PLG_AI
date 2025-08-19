@@ -11,8 +11,8 @@ import { AppError, createAppError } from './error-handling';
 // ========================================
 
 const API_CONFIG = {
-  // API URL - Set via environment variable or use cloud instance
-  baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://172.81.127.6:10599',
+  // API URL - Set via environment variable
+  baseUrl: 'http://172.81.127.6:10599',
   
   // API Endpoints
   endpoints: {
@@ -26,7 +26,10 @@ const API_CONFIG = {
   }
 } as const;
 
-// Configuration is now set with fallback, no validation needed
+// Validate configuration
+if (!API_CONFIG.baseUrl) {
+  throw new Error('NEXT_PUBLIC_API_URL environment variable is required');
+}
 
 // ========================================
 // TYPES

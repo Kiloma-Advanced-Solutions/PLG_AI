@@ -95,9 +95,6 @@ class LLMConfig:
             self.api_url,
             self.cloud_frontend_url,
             self.cloud_api_url,
-            # Add current cloud instance URLs
-            "http://172.81.127.6:10239",  # Current frontend
-            "http://172.81.127.6:10599",  # Current API
             # Allow all origins for development (remove in production)
             "*"
         ]
