@@ -39,9 +39,13 @@
   line-height: 1.4;
   margin: 0;
   overflow-wrap: break-word;
-  white-space: pre-wrap;
+  white-space: normal;
   max-width: 100%;
   overflow: hidden;
+}
+
+.userText {
+  white-space: pre-wrap;
 }
 
 .messageTime {
@@ -93,18 +97,54 @@
 
 .list {
   margin: 0.5rem 0;
-  padding-left: 1.5rem;
+  padding-inline-start: 1.25rem;
   line-height: 1.6;
+  list-style-type: disc;
+  list-style-position: inside;
 }
 
 .orderedList {
   margin: 0.5rem 0;
-  padding-left: 1.5rem;
+  padding-inline-start: 1.25rem;
   line-height: 1.6;
+  list-style-type: decimal;
+  list-style-position: inside;
 }
 
 .listItem {
   margin: 0.25rem 0;
+}
+
+/* Tables (GFM) */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+}
+
+.thead th {
+  background-color: var(--hover-bg);
+}
+
+.th,
+.td {
+  border: 1px solid var(--border-color);
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
+}
+
+.th {
+  font-weight: 600;
+  text-align: right;
+}
+
+.td {
+  text-align: right;
+}
+
+.th p,
+.td p {
+  margin: 0;
 }
 
 .blockquote {

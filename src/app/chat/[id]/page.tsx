@@ -5,7 +5,8 @@ import { useRouter, useParams } from 'next/navigation';
 import HeaderComponent from '../../../components/header-component/header-component';
 import SidebarComponent from '../../../components/sidebar-component/sidebar-component';
 import ChatContainerComponent from '../../../components/chat-container-component/chat-container-component';
-import { useConversationHelpers } from '../../../hooks/useConversations';
+import { useConversationContext } from '../../../contexts/ConversationContext';
+import { getConversationsWithMessages } from '../../../utils/conversation';
 import styles from '../../page.module.css';
 
 /**
@@ -17,20 +18,22 @@ export default function ChatPage() {
   const conversationId = params.id as string;
   
   const { 
-    conversationsWithMessages,
+    conversations,
     isLoading, 
     isNavigationLoading,
     streamingMessage, 
     apiError, 
-    getConversationSafely, 
+    getConversation, 
     sendMessage, 
     retryLastMessage,
-    conversations,
+    createStopHandler,
     setNavigationLoading
-  } = useConversationHelpers();
+  } = useConversationContext();
   
+  const conversationsWithMessages = getConversationsWithMessages(conversations);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const currentConversation = getConversationSafely(conversationId);
+  const [prefilledMessage, setPrefilledMessage] = useState('');
+  const currentConversation = getConversation(conversationId);
 
   // Handle navigation loading state - stop loading when conversation is ready
   useEffect(() => {
@@ -57,6 +60,18 @@ export default function ChatPage() {
     if (currentConversation) {
       await sendMessage(currentConversation.id, messageContent);
     }
+  };
+
+  /**
+   * Handles stopping the streaming response - using simplified unified handler
+   */
+  const handleStop = createStopHandler(setPrefilledMessage);
+
+  /**
+   * Handles clearing the prefilled message
+   */
+  const handlePrefilledMessageCleared = () => {
+    setPrefilledMessage('');
   };
 
   /**
@@ -98,13 +113,16 @@ export default function ChatPage() {
       
       <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
         <ChatContainerComponent
-          messages={currentConversation.messages}
+          messages={currentConversation!.messages}
           onSendMessage={handleSendMessage}
           isLoading={isLoading}
           isSidebarOpen={isSidebarOpen}
           streamingMessage={streamingMessage}
           apiError={apiError}
           onRetry={retryLastMessage}
+          onStop={handleStop}
+          prefilledMessage={prefilledMessage}
+          onPrefilledMessageCleared={handlePrefilledMessageCleared}
         />
       </main>
       

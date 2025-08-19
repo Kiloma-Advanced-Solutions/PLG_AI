@@ -2,7 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { Message, Conversation } from '../types';
-import { streamChatResponse, StreamError } from '../utils/streaming-api';
+import { streamChatResponse } from '../utils/streaming-api';
+import { AppError, getErrorDisplayMessage } from '../utils/error-handling';
 import { generateConversationId, generateMessageId } from '../utils/conversation';
 import { getCurrentTimestamp } from '../utils/date';
 
@@ -21,6 +22,8 @@ type ConversationContextType = {
   sendMessage: (conversationId: string, message: string) => Promise<void>;
   getConversation: (id: string) => Conversation | null;
   retryLastMessage: () => Promise<void>;
+  stopStreaming: () => string | null;
+  createStopHandler: (setPrefilledMessage: (message: string) => void, onAdditionalCleanup?: () => void) => (currentInputValue: string) => void;
   setNavigationLoading: (loading: boolean) => void;
 };
 
@@ -55,9 +58,21 @@ export const useConversationContext = () => {
  * Manages all conversation state, localStorage persistence, and API communication
  */
 export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [conversations, setConversations] = useState<Conversation[]>([]);
+  // Initialize conversations from localStorage immediately (client-side only)
+  const [conversations, setConversations] = useState<Conversation[]>(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        const saved = localStorage.getItem('chatplg-conversations');
+        return saved ? JSON.parse(saved) : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  });
+  
   const [isLoading, setIsLoading] = useState(false);
-  const [isNavigationLoading, setIsNavigationLoading] = useState(true);
+  const [isNavigationLoading, setIsNavigationLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [apiError, setApiError] = useState<string | null>(null);
   const [retryState, setRetryState] = useState<RetryState>(null);
@@ -65,18 +80,14 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   // Refs for managing streaming state
   const abortControllerRef = useRef<AbortController | null>(null);
   const streamingContentRef = useRef<string>('');
-
-  // Load conversations from localStorage on component mount
-  useEffect(() => {
-    const savedConversations = localStorage.getItem('chatplg-conversations');
-    if (savedConversations) {
-      setConversations(JSON.parse(savedConversations));
-    }
-  }, []);
+  const lastUserMessageRef = useRef<string | null>(null);
+  const currentConversationIdRef = useRef<string | null>(null);
 
   // Persist conversations to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('chatplg-conversations', JSON.stringify(conversations));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('chatplg-conversations', JSON.stringify(conversations));
+    }
   }, [conversations]);
 
   /**
@@ -125,6 +136,10 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setApiError(null);
     setRetryState(null); // Clear any previous retry state
     
+    // Store the user message and conversation ID for potential stop/revert
+    lastUserMessageRef.current = messageContent;
+    currentConversationIdRef.current = conversationId;
+    
     const userMessage: Message = {
       id: generateMessageId(),
       type: 'user',
@@ -156,6 +171,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     setStreamingMessage('');
     streamingContentRef.current = '';
 
+    // Creates a new AbortController instance - a Web API that can cancel network request
     const abortController = new AbortController();
     abortControllerRef.current = abortController;
 
@@ -170,7 +186,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setStreamingMessage(streamingContentRef.current);
       },
       // Error callback - called when streaming fails
-      (error: StreamError) => {
+      (error: AppError) => {
         console.error('❌ Streaming error:', error);
         
         // Store retry information for the failed message
@@ -180,15 +196,14 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           messagesBeforeError: currentConversation?.messages || []
         });
         
-        // If error occurred during streaming, remove any partial assistant response
+        // If error occurred during streaming, keep user message but remove any partial assistant response
         setConversations(prev => prev.map(conv => {
           if (conv.id === conversationId) {
+            const messagesWithUser = currentConversation ? [...currentConversation.messages, userMessage] : [userMessage];
             return {
               ...conv,
-              messages: currentConversation?.messages || [],
-              lastMessage: currentConversation?.messages && currentConversation.messages.length > 0 
-                ? currentConversation.messages[currentConversation.messages.length - 1].content 
-                : '',
+              messages: messagesWithUser,
+              lastMessage: userMessage.content,
               timestamp: getCurrentTimestamp()
             };
           }
@@ -231,6 +246,8 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setStreamingMessage('');
         streamingContentRef.current = '';
         abortControllerRef.current = null;
+        lastUserMessageRef.current = null;
+        currentConversationIdRef.current = null;
         setRetryState(null);
       },
       abortController
@@ -247,28 +264,160 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return;
     }
 
-    const { conversationId, lastUserMessage, messagesBeforeError } = retryState;
+    const { conversationId, lastUserMessage } = retryState;
     
-    // Reset conversation to state before the failed message
-    setConversations(prev => prev.map(conv => {
-      if (conv.id === conversationId) {
-        return {
-          ...conv,
-          messages: messagesBeforeError,
-          lastMessage: messagesBeforeError.length > 0 
-            ? messagesBeforeError[messagesBeforeError.length - 1].content 
-            : '',
-          timestamp: getCurrentTimestamp()
-        };
-      }
-      return conv;
-    }));
-
-    // Clear error state
+    // Clear error state but keep conversation as is (with user message)
     setApiError(null);
     
-    // Resend the message
-    await sendMessage(conversationId, lastUserMessage);
+    // Get current conversation with user message already included
+    const currentConversation = conversations.find(conv => conv.id === conversationId);
+    if (!currentConversation) return;
+
+    // Initialize streaming state
+    setIsLoading(true);
+    setStreamingMessage('');
+    streamingContentRef.current = '';
+
+    // Create new AbortController for retry
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
+    // Store references for potential stop/revert
+    lastUserMessageRef.current = lastUserMessage;
+    currentConversationIdRef.current = conversationId;
+
+    // Retry streaming with existing messages (user message already in conversation)
+    await streamChatResponse(
+      currentConversation.messages,
+      // Token callback
+      (token: string) => {
+        streamingContentRef.current += token;
+        setStreamingMessage(streamingContentRef.current);
+      },
+      // Error callback
+      (error: AppError) => {
+        console.error('❌ Retry streaming error:', error);
+        
+        // Preserve retry state so user can retry again
+        // retryState is already set, no need to change it
+        
+        setApiError(error.message);
+        setIsLoading(false);
+        setStreamingMessage('');
+        streamingContentRef.current = '';
+        abortControllerRef.current = null;
+        // Don't clear retryState here - keep it for future retries
+      },
+      // Complete callback
+      () => {
+        if (streamingContentRef.current) {
+          const assistantMessage: Message = {
+            id: generateMessageId(),
+            type: 'assistant',
+            content: streamingContentRef.current,
+            timestamp: getCurrentTimestamp()
+          };
+
+          setConversations(prev => prev.map(conv => {
+            if (conv.id === conversationId) {
+              return {
+                ...conv,
+                messages: [...conv.messages, assistantMessage],
+                lastMessage: assistantMessage.content,
+                timestamp: getCurrentTimestamp()
+              };
+            }
+            return conv;
+          }));
+        }
+
+        setIsLoading(false);
+        setStreamingMessage('');
+        streamingContentRef.current = '';
+        abortControllerRef.current = null;
+        setRetryState(null);
+      },
+      abortController
+    );
+  };
+
+  /**
+   * Stops the current streaming response and reverts the conversation state
+   * Returns the last user message content for restoration to input
+   */
+  const stopStreaming = (): string | null => {
+    // Get the user message to restore before we clear refs
+    const userMessageToRestore = lastUserMessageRef.current;
+    const conversationId = currentConversationIdRef.current;
+
+    // Clear UI state
+    setIsLoading(false);
+    setStreamingMessage('');
+    streamingContentRef.current = '';
+    setApiError(null);
+    setRetryState(null);
+
+    // Abort the current streaming request after clearing state
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    // Clear refs after abort to prevent any callback issues
+    lastUserMessageRef.current = null;
+    currentConversationIdRef.current = null;
+
+    if (conversationId && userMessageToRestore) {
+      // Revert the conversation state - remove the last user message
+      setConversations(prev => {
+        const updatedConversations = prev.map(conv => {
+          if (conv.id === conversationId) {
+            // Remove the last message (which should be the user message we just added)
+            const updatedMessages = conv.messages.slice(0, -1);
+            
+            // If conversation becomes empty after removing message, mark for deletion
+            if (updatedMessages.length === 0) {
+              return null; // Will be filtered out
+            }
+            
+            return {
+              ...conv,
+              messages: updatedMessages,
+              lastMessage: updatedMessages.length > 0 
+                ? updatedMessages[updatedMessages.length - 1].content 
+                : '',
+              timestamp: getCurrentTimestamp()
+            };
+          }
+          return conv;
+        }).filter((conv): conv is Conversation => conv !== null); // Remove null conversations (empty ones)
+        
+        return updatedConversations;
+      });
+    }
+
+    return userMessageToRestore;
+  };
+
+  /**
+   * Creates a standardized stop handler for pages
+   */
+  const createStopHandler = (
+    setPrefilledMessage: (message: string) => void,
+    onAdditionalCleanup?: () => void
+  ) => (currentInputValue: string) => {
+    // Call any additional cleanup first
+    if (onAdditionalCleanup) {
+      onAdditionalCleanup();
+    }
+    
+    // Stop streaming and get restored message
+    const restoredMessage = stopStreaming();
+    
+    // Only set prefilled message if input is empty
+    if (restoredMessage && (!currentInputValue || currentInputValue.trim() === '')) {
+      setPrefilledMessage(restoredMessage);
+    }
   };
 
   const value: ConversationContextType = {
@@ -283,6 +432,8 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     sendMessage,
     getConversation,
     retryLastMessage,
+    stopStreaming,
+    createStopHandler,
     setNavigationLoading: setIsNavigationLoading,
   };
 

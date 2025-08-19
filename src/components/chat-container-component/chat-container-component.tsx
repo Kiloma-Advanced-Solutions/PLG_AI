@@ -18,7 +18,10 @@ type ChatContainerComponentProps = {
   streamingMessage?: string;
   apiError?: string | null;
   onRetry?: () => Promise<void> | void;
+  onStop?: (currentInputValue: string) => void;
   triggerInputAnimation?: boolean;
+  prefilledMessage?: string;
+  onPrefilledMessageCleared?: () => void;
 };
 
 /**
@@ -32,7 +35,10 @@ export default function ChatContainerComponent({
   streamingMessage = '',
   apiError = null,
   onRetry,
-  triggerInputAnimation = false
+  onStop,
+  triggerInputAnimation = false,
+  prefilledMessage = '',
+  onPrefilledMessageCleared
 }: ChatContainerComponentProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -117,6 +123,9 @@ export default function ChatContainerComponent({
           onSendMessage={onSendMessage}
           isLoading={isLoading}
           triggerFocusAnimation={triggerInputAnimation}
+          prefilledMessage={prefilledMessage}
+          onPrefilledMessageCleared={onPrefilledMessageCleared}
+          onStop={onStop}
         />
       </div>
     );

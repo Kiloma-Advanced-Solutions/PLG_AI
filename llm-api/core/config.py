@@ -95,6 +95,8 @@ class LLMConfig:
             self.api_url,
             self.cloud_frontend_url,
             self.cloud_api_url,
+            # Allow all origins for development (remove in production)
+            "*"
         ]
 
     def get_model_params(self) -> Dict[str, Any]:

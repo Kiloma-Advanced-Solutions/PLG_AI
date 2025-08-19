@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import HeaderComponent from '../../../components/header-component/header-component';
 import SidebarComponent from '../../../components/sidebar-component/sidebar-component';
 import ChatContainerComponent from '../../../components/chat-container-component/chat-container-component';
-import { useConversationHelpers } from '../../../hooks/useConversations';
+import { useConversationContext } from '../../../contexts/ConversationContext';
+import { getConversationsWithMessages } from '../../../utils/conversation';
 import styles from '../../page.module.css';
 
 /**
@@ -14,31 +15,34 @@ import styles from '../../page.module.css';
 export default function NewChatPage() {
   const router = useRouter();
   const { 
-    conversationsWithMessages,
+    conversations,
     isLoading, 
-    isNavigationLoading,
     streamingMessage, 
     apiError, 
     createConversation, 
     sendMessage, 
     retryLastMessage,
-    conversations,
+    createStopHandler,
     setNavigationLoading
-  } = useConversationHelpers();
+  } = useConversationContext();
   
+  const conversationsWithMessages = getConversationsWithMessages(conversations);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [triggerInputAnimation, setTriggerInputAnimation] = useState(false);
-
-  // Handle initial page loading state - stop loading immediately when page is ready
-  useEffect(() => {
-    setNavigationLoading(false);
-  }, [setNavigationLoading]);
+  const [prefilledMessage, setPrefilledMessage] = useState('');
+  const shouldNavigateRef = useRef(false);
 
   /**
-   * Handles new chat click animation trigger
+   * Handles new chat click
    */
   const handleNewChatClick = () => {
+    // If currently loading/streaming, use the proper stop handler to respect input state
+    if (isLoading) {
+      handleStop(''); // Use empty string to ensure no input overwrite
+      return;
+    }
+    
     // Only trigger animation if we're on an empty conversation
     if (!currentConversationId && !displayMessages.length) {
       setTriggerInputAnimation(true);
@@ -54,11 +58,33 @@ export default function NewChatPage() {
     const newConversation = createConversation();
     setCurrentConversationId(newConversation.id);
     
-    // Send the message
+    // Set flag to navigate after successful completion
+    shouldNavigateRef.current = true;
+    
+    // Send the message (this will start streaming)
     await sendMessage(newConversation.id, messageContent);
     
-    // Navigate to the conversation page
-    router.push(`/chat/${newConversation.id}`);
+    // If we reach here and shouldNavigate is still true, navigate
+    if (shouldNavigateRef.current) {
+      router.push(`/chat/${newConversation.id}`);
+    }
+  };
+
+  /**
+   * Handles stopping the streaming response
+   */
+  const handleStop = createStopHandler(setPrefilledMessage, () => {
+    // Additional cleanup specific to new chat page
+    shouldNavigateRef.current = false;
+    setCurrentConversationId(null);
+    setNavigationLoading(false);
+  });
+
+  /**
+   * Handles clearing the prefilled message
+   */
+  const handlePrefilledMessageCleared = () => {
+    setPrefilledMessage('');
   };
 
   // Get the current conversation and its messages for display
@@ -66,35 +92,7 @@ export default function NewChatPage() {
     conversations.find(conv => conv.id === currentConversationId) : null;
   const displayMessages = currentConversation?.messages || [];
 
-  // Show loading state briefly for smooth navigation experience
-  if (isNavigationLoading) {
-    return (
-      <div className={styles.container} dir="rtl">
-        <HeaderComponent 
-          isSidebarOpen={isSidebarOpen}
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-        />
-        
-        <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', flex: 1 }}>
-            <div className={styles.loadingContainer}>
-              <div className={styles.spinner}></div>
-              <p>טוען...</p>
-            </div>
-          </div>
-        </main>
-        
-        <SidebarComponent
-          conversations={conversationsWithMessages}
-          currentConversationId={currentConversationId || undefined}
-          isOpen={isSidebarOpen}
-          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-          onNewChatClick={handleNewChatClick}
-        />
-      </div>
-    );
-  }
-
+  // New chat page is always ready - no loading needed
   return (
     <div className={styles.container} dir="rtl">
       <HeaderComponent 
@@ -112,7 +110,10 @@ export default function NewChatPage() {
           streamingMessage={streamingMessage}
           apiError={apiError}
           onRetry={retryLastMessage}
+          onStop={handleStop}
           triggerInputAnimation={triggerInputAnimation}
+          prefilledMessage={prefilledMessage}
+          onPrefilledMessageCleared={handlePrefilledMessageCleared}
         />
       </main>
       

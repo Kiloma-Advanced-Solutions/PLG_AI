@@ -4,6 +4,7 @@
  */
 
 import { Message } from '../types';
+import { AppError, createAppError } from './error-handling';
 
 // ========================================
 // CONFIGURATION
@@ -12,7 +13,7 @@ import { Message } from '../types';
 const API_CONFIG = {
   // API URL - Set via environment variable
   baseUrl: 'http://142.182.153.12:47345',
-  
+
   // API Endpoints
   endpoints: {
     chat: '/api/chat/stream',
@@ -34,11 +35,7 @@ if (!API_CONFIG.baseUrl) {
 // TYPES
 // ========================================
 
-export interface StreamError {
-  type: 'connection' | 'api' | 'streaming' | 'timeout';
-  message: string;
-  retryable?: boolean;
-}
+// Using standardized AppError from error-handling.ts
 
 // ========================================
 // SESSION MANAGEMENT
@@ -51,12 +48,17 @@ export const generateSessionId = (): string => {
 export const getSessionId = (): string => {
   if (typeof window === 'undefined') return generateSessionId();
   
-  let sessionId = sessionStorage.getItem(API_CONFIG.storage.sessionId);
-  if (!sessionId) {
-    sessionId = generateSessionId();
-    sessionStorage.setItem(API_CONFIG.storage.sessionId, sessionId);
+  try {
+    let sessionId = sessionStorage.getItem(API_CONFIG.storage.sessionId);
+    if (!sessionId) {
+      sessionId = generateSessionId();
+      sessionStorage.setItem(API_CONFIG.storage.sessionId, sessionId);
+    }
+    return sessionId;
+  } catch (error) {
+    // Fallback if sessionStorage access fails (private browsing, storage quota, etc.)
+    return generateSessionId();
   }
-  return sessionId;
 };
 
 // ========================================
@@ -77,12 +79,13 @@ const getHeaders = () => ({
 export const checkApiHealth = async (): Promise<boolean> => {
   try {
     const response = await fetch(`${API_CONFIG.baseUrl}${API_CONFIG.endpoints.health}`);
+    // Network failure or non-200 response from health endpoint (vicorn server is down)
     if (!response.ok) return false;
     
     const data = await response.json();
     return data.status === 'healthy';
-  } catch (error) {
-    console.error('Health check failed:', error);
+  } 
+  catch (error) {
     return false;
   }
 };
@@ -94,65 +97,76 @@ export const checkApiHealth = async (): Promise<boolean> => {
 export const streamChatResponse = async (
   messages: Message[],
   onToken: (token: string) => void,
-  onError: (error: StreamError) => void,
+  onError: (error: AppError) => void,
   onComplete: () => void,
   abortController?: AbortController
 ): Promise<void> => {
   const sessionId = getSessionId();
   
   try {
-    // Check API health before request
-    const isHealthy = await checkApiHealth();
-    if (!isHealthy) {
-      onError({
-        type: 'connection',
-        message: 'שירות הבינה המלאכותית אינו זמין כרגע',
-        retryable: true
+    // Prepare request body
+    let requestBody: string;
+    try {
+      requestBody = JSON.stringify({
+        messages: messages.map(msg => ({
+          role: msg.type === 'user' ? 'user' : 'assistant',
+          content: msg.content
+        })),
+        session_id: sessionId,
+        stream: true
       });
+    } catch (error) {
+      onError(createAppError(
+        'validation',
+        'שגיאה בעיבוד ההודעות',
+        false
+      ));
       return;
     }
-    
+
     // Make request to API
     const response = await fetch(
       `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.chat}`,
       {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({
-          messages: messages.map(msg => ({
-            role: msg.type === 'user' ? 'user' : 'assistant',
-            content: msg.content
-          })),
-          session_id: sessionId,
-          stream: true
-        }),
-        signal: abortController?.signal
+        body: requestBody,
+        signal: abortController?.signal   // Abort the request if the user clicks stop
       }
     );
 
+    // Non-200 HTTP status codes from chat API
     if (!response.ok) {
-      onError({
-        type: 'streaming',
-        message: `שגיאה בשרת: ${response.status}`,
-        retryable: response.status >= 500
-      });
+      onError(createAppError(
+        'api',
+        `שגיאה בשרת: ${response.status}`,
+        response.status >= 500
+      ));
       return;
     }
 
     // Process streaming response
     const reader = response.body?.getReader();
+    // response.body is null/undefined
     if (!reader) {
-      onError({ 
-        type: 'streaming', 
-        message: 'לא ניתן לקרוא תגובה מהשרת' 
-      });
+      onError(createAppError(
+        'api', 
+        'לא ניתן לקרוא תגובה מהשרת',
+        true
+      ));
       return;
     }
 
     const decoder = new TextDecoder();
     let buffer = '';
 
-    while (true) {
+    while (true) { // Loop until the request is complete with multiple safety nets to stop generating tokens immediately
+      // Check for abort before each reading each chunk
+      if (abortController?.signal.aborted) {
+        reader.cancel();  // Cancel the request (the ReadableStream reader)
+        return; 
+      }
+
       const { done, value } = await reader.read();
       
       if (done) {
@@ -160,11 +174,23 @@ export const streamChatResponse = async (
         break;
       }
 
+      // Check for abort after read
+      if (abortController?.signal.aborted) {
+        reader.cancel();
+        return;
+      }
+
       buffer += decoder.decode(value, { stream: true });
       const lines = buffer.split('\n');
       buffer = lines.pop() || '';
 
       for (const line of lines) {
+        // Check for abort during processing
+        if (abortController?.signal.aborted) {
+          reader.cancel();
+          return;
+        }
+
         if (!line.startsWith('data: ')) continue;
         
         const data = line.slice(6).trim();
@@ -177,12 +203,13 @@ export const streamChatResponse = async (
         try {
           const parsed = JSON.parse(data);
           
+          // API sends an error object in the SSE stream
           if (parsed.error) {
-            onError({ 
-              type: 'api', 
-              message: parsed.error, 
-              retryable: true 
-            });
+            onError(createAppError(
+              'api', 
+              parsed.error, 
+              true 
+            ));
             return;
           }
           
@@ -190,21 +217,29 @@ export const streamChatResponse = async (
           if (parsed.choices?.[0]?.delta?.content) {
             onToken(parsed.choices[0].delta.content);
           }
-        } catch (e) {
-          // Log parse errors but continue
+        } 
+        // Invalid JSON in SSE data stream
+        catch (e) {
           console.warn('Invalid SSE data:', e);
+          onError(createAppError(
+            'streaming',
+            'נתונים לא תקינים מהשרת',
+            true
+          ));
+          return;
         }
       }
     }
 
-  } catch (error) {
+  } 
+  //Network failures, fetch errors, or other unhandled exceptions
+  catch (error) {
     if (abortController?.signal.aborted) return;
-    
-    console.error('Stream error:', error);
-    onError({
-      type: 'connection',
-      message: 'שגיאה בחיבור לשרת',
-      retryable: true
-    });
+ 
+    onError(createAppError(
+      'network',
+      'שגיאה בחיבור לשרת',
+      true
+    ));
   }
 }; 
