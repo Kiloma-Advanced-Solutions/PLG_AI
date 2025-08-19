@@ -73,5 +73,8 @@ else
         --host "$LLM_API_HOST" \
         --port "$LLM_API_PORT" \
         --log-level "$(echo "$LLM_API_LOG_LEVEL" | tr '[:upper:]' '[:lower:]')" \
-        --reload
+        --reload \
+        --reload-exclude "*.ipynb" \
+        --reload-exclude ".ipynb_checkpoints/*" \
+        --reload-exclude "**/.ipynb_checkpoints/*"
 fi
