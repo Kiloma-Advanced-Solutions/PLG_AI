@@ -19,14 +19,25 @@ class SummarizationService:
     def get_summarization_system_prompt(self, length: int):
         """Get the system prompt for summarization"""
         return f"""
-        עלייך לסכם את המייל הבא ב-{length} תווים בלבד.
-        על הסיכום להכיל את המידע החשוב במייל ולא חייב להכיל את כל תוכן המייל.
-        הקפד לחלץ את הנקודות החשובות ביותר והשתדל לא להכניס מידע מיותר.
+עלייך לסכם את המייל הבא.
+על הסיכום להכיל את המידע החשוב במייל ולא חייב להכיל את כל תוכן המייל.
+הקפד לחלץ את הנקודות החשובות ביותר והשתדל לא להכניס מידע מיותר.
+
+**הפורמט הנדרש לתשובה הוא סיכום מסוג JSON המכיל את כל השדות הבאים:**
+- sender: כתובת המייל של השולח (או null במידה ולא מצוין)
+- sending_date: תאריך שליחת המייל בפורמט ISO 8601 כמו שמופיע במייל (או null במידה ולא קיים)
+- title: כותרת קצרה לסיכום המייל
+- summary: סיכום של המייל ב-{length} תווים
+
+החזר רק את הסיכום, ללא הסברים או טקסט נוסף.
         """
     
 
     async def summarize_email(self, email: str, length: int = 100) -> str:
-        """Summarize an email according to a given length"""
+        """
+        Summarize an email according to a given length
+        Returns anEmailSummary object with extracted metadata and summary
+        """
         try:
             # Prepare messages for LLM
             messages = [
@@ -47,7 +58,10 @@ class SummarizationService:
             output_schema=EmailSummary, 
             session_id="email_summarization"
             )
-
+            
+            logger.info(f"Generated summary response: {response}")
+            
+            # The response is already an EmailSummary object from structured completion
             return response
     
         except Exception as e:

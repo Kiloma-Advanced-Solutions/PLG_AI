@@ -70,7 +70,7 @@ TaskExtractionResponse = List[TaskItem]
 
 class EmailSummary(BaseModel):
     sender: Optional[EmailStr] = None
-    sending_date: Optional[date] = None
+    sending_date: Optional[datetime] = None
     title: Optional[str] = None
     summary: Optional[str] = None
 

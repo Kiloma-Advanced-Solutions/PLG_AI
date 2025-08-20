@@ -13,50 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from services.summarization_service import summarization_service
 
-async def test_summarization():
-    """Test the summarization service with various email lengths"""
-    
-    # Load test emails
-    with open('test_summarization_emails.json', 'r', encoding='utf-8') as f:
-        test_data = json.load(f)
-    
-    print("=== Testing Email Summarization Service ===\n")
-    
-    # Test different summary lengths
-    summary_lengths = [50, 100, 200]
-    
-    for i, email in enumerate(test_data['emails'][:5], 1):  # Test first 5 emails
-        print(f"--- Test Email {i}: {email['title']} ---")
-        print(f"Sender: {email['sender_email']}")
-        print(f"Date: {email['sent_datetime']}")
-        print(f"Original Length: {len(email['content'])} characters")
-        print(f"Content Preview: {email['content'][:100]}...")
-        print()
-        
-        # Test different summary lengths
-        for length in summary_lengths:
-            try:
-                print(f"Testing {length}-character summary:")
-                summary = await summarization_service.summarize_email(
-                    email['content'], 
-                    length=length
-                )
-                
-                if hasattr(summary, 'summary'):
-                    summary_text = summary.summary
-                else:
-                    summary_text = str(summary)
-                
-                print(f"Summary ({len(summary_text)} chars): {summary_text}")
-                print(f"Target vs Actual: {length} vs {len(summary_text)} characters")
-                print("-" * 50)
-                
-            except Exception as e:
-                print(f"ERROR during {length}-char summarization: {str(e)}")
-                print("-" * 50)
-        
-        print("=" * 80)
-        print()
+
 
 async def test_specific_email(email_index: int, summary_length: int = 100):
     """Test summarization on a specific email by index"""
@@ -69,35 +26,43 @@ async def test_specific_email(email_index: int, summary_length: int = 100):
         return
     
     email = test_data['emails'][email_index]
+
     
-    print(f"=== Testing Email {email_index}: {email['title']} ===")
-    print(f"Original content ({len(email['content'])} chars):")
-    print(email['content'])
+    print(f"=== Testing Email {email_index}: ===")
+    print(f"Original content ({len(email)} chars):")
+    print(email)
     print(f"\nGenerating {summary_length}-character summary...")
     
     try:
         summary = await summarization_service.summarize_email(
-            email['content'], 
+            email, 
             length=summary_length
         )
-        
-        if hasattr(summary, 'summary'):
-            summary_text = summary.summary
-        else:
-            summary_text = str(summary)
-        
-        print(f"\nSummary ({len(summary_text)} chars):")
-        print(summary_text)
+
+        print(f"\nComplete Summary Object:")
+        print(f"Sender: {summary.sender}")
+        print(f"Sending Date: {summary.sending_date}")
+        print(f"Title: {summary.title}")
+        print(f"Summary ({len(summary.summary)} chars): {summary.summary}")
+        print(f"\nFull object: {summary}")
         
     except Exception as e:
         print(f"ERROR: {str(e)}")
 
-if __name__ == "__main__":
+async def run_tests():
+    """Run the tests based on command line arguments"""
     if len(sys.argv) > 1:
         # Test specific email by index
-        email_idx = int(sys.argv[1])
-        length = int(sys.argv[2]) if len(sys.argv) > 2 else 100
-        asyncio.run(test_specific_email(email_idx, length))
+        email_idx = int(sys.argv[1]) 
+        length = int(sys.argv[2])
+        
+        await test_specific_email(email_idx, length)
+
     else:
-        # Run full test suite
-        asyncio.run(test_summarization())
+        # Run the first email in the test suite
+        await test_specific_email(0)
+        
+
+
+if __name__ == "__main__":
+    asyncio.run(run_tests())
