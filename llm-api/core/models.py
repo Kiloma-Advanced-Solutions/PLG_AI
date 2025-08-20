@@ -4,7 +4,7 @@ Data models and request/response schemas for the API
 """
 
 from typing import List, Dict, Any, Optional, Literal
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, EmailStr
 from datetime import datetime, date
 
 # ===============================
@@ -60,8 +60,24 @@ class TaskExtractionRequest(BaseModel):
     email_content: str
     
     
-# Change this to be a list of TaskItem, not wrapped in a dict
+# List of TaskItems
 TaskExtractionResponse = List[TaskItem]
+
+
+# ===============================
+# EMAIL SUMMARIZATION MODELS
+# ===============================
+
+class EmailSummary(BaseModel):
+    sender: Optional[EmailStr] = None
+    sending_date: Optional[date] = None
+    title: Optional[str] = None
+    summary: Optional[str] = None
+
+
+class EmailSummarizationRequest(BaseModel):
+    email_content: str
+    length: int = 100
 
 
 # ===============================

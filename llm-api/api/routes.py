@@ -6,15 +6,17 @@ API endpoints and request routing
 import logging
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from core.models import ChatRequest, TaskExtractionRequest, TaskExtractionResponse, HealthStatus
+from core.models import ChatRequest, TaskExtractionRequest, TaskExtractionResponse, HealthStatus, EmailSummarizationRequest, EmailSummary
 from services.chat_service import chat_service
 from utils.health import health_checker
 from services.task_service import TaskService
+from services.summarization_service import SummarizationService
 
 logger = logging.getLogger(__name__)
 
-# Initialize task service
+# Initialize services
 task_service = TaskService()
+summarization_service_instance = SummarizationService()
 
 def create_routes(app: FastAPI) -> None:
     """Configure all API routes with proper error handling"""
@@ -92,8 +94,35 @@ def create_routes(app: FastAPI) -> None:
                 status_code=500,
                 detail=f"Failed to extract tasks: {e}"
             )
+        
     
+    # ===============================
+    # EMAIL SUMMARIZATION ENDPOINT
+    # ===============================
     
+    @app.post("/api/summarization/summarize", response_model=EmailSummary)
+    async def summarize_email(request: EmailSummarizationRequest) -> EmailSummary:
+        """
+        Summarize an email according to a given length.
+        
+        Args:
+            request: EmailSummarizationRequest containing the email content and the required summary length
+            
+        Returns:
+            EmailSummary containing the summary of the email
+        """
+        try:
+            result = await summarization_service_instance.summarize_email(request.email_content, request.length)
+            return result
+        except Exception as e:
+            logger.error(f"Failed to summarize email: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to summarize email: {e}"
+            )
+
+
+
     
     # ===============================
     # HEALTH MONITORING ENDPOINTS
