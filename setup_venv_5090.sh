@@ -135,22 +135,26 @@ echo "🔧 Installing xformers..."
 pip install git+https://github.com/facebookresearch/xformers.git@main#egg=xformers
 
 
-# Create workspace directory for building and installing dependencies
-echo "📁 Creating workspace..."
-mkdir -p ~/workspace 
+## Create workspace directory for building and installing dependencies
+# echo "📁 Creating workspace..."
+# mkdir -p ~/workspace 
 
 
 # Build and install BitsAndBytes
 echo "🔩 Building BitsAndBytes..."
-cd ~/workspace && git clone https://github.com/bitsandbytes-foundation/bitsandbytes.git && cd bitsandbytes
-cmake -DCOMPUTE_BACKEND=cuda -S . && make -j 4
-pip install -e .
+cd ./external_sources/bitsandbytes
+# Already cloned and compiled bitsandbytes
+# cd ./external_sources && git clone https://github.com/bitsandbytes-foundation/bitsandbytes.git && cd bitsandbytes
+# cmake -DCOMPUTE_BACKEND=cuda -S . && make -j 4
+pip install -e .  # Instead of copying files to site-packages, it creates a link to your source code
 
 
 # Build and install FlashInfer
 echo "⚡ Building FlashInfer..."
-cd ~/workspace && git clone https://github.com/flashinfer-ai/flashinfer.git --branch main --recursive
-cd flashinfer && git checkout cd928a7e044c94bdd96e3f7ca79a0514b253ea6d
+
+# cd ~/workspace && git clone https://github.com/flashinfer-ai/flashinfer.git --branch main --recursive
+# cd flashinfer && git checkout cd928a7e044c94bdd96e3f7ca79a0514b253ea6d
+cd ../flashinfer
 
 # Install build dependencies
 pip install ninja build packaging "setuptools>=75.6.0"
@@ -159,6 +163,7 @@ pip install ninja build packaging "setuptools>=75.6.0"
 python3 -m flashinfer.aot
 python3 -m build --no-isolation --wheel
 pip install dist/flashinfer*.whl
+
 
 # Install additional dependencies
 echo "📚 Installing additional dependencies..."
@@ -172,18 +177,21 @@ pip install typing-extensions==4.14.1
 
 # Build and install vLLM
 echo "🏗️ Building vLLM..."
-cd ~/workspace && git clone https://github.com/vllm-project/vllm.git --branch main
-cd vllm && git checkout d84b97a3e33ed79aaba7552bfe5889d363875562
+# cd ~/workspace && git clone https://github.com/vllm-project/vllm.git --branch main
+# cd vllm && git checkout d84b97a3e33ed79aaba7552bfe5889d363875562
 
-# Configure for existing PyTorch
-python3 use_existing_torch.py
+
+cd ../vllm
+
+# # Configure for existing PyTorch
+# python3 use_existing_torch.py
 
 # Install build requirements
 pip install -r requirements/build.txt
 pip install setuptools_scm
 
 # Build and install vLLM in development mode
-python3 setup.py develop
+python3 setup.py develop  # <=> pip install -e .
 
 # Install accelerate
 pip install accelerate

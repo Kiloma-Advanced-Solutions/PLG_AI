@@ -60,6 +60,7 @@ __pycache__/
 chatplg-venv/
 venv/
 env/
+external_sources/
 
 # Jupyter Notebook checkpoints
 .ipynb_checkpoints/
