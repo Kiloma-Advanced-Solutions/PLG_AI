@@ -42,9 +42,15 @@ start_vllm() {
         --disable-log-requests \
         --trust-remote-code &
 
-    for i in {1..120}; do
+    echo "Waiting for vLLM to start..."
+    for i in {1..1200}; do
         if curl -s "http://localhost:${VLLM_PORT}/v1/models" >/dev/null 2>&1; then
+            echo "✅ vLLM is ready!"
             break
+        fi
+        if [ $i -eq 1200 ]; then
+            echo "❌ vLLM failed to start after 20 minutes"
+            return 1
         fi
         sleep 1
     done
@@ -72,9 +78,5 @@ else
     python -m uvicorn main:app \
         --host "$LLM_API_HOST" \
         --port "$LLM_API_PORT" \
-        --log-level "$(echo "$LLM_API_LOG_LEVEL" | tr '[:upper:]' '[:lower:]')" \
-        --reload \
-        --reload-exclude "*.ipynb" \
-        --reload-exclude ".ipynb_checkpoints/*" \
-        --reload-exclude "**/.ipynb_checkpoints/*"
+        --log-level "$(echo "$LLM_API_LOG_LEVEL" | tr '[:upper:]' '[:lower:]')"
 fi
