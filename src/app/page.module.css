@@ -1,8 +1,8 @@
 /* entire page */
 .container {
   height: 100vh;
-  background-color: var(--bg-color);
-  color: var(--text-color);
+  background-color: var(--background-color);
+  color: var(--text-primary);
   display: flex;
   flex-direction: column;
 }
@@ -53,7 +53,7 @@
   width: 32px;
   height: 32px;
   border: 3px solid var(--border-color);
-  border-top: 3px solid var(--text-color);
+  border-top: 3px solid var(--text-primary);
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }

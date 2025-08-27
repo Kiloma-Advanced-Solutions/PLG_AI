@@ -6,10 +6,15 @@
 
 .messageContainer.user {
   justify-content: flex-end;
+  position: relative;
+  margin: 1rem 1.75rem 1.25rem 1.75rem;
 }
 
 .messageContainer.assistant {
   justify-content: flex-start;
+  margin: 1rem 0;
+  width: 100%;
+  position: relative;
 }
 
 .messageBox {
@@ -23,9 +28,8 @@
 }
 
 .messageContainer.user .messageBox {
-  background-color: var(--primary-color);
-  color: var(--primary-text);
-  border-bottom-left-radius: 0.25rem;
+  background-color: var(--user-message-bg);
+  color: var(--user-message-text);
 }
 
 .messageContainer.assistant .messageBox {

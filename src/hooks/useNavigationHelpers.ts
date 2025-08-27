@@ -18,6 +18,14 @@ export const useNavigationHelpers = () => {
     closeSidebar?: () => void
   ) => {
     stopStreaming();
+    
+    // If already on the target conversation page, just close sidebar
+    if (pathname === `/chat/${conversationId}`) {
+      if (closeSidebar) closeSidebar();
+      return;
+    }
+    
+    // Navigate to conversation page
     setNavigationLoading(true);
     navigateToConversation(conversationId, router, closeSidebar);
   };

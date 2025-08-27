@@ -45,6 +45,7 @@
 
 :root {
   /* CSS Variables for theming */
+<<<<<<< HEAD
   --bg-color: #ffffff;
   --background-color: #ffffff;
   --text-color: #1f2937;
@@ -56,10 +57,20 @@
   --chat-bg: #ffffff;
   --input-bg: #ffffff;
   --input-field-bg: #f9fafb;
+=======
+  --app-color-1: #667eea;
+  --app-color-2: #764ba2;
+  --background-color: #fff;
+  --text-primary: #1f2937;
+  --text-secondary: #6b7280;
+  --header-bg: var(--background-color);
+  --sidebar-bg: #f9f9f9;
+  --input-bg: var(--background-color);
+>>>>>>> f6c19c7 (Better UI appearance: changed color themes, modern header and main page, fixed navigation issues and sidebar effects, changed previous conversations preview and conversation messages)
   --border-color: #e5e7eb;
   --hover-bg: #f3f4f6;
-  --active-bg: #eff6ff;
   --primary-color: #667eea;
+<<<<<<< HEAD
   --primary-hover: #5a67d8;
   --user-message-bg: #3b82f6;
   --user-message-text: #ffffff;
@@ -69,10 +80,19 @@
   --primary-text: #ffffff;
   --primary-text-secondary: rgba(255, 255, 255, 0.8);
   --primary-text-tertiary: rgba(255, 255, 255, 0.6);
+=======
+  --user-message-bg: #e9e9e980;
+  --user-message-text: #0d0d0d;
+  --scroll-bar-color: #cbd5e1;
+  --scroll-bar-color-hover: #94a3b8;
+  --send-button-bg: #ececec;
+  --inverse-text: var(--background-color);
+  --inverse-text-muted: #ffffffcc;
+>>>>>>> f6c19c7 (Better UI appearance: changed color themes, modern header and main page, fixed navigation issues and sidebar effects, changed previous conversations preview and conversation messages)
   
   /* Focus animation colors */
-  --focus-shadow-color: rgba(102, 126, 234, 0.2);
-  
+  --focus-shadow-color: #667eea33;
+
   /* Sidebar width variables */
   --sidebar-width-closed: 60px;
   --sidebar-width-closed-mobile: 0px;
@@ -83,33 +103,25 @@
 
 /* Dark mode variables */
 .dark {
-  --bg-color: #111827;
-  --background-color: #111827;
-  --text-color: #f9fafb;
+  --background-color: #262625;
   --text-primary: #f9fafb;
   --text-secondary: #d1d5db;
-  --text-tertiary: #9ca3af;
-  --header-bg: #1f2937;
-  --sidebar-bg: #1f2937;
-  --chat-bg: #111827;
-  --input-bg: #1f2937;
-  --input-field-bg: #374151;
-  --border-color: #374151;
-  --hover-bg: #374151;
-  --active-bg: #1e40af;
+  --header-bg: var(--background-color);
+  --sidebar-bg: #292928;
+  --input-bg: #30302e;
+  --border-color: #ffffff0d;
+  --hover-bg: var(--input-bg);
   --primary-color: #60a5fa;
-  --primary-hover: #3b82f6;
-  --user-message-bg: #3b82f6;
+  --user-message-bg: #323232d9;
   --user-message-text: #ffffff;
-  --assistant-message-bg: #374151;
-  --assistant-message-text: #f3f4f6;
-  --message-bg: #374151;
-  --primary-text: #ffffff;
-  --primary-text-secondary: rgba(255, 255, 255, 0.8);
-  --primary-text-tertiary: rgba(255, 255, 255, 0.6);
+  --scroll-bar-color: #5a5a5a;
+  --scroll-bar-color-hover: #8a8a8a;
+  --send-button-bg: #424242;
+  --inverse-text: #ffffff;
+  --inverse-text-muted: #ffffffcc;
   
   /* Focus animation colors */
-  --focus-shadow-color: rgba(96, 165, 250, 0.2);
+  --focus-shadow-color: #60a5fa33;
 }
 
 * {
@@ -129,7 +141,7 @@ body {
 }
 
 body {
-  color: var(--text-color);
+  color: var(--text-primary);
   background: var(--bg-color);
 }
 
@@ -163,32 +175,12 @@ a {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: var(--scroll-bar-color);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background:var(--scroll-bar-color-hover);
 }
 
-/* Dark mode scrollbar */
-.dark ::-webkit-scrollbar-thumb {
-  background: #4b5563;
-}
-
-.dark ::-webkit-scrollbar-thumb:hover {
-  background: #6b7280;
-}
-
-/* Focus styles */
-*:focus {
-  outline: 2px solid #667eea;
-  outline-offset: 2px;
-}
-
-/* Selection styles */
-::selection {
-  background-color: #667eea;
-  color: white;
-}
 

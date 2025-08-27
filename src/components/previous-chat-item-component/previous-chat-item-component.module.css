@@ -1,13 +1,12 @@
 .conversationItem {
-  padding: 1rem;
+  padding: 0.75rem 1rem;
   cursor: pointer;
   transition: background-color 0.2s ease;
-  border-radius: 0.5rem;
+  border-radius: 2rem;
   margin: 0.25rem 0.25rem;
-  border: 1px solid var(--border-color);
+  /* border: 1px solid var(--border-color); */
   width: calc(100% - 0.5rem);
   box-sizing: border-box;
-  
 }
 
 .conversationItem:hover {
@@ -15,36 +14,13 @@
 }
 
 .conversationItem.active {
-  background-color: var(--primary-color);
-  color: var(--primary-text);
+  background-color: var(--border-color);
 }
 
 .conversationItemTitle {
-  font-weight: 600;
+  font-weight: 400;
   font-size: 0.95rem;
-  margin-bottom: 0.25rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-
-.conversationItemPreview {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  margin-bottom: 0.25rem;
-  white-space: nowrap;
-  overflow: hidden;
-}
-
-.conversationItem.active .conversationItemPreview {
-  color: var(--primary-text-secondary);
-}
-
-.conversationItemTime {
-  font-size: 0.75rem;
-  color: var(--text-tertiary);
-}
-
-.conversationItem.active .conversationItemTime {
-  color: var(--primary-text-tertiary);
-} 
