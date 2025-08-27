@@ -2,7 +2,6 @@
 
 import { Conversation } from '../../types';
 import PreviousChatItemComponent from '../previous-chat-item-component/previous-chat-item-component';
-import { formatConversationTimestamp } from '../../utils/date';
 import styles from './previous-chat-list-component.module.css';
 
 /**
@@ -37,7 +36,6 @@ export default function PreviousChatListComponent({
             conversation={conversation}
             isActive={currentConversationId === conversation.id}
             onSelect={() => onConversationSelect(conversation.id)}
-            formatTimestamp={formatConversationTimestamp}
           />
         ))
       )}

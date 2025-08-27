@@ -8,7 +8,12 @@
   background-color: var(--background-color);
 }
 
-/* Removed - spacing handled by main container */
+
+/* When chat is empty, position input higher */
+.chatContainer.empty {
+  justify-content: flex-start;
+  padding-top:10rem;
+}
 
 /* conversation area */
 .messagesContainer {
@@ -16,24 +21,39 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  padding: 1rem 3rem 2rem; /* Consolidated padding */
+  padding: 1rem 15rem 2rem;
+}
+
+/* Center welcome message on empty chat */
+.messagesContainer.empty {
+  flex: 0 0 auto; 
+  justify-content: center;
+}
+
+/* Center welcome message on empty chat */
+.messagesContainer.empty {
+  flex: 0 0 auto; 
+  justify-content: center;
 }
 
 .welcomeMessage {
   text-align: center;
-  padding: 2rem 1rem 3rem 1rem; /* Reduced top padding to account for container padding */
-  color: var(--text-secondary);
+  color: var(--text-primary);
 }
 
 .welcomeMessage h2 {
   margin-bottom: 1rem;
-  color: var(--text-primary);
-  font-size: 1.5rem;
+  /* color: var(--text-primary); */
+  font-size: 2rem;
+  background: linear-gradient(135deg, var(--app-color-1) 20%, var(--app-color-2) 80%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
 .welcomeMessage p {
-  font-size: 1rem;
-  line-height: 1.5;
+  font-size: 1.1rem;
+  line-height: 5;
 }
 
 .loadingMessage {
@@ -71,7 +91,7 @@
 .retryButton {
   padding: 0.25rem 0.75rem;
   background-color: var(--primary-color);
-  color: var(--primary-text);
+  color: var(--inverse-text);
   border: none;
   border-radius: 0.5rem;
   cursor: pointer;
@@ -93,7 +113,7 @@
   align-items: center; /* Vertically center the dots */
   gap: 0.35rem;
   padding: 0.75rem 1rem;
-  background-color: var(--message-bg);
+  background-color: var(--background-color);
   border-radius: 1rem;
   border-bottom-right-radius: 0.25rem;
   height: 2.7rem; /* Match typical single-line message height */
@@ -134,8 +154,6 @@
   .messagesContainer {
     padding: 1rem 1rem 1.5rem 1rem; /* Maintain top padding on tablets */
   }
-  
-  
 }
 
 @media (max-width: 600px) {

@@ -6,10 +6,15 @@
 
 .messageContainer.user {
   justify-content: flex-end;
+  position: relative;
+  margin: 1rem 1.75rem 1.25rem 1.75rem;
 }
 
 .messageContainer.assistant {
   justify-content: flex-start;
+  margin: 1rem 0;
+  width: 100%;
+  position: relative;
 }
 
 .messageBox {
@@ -23,9 +28,8 @@
 }
 
 .messageContainer.user .messageBox {
-  background-color: var(--primary-color);
-  color: var(--primary-text);
-  border-bottom-left-radius: 0.25rem;
+  background-color: var(--user-message-bg);
+  color: var(--user-message-text);
 }
 
 .messageContainer.assistant .messageBox {
@@ -44,6 +48,31 @@
   overflow: hidden;
 }
 
+.messageContainer.assistant .messageText {
+  padding: 0 1.75rem;
+}
+
+/* Force code blocks to fixed width using CSS calc */
+.codeBlockContainer {
+  width: calc(80vw - 3.5rem); /* 80% of viewport minus padding */
+  max-width: calc(80vw - 3.5rem);
+  min-width: calc(80vw - 3.5rem);
+  margin: 1rem 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Force all internal elements to respect container width and font size */
+.codeBlockContainer,
+.codeBlockContainer *,
+.codeBlockContainer div,
+.codeBlockContainer pre,
+.codeBlockContainer code {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  font-size: 0.9rem !important;
+}
+
 .userText {
   white-space: pre-wrap;
 }
@@ -51,13 +80,25 @@
 .messageTime {
   font-size: 0.75rem;
   opacity: 0.7;
-  text-align: right;
-  margin-top: 0.25rem;
-  margin-bottom: 0;
+  position: absolute;
+  bottom: 0;
+  color: var(--text-secondary);
 }
 
-.messageContainer.assistant .messageTime {
+/* User message timestamp positioned beneath message box */
+.messageContainer.user .messageTime {
+  left: 0;
   text-align: left;
+  bottom: -1.5rem;
+}
+
+/* Inline timestamp that appears right after the last word */
+.inlineTimestamp {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-left: 0.5rem;
+  color: var(--text-secondary, rgba(128, 128, 128, 0.8));
+  font-weight: normal;
 }
 
 /* Markdown Elements Styling */
@@ -167,13 +208,13 @@
 }
 
 .inlineCode {
-  background-color: var(--code-bg, rgba(128, 128, 128, 0.2));
-  color: var(--code-text, var(--text-primary));
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
   padding: 0.125rem 0.25rem;
   border-radius: 0.25rem;
   font-family: 'SFMono-Regular', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
-  font-size: 0.9em;
 }
+
 
 /* Streaming cursor animation */
 .streamingCursor {
@@ -182,23 +223,38 @@
   color: var(--primary-color);
 }
 
+
 @keyframes blink {
   0%, 50% {
     opacity: 1;
   }
+
   51%, 100% {
     opacity: 0;
   }
 }
 
 /* Mobile responsive design */
+
 @media (max-width: 600px) {
-  .messageContainer {
+  .messageContainer.user {
     margin: 0.5rem 0.5rem;
   }
-  
+
+  .messageContainer.assistant {
+    margin: 0.5rem 0;
+  }
+
   .messageBox {
     max-width: 85%;
+  }
+
+  .messageContainer.assistant .messageText {
+    padding: 0 0.5rem;
+  }
+
+  .messageContainer.assistant .messageTime {
+    padding-left: 0.5rem;
   }
 
   .heading1 {

@@ -13,19 +13,16 @@ type PreviousChatItemComponentProps = {
   isActive: boolean;
   /** Callback function when the item is clicked */
   onSelect: () => void;
-  /** Function to format the timestamp for display */
-  formatTimestamp: (timestamp: string) => string;
 };
 
 /**
  * Component that renders a single conversation item in the sidebar
- * Shows conversation title, preview, and timestamp
+ * Shows only the conversation title
  */
 export default function PreviousChatItemComponent({
   conversation,
   isActive,
-  onSelect,
-  formatTimestamp
+  onSelect
 }: PreviousChatItemComponentProps) {
   return (
     <div
@@ -43,12 +40,6 @@ export default function PreviousChatItemComponent({
     >
       <div className={styles.conversationItemTitle}>
         {conversation.title}
-      </div>
-      <div className={styles.conversationItemPreview}>
-        {conversation.lastMessage || 'שיחה ריקה'}
-      </div>
-      <div className={styles.conversationItemTime}>
-        {formatTimestamp(conversation.timestamp)}
       </div>
     </div>
   );

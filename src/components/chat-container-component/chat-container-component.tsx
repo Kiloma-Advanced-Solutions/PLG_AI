@@ -55,8 +55,8 @@ export default function ChatContainerComponent({
     }, [messages, streamingMessage]);
 
     return (
-      <div className={`${styles.chatContainer} ${isSidebarOpen ? styles.shifted : ''}`}>
-        <div className={styles.messagesContainer}>
+      <div className={`${styles.chatContainer} ${isSidebarOpen ? styles.shifted : ''} ${messages.length === 0 ? styles.empty : ''}`}>
+        <div className={`${styles.messagesContainer} ${messages.length === 0 ? styles.empty : ''}`}>
           {messages.length === 0 ? (
             <div className={styles.welcomeMessage}>
               <h2>ברוכים הבאים ל-ChatPLG!</h2>
