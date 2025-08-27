@@ -1,30 +1,27 @@
-/* each message vertical container */
+/* Message Containers */
 .messageContainer {
   display: flex;
-  margin: 0.5rem 1.75rem;
+  margin: 1rem 1.75rem;
 }
 
 .messageContainer.user {
   justify-content: flex-end;
   position: relative;
-  margin: 1rem 1.75rem 1.25rem 1.75rem;
 }
 
 .messageContainer.assistant {
   justify-content: flex-start;
-  margin: 1rem 0;
-  width: 100%;
-  position: relative;
+  max-width: 85%; /* Constrain assistant messages to reasonable width */
 }
 
+/* User Message Box */
 .messageBox {
-  max-width: 60%;
-  padding: 0.75rem 1rem;
+  max-width: 80%;
+  padding: 1rem;
   border-radius: 1rem;
-  position: relative;
   overflow-wrap: break-word;
   word-break: break-word;
-  min-width: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .messageContainer.user .messageBox {
@@ -35,73 +32,59 @@
 .messageContainer.assistant .messageBox {
   background-color: var(--message-bg);
   color: var(--text-primary);
-  border-bottom-right-radius: 0.25rem;
 }
 
+/* Message Text */
 .messageText {
   font-size: 0.95rem;
   line-height: 1.4;
-  margin: 0;
   overflow-wrap: break-word;
-  white-space: normal;
-  max-width: 100%;
-  overflow: hidden;
 }
 
 .messageContainer.assistant .messageText {
-  padding: 0 1.75rem;
-}
-
-/* Force code blocks to fixed width using CSS calc */
-.codeBlockContainer {
-  width: calc(80vw - 3.5rem); /* 80% of viewport minus padding */
-  max-width: calc(80vw - 3.5rem);
-  min-width: calc(80vw - 3.5rem);
-  margin: 1rem 0;
-  overflow: hidden;
-  position: relative;
-}
-
-/* Force all internal elements to respect container width and font size */
-.codeBlockContainer,
-.codeBlockContainer *,
-.codeBlockContainer div,
-.codeBlockContainer pre,
-.codeBlockContainer code {
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  font-size: 0.9rem !important;
+  padding: 0;
 }
 
 .userText {
   white-space: pre-wrap;
 }
 
-.messageTime {
+/* Code Blocks - Fixed width that never changes */
+.codeBlockContainer {
+  width: 50rem !important; /* Fixed rem width - scales with font size */
+  max-width: 50rem !important;
+  min-width: 50rem !important;
+  margin: 1rem 0;
+  overflow: auto;
+  direction: ltr;
+  box-sizing: border-box;
+  flex-shrink: 0 !important;
+}
+
+.codeBlockContainer > div {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+}
+
+/* Timestamps */
+.messageContainer.user .messageTime {
   font-size: 0.75rem;
   opacity: 0.7;
   position: absolute;
-  bottom: 0;
+  bottom: -1.5rem;
+  left: 0;
   color: var(--text-secondary);
 }
 
-/* User message timestamp positioned beneath message box */
-.messageContainer.user .messageTime {
-  left: 0;
-  text-align: left;
-  bottom: -1.5rem;
-}
-
-/* Inline timestamp that appears right after the last word */
 .inlineTimestamp {
   font-size: 0.75rem;
   opacity: 0.7;
   margin-left: 0.5rem;
   color: var(--text-secondary, rgba(128, 128, 128, 0.8));
-  font-weight: normal;
 }
 
-/* Markdown Elements Styling */
+/* Markdown Elements */
 .paragraph {
   margin: 0.5rem 0;
   line-height: 1.6;
@@ -114,41 +97,20 @@
 .paragraph:last-child {
   margin-bottom: 0;
 }
-
-.heading1 {
-  font-size: 1.5rem;
+.heading1, .heading2, .heading3 {
   font-weight: 600;
-  margin: 1rem 0 0.5rem 0;
   line-height: 1.3;
-}
-
-.heading2 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  margin: 0.875rem 0 0.5rem 0;
-  line-height: 1.3;
-}
-
-.heading3 {
-  font-size: 1.125rem;
-  font-weight: 600;
   margin: 0.75rem 0 0.5rem 0;
-  line-height: 1.3;
 }
 
-.list {
+.heading1 { font-size: 1.5rem; margin-top: 1rem; }
+.heading2 { font-size: 1.25rem; margin-top: 0.875rem; }
+.heading3 { font-size: 1.125rem; }
+
+.list, .orderedList {
   margin: 0.5rem 0;
   padding-inline-start: 1.25rem;
   line-height: 1.6;
-  list-style-type: disc;
-  list-style-position: inside;
-}
-
-.orderedList {
-  margin: 0.5rem 0;
-  padding-inline-start: 1.25rem;
-  line-height: 1.6;
-  list-style-type: decimal;
   list-style-position: inside;
 }
 
@@ -156,7 +118,7 @@
   margin: 0.25rem 0;
 }
 
-/* Tables (GFM) */
+/* Tables */
 .table {
   width: 100%;
   border-collapse: collapse;
@@ -167,27 +129,17 @@
   background-color: var(--hover-bg);
 }
 
-.th,
-.td {
+.th, .td {
   border: 1px solid var(--border-color);
   padding: 0.5rem 0.75rem;
+  text-align: right;
   vertical-align: top;
 }
 
-.th {
-  font-weight: 600;
-  text-align: right;
-}
+.th { font-weight: 600; }
+.th p, .td p { margin: 0; }
 
-.td {
-  text-align: right;
-}
-
-.th p,
-.td p {
-  margin: 0;
-}
-
+/* Other Elements */
 .blockquote {
   margin: 1rem 0;
   padding: 0.5rem 1rem;
@@ -215,8 +167,7 @@
   font-family: 'SFMono-Regular', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
 }
 
-
-/* Streaming cursor animation */
+/* Streaming Animation */
 .streamingCursor {
   animation: blink 1s infinite;
   font-weight: bold;
@@ -234,38 +185,49 @@
   }
 }
 
-/* Mobile responsive design */
-
-@media (max-width: 600px) {
-  .messageContainer.user {
-    margin: 0.5rem 0.5rem;
-  }
-
-  .messageContainer.assistant {
-    margin: 0.5rem 0;
+/* Tablet Responsive */
+@media (max-width: 768px) {
+  .messageContainer {
+    margin: 1rem 1rem;
   }
 
   .messageBox {
     max-width: 85%;
   }
 
-  .messageContainer.assistant .messageText {
-    padding: 0 0.5rem;
+  .messageContainer.assistant .messageBox {
+    max-width: 90%;
   }
 
-  .messageContainer.assistant .messageTime {
-    padding-left: 0.5rem;
+  .codeBlockContainer {
+    width: 37.5rem !important; /* Medium fixed width for tablets */
+    max-width: 37.5rem !important;
+    min-width: 37.5rem !important;
+  }
+}
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .messageContainer {
+    margin: 1rem 0.5rem;
   }
 
-  .heading1 {
-    font-size: 1.25rem;
+  .messageBox {
+    max-width: 90%;
+    padding: 0.75rem;
   }
 
-  .heading2 {
-    font-size: 1.125rem;
+  .messageContainer.assistant .messageBox {
+    max-width: 95%;
   }
 
-  .heading3 {
-    font-size: 1rem;
+  .codeBlockContainer {
+    width: 22rem !important; /* Smaller fixed width for mobile */
+    max-width: 22rem !important;
+    min-width: 22rem !important;
   }
-} 
+
+  .heading1 { font-size: 1.25rem; }
+  .heading2 { font-size: 1.125rem; }
+  .heading3 { font-size: 1rem; }
+}
