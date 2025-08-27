@@ -89,9 +89,8 @@ export default function ChatMessageComponent({
                       customStyle={{
                         margin: '0',
                         borderRadius: '0.5rem',
-                        padding: '1rem',
-                        overflow: 'auto',
-                        direction: 'ltr',
+                        maxWidth: '100%',
+                        overflow: 'auto'
                       }}
                       showLineNumbers={false}
                       wrapLines={false}
@@ -125,11 +124,8 @@ export default function ChatMessageComponent({
               // Allow basic HTML like <u>, <div> via rehypeRaw; no special mapping needed here
             }}
           >
-            {content}
+            {isStreaming ? `${content}<span class="streaming-cursor">|</span>` : content}
           </ReactMarkdown>
-          {isStreaming && (
-            <span className={styles.streamingCursor}>|</span>
-          )}
           {!isStreaming && (
             <span className={styles.inlineTimestamp}>
               {timestamp}

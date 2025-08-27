@@ -98,7 +98,7 @@ export default function ChatContainerComponent({
           )}
           
           {isLoading && (
-            <div className={styles.loadingMessage}>
+            <div className={styles.streamingResponse}>
               {streamingMessage ? (
                 <ChatMessageComponent
                   type="assistant"

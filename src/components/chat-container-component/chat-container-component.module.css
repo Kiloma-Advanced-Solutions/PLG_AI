@@ -56,10 +56,9 @@
   line-height: 5;
 }
 
-.loadingMessage {
+.streamingResponse {
   display: flex;
   justify-content: flex-start;
-  margin: 0.5rem 1.75rem;
 }
 
 .errorMessage {
