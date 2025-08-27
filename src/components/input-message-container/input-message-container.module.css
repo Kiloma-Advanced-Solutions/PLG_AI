@@ -75,7 +75,7 @@
   width: 2.5rem;
   height: 2.5rem;
   background-color: var(--send-button-bg);
-  color: var(--text-secondary);
+  color: var(--background-color);
   border: none;
   border-radius: 50%;
   cursor: pointer;
