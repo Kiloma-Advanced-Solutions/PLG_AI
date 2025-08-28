@@ -49,23 +49,17 @@
   white-space: pre-wrap;
 }
 
-/* Code Blocks - Fixed width that never changes */
-.codeBlockContainer {
-  width: 50rem !important; /* Fixed rem width - scales with font size */
-  max-width: 50rem !important;
-  min-width: 50rem !important;
-  margin: 1rem 0;
-  overflow: auto;
-  direction: ltr;
-  box-sizing: border-box;
-  flex-shrink: 0 !important;
+/* Force all internal elements to respect container width and font size */
+.codeBlockContainer,
+.codeBlockContainer *,
+.codeBlockContainer div,
+.codeBlockContainer pre,
+.codeBlockContainer code {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  font-size: 0.9rem !important;
 }
 
-.codeBlockContainer > div {
-  width: 100% !important;
-  max-width: 100% !important;
-  min-width: 100% !important;
-}
 
 /* Timestamps */
 .messageContainer.user .messageTime {
