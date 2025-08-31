@@ -21,18 +21,17 @@
   height: 100%;
   width: 100%;
   padding: 9rem 0.75rem 1rem 0rem;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: visible; /* Remove scrolling from entire content */
   direction: rtl;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column; /* Stack header and previous chats list vertically */
 }
 
 .sidebarHeader {
   padding: 0.5rem 0.5rem 1rem 0.5rem;
-
-  /* text-align: center; */
+  flex-shrink: 0; /* Prevent header from shrinking */
 }
-
 .sidebarHeader h2 {
   font-size: 1rem;
   font-weight: 600;

@@ -1,8 +1,10 @@
 .conversationsList {
-  flex: 1;
+  flex: 1; /* Take remaining space */
   width: 100%;
   box-sizing: border-box;
   overflow-x: hidden;
+  overflow-y: auto; /* Add vertical scrolling here */
+  min-height: 0; /* Allow flex item to shrink below content size */
 }
 
 .emptyState {
