@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { Message } from '../../types';
 import ChatMessageComponent from '../chat-message-component/chat-message-component';
 import InputMessageContainer from '../input-message-container/input-message-container';
@@ -40,23 +40,88 @@ export default function ChatContainerComponent({
   prefilledMessage = '',
   onPrefilledMessageCleared
 }: ChatContainerComponentProps) {
-    const messagesEndRef = useRef<HTMLDivElement>(null);
+    const messagesContainerRef = useRef<HTMLDivElement>(null);
+    const [hasUserScrolled, setHasUserScrolled] = useState(false);
 
     /**
-     * Scrolls to the bottom of the messages container
+     * Basic scroll function from the tutorial - scrolls if within 100px of bottom
      */
-    const scrollToBottom = () => {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    };
+    const Scroll = useCallback(() => {
+      if (!messagesContainerRef.current) return;
+      
+      const { offsetHeight, scrollHeight, scrollTop } = messagesContainerRef.current;
+      
+      // Tutorial logic: scroll if within 100px of bottom AND user hasn't manually scrolled
+      if (scrollHeight <= scrollTop + offsetHeight + 100 && !hasUserScrolled) {
+        messagesContainerRef.current.scrollTo(0, scrollHeight);
+      }
+    }, [hasUserScrolled]);
 
-    // Scroll to bottom when messages or streaming message updates
+    /**
+     * Force scroll to bottom (for user messages)
+     */
+    const forceScrollToBottom = useCallback(() => {
+      if (!messagesContainerRef.current) return;
+      
+      const { scrollHeight } = messagesContainerRef.current;
+      messagesContainerRef.current.scrollTo({
+        top: scrollHeight,
+        behavior: 'smooth'
+      });
+      setHasUserScrolled(false); // Reset manual scroll flag
+    }, []);
+
+    /**
+     * Handle manual scrolling by the user
+     */
+    const handleScroll = useCallback(() => {
+      if (!messagesContainerRef.current) return;
+      
+      const { offsetHeight, scrollHeight, scrollTop } = messagesContainerRef.current;
+      
+      // If user scrolled up from bottom (more than 10px), disable auto-scroll
+      if (scrollHeight > scrollTop + offsetHeight + 10) {
+        setHasUserScrolled(true);
+      } else {
+        // If user scrolled back to bottom, re-enable auto-scroll
+        setHasUserScrolled(false);
+      }
+    }, []);
+
+    // Set up scroll event listener
     useEffect(() => {
-      scrollToBottom();
-    }, [messages, streamingMessage]);
+      const container = messagesContainerRef.current;
+      if (!container) return;
+
+      container.addEventListener('scroll', handleScroll, { passive: true });
+      return () => {
+        container.removeEventListener('scroll', handleScroll);
+      };
+    }, [handleScroll]);
+
+    // Auto-scroll on new messages (tutorial approach)
+    useEffect(() => {
+      Scroll();
+    }, [messages, Scroll]);
+
+    // Auto-scroll on streaming updates
+    useEffect(() => {
+      Scroll();
+    }, [streamingMessage, Scroll]);
+
+    // Force scroll when user sends new message
+    useEffect(() => {
+      if (messages.length > 0 && messages[messages.length - 1]?.type === 'user') {
+        forceScrollToBottom();
+      }
+    }, [messages, forceScrollToBottom]);
 
     return (
       <div className={`${styles.chatContainer} ${isSidebarOpen ? styles.shifted : ''} ${messages.length === 0 ? styles.empty : ''}`}>
-        <div className={`${styles.messagesContainer} ${messages.length === 0 ? styles.empty : ''}`}>
+        <div 
+          ref={messagesContainerRef}
+          className={`${styles.messagesContainer} ${messages.length === 0 ? styles.empty : ''}`}
+        >
           {messages.length === 0 ? (
             <div className={styles.welcomeMessage}>
               <h2>ברוכים הבאים ל-ChatPLG!</h2>
@@ -115,8 +180,6 @@ export default function ChatContainerComponent({
               )}
             </div>
           )}
-          
-          <div ref={messagesEndRef} />
         </div>
         
         <InputMessageContainer 
