@@ -39,21 +39,37 @@
 .welcomeMessage {
   text-align: center;
   color: var(--text-primary);
+  opacity: 0;
+  animation: welcomeFadeIn 2s ease-out forwards;
 }
 
 .welcomeMessage h2 {
   margin-bottom: 1rem;
-  /* color: var(--text-primary); */
-  font-size: 2rem;
-  background: linear-gradient(135deg, var(--app-color-1) 0%, var(--app-color-2) 100%);
+  font-size: 2.5rem;
+  font-weight: 700;
+  background: linear-gradient(
+    135deg,
+    var(--app-color-1) 0%,
+    var(--app-color-2) 25%,
+    var(--app-color-1) 50%,
+    var(--app-color-2) 75%,
+    var(--app-color-1) 100%
+  );
+  background-size: 300% 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  animation: gradientShift 4s ease-in-out infinite, textGlow 1.5s ease-in-out infinite alternate;
+  letter-spacing: 0.02em;
 }
 
 .welcomeMessage p {
   font-size: 1.1rem;
-  line-height: 5;
+  margin-top: 2.5rem;
+  line-height: 1.6;
+  opacity: 0.8;
+  animation: welcomeFadeIn 1.5s ease-out 0.3s forwards; 
+  opacity: 0;
 }
 
 .streamingResponse {
@@ -146,6 +162,47 @@
   }
 }
 
+/* Welcome message animations */
+@keyframes welcomeFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradientShift {
+  0% {
+    background-position: 0% 50%;
+  }
+  25% {
+    background-position: 100% 50%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  75% {
+    background-position: 0% 100%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes textGlow {
+  0% {
+    filter: brightness(1) contrast(1);
+  }
+  100% {
+    filter: brightness(1.1) contrast(1.05);
+  }
+}
+
+
+
 /* Responsive Design - spacing handled by main container */
 
 /* Mobile responsive design */
@@ -163,5 +220,25 @@
   .welcomeMessage {
     padding: 1.5rem 1rem 3rem 1rem; /* Adjusted for mobile */
   }
-  
+
+  .welcomeMessage h2 {
+    font-size: 1.75rem; /* Slightly smaller on mobile */
+  }
+}
+
+/* Reduced motion preference support */
+@media (prefers-reduced-motion: reduce) {
+  .welcomeMessage {
+    animation: none;
+    opacity: 1;
+  }
+
+  .welcomeMessage h2 {
+    animation: none;
+  }
+
+  .welcomeMessage p {
+    animation: none;
+    opacity: 0.8;
+  }
 }
