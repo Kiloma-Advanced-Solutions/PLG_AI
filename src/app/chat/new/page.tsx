@@ -27,12 +27,17 @@ export default function NewChatPage() {
     setNavigationLoading
   } = useConversationContext();
   
-  const conversationsWithMessages = getConversationsWithMessages(conversations);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [triggerInputAnimation, setTriggerInputAnimation] = useState(false);
   const [prefilledMessage, setPrefilledMessage] = useState('');
   const shouldNavigateRef = useRef(false);
+
+  // Filter out current conversation from sidebar until URL changes from /chat/new
+  const sidebarConversations = pathname === '/chat/new' && currentConversationId
+    ? conversations.filter(conv => conv.id !== currentConversationId)
+    : conversations;
+  const conversationsWithMessages = getConversationsWithMessages(sidebarConversations);
 
   /**
    * Reset component state when navigating back to /chat/new
