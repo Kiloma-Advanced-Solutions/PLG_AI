@@ -128,6 +128,7 @@ export default function NewChatPage() {
       
       <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
         <ChatContainerComponent
+          key={currentConversationId || 'new'}
           messages={displayMessages}
           onSendMessage={handleSendMessage}
           isStreaming={isStreaming}

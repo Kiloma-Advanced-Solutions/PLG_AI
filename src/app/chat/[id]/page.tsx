@@ -103,6 +103,7 @@ export default function ChatPage() {
           </div>
         ) : (
           <ChatContainerComponent
+            key={conversationId}
             messages={currentConversation.messages}
             onSendMessage={handleSendMessage}
             isStreaming={isStreaming}
