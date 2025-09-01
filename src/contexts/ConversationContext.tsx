@@ -12,7 +12,7 @@ import { getCurrentTimestamp } from '../utils/date';
  */
 type ConversationContextType = {
   conversations: Conversation[];
-  isLoading: boolean;
+  isStreaming: boolean;
   isNavigationLoading: boolean;
   streamingMessage: string;
   apiError: string | null;
@@ -71,7 +71,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return [];
   });
   
-  const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setisStreaming] = useState(false);
   const [isNavigationLoading, setIsNavigationLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [apiError, setApiError] = useState<string | null>(null);
@@ -167,7 +167,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const messagesBeforeRequest = currentConversation ? [...currentConversation.messages, userMessage] : [userMessage];
     
     // Initialize streaming state
-    setIsLoading(true);
+    setisStreaming(true);
     setStreamingMessage('');
     streamingContentRef.current = '';
 
@@ -211,7 +211,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }));
         
         setApiError(error.message);
-        setIsLoading(false);
+        setisStreaming(false);
         setStreamingMessage('');
         streamingContentRef.current = '';
         abortControllerRef.current = null;
@@ -242,7 +242,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
         
         // Clean up streaming state and retry info
-        setIsLoading(false);
+        setisStreaming(false);
         setStreamingMessage('');
         streamingContentRef.current = '';
         abortControllerRef.current = null;
@@ -274,7 +274,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!currentConversation) return;
 
     // Initialize streaming state
-    setIsLoading(true);
+    setisStreaming(true);
     setStreamingMessage('');
     streamingContentRef.current = '';
 
@@ -302,7 +302,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
         // retryState is already set, no need to change it
         
         setApiError(error.message);
-        setIsLoading(false);
+        setisStreaming(false);
         setStreamingMessage('');
         streamingContentRef.current = '';
         abortControllerRef.current = null;
@@ -331,7 +331,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
           }));
         }
 
-        setIsLoading(false);
+        setisStreaming(false);
         setStreamingMessage('');
         streamingContentRef.current = '';
         abortControllerRef.current = null;
@@ -351,7 +351,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     const conversationId = currentConversationIdRef.current;
 
     // Clear UI state
-    setIsLoading(false);
+    setisStreaming(false);
     setStreamingMessage('');
     streamingContentRef.current = '';
     setApiError(null);
@@ -422,7 +422,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const value: ConversationContextType = {
     conversations,
-    isLoading,
+    isStreaming,
     isNavigationLoading,
     streamingMessage,
     apiError,

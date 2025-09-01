@@ -19,7 +19,7 @@ export default function ChatPage() {
   
   const { 
     conversations,
-    isLoading, 
+    isStreaming, 
     isNavigationLoading,
     streamingMessage, 
     apiError, 
@@ -75,55 +75,46 @@ export default function ChatPage() {
   };
 
   /**
-   * Renders loading state when conversation is loading or not found
+   * Handles new chat click from header
    */
-  if (isNavigationLoading || !currentConversation) {
-    return (
-      <div className={styles.container} dir="rtl">
-        <HeaderComponent 
-          isSidebarOpen={isSidebarOpen}
-          onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-        />
-        
-        <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
+  const handleNewChatClick = () => {
+    // Navigate to new chat page
+    router.push('/chat/new');
+  };
+
+  /**
+   * Renders the page with conditional main content based on loading state
+   */
+  return (
+    <div className={styles.container} dir="rtl">
+      <HeaderComponent 
+        isSidebarOpen={isSidebarOpen}
+        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        onNewChatClick={handleNewChatClick}
+      />
+      
+      <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
+        {(isNavigationLoading || !currentConversation) ? (
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', flex: 1 }}>
             <div className={styles.loadingContainer}>
               <div className={styles.spinner}></div>
               <p>טוען...</p>
             </div>
           </div>
-        </main>
-        
-        <SidebarComponent
-          conversations={conversationsWithMessages}
-          currentConversationId={conversationId}
-          isOpen={isSidebarOpen}
-          onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
-        />
-      </div>
-    );
-  }
-
-  return (
-    <div className={styles.container} dir="rtl">
-      <HeaderComponent 
-        isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
-      />
-      
-      <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
-        <ChatContainerComponent
-          messages={currentConversation!.messages}
-          onSendMessage={handleSendMessage}
-          isLoading={isLoading}
-          isSidebarOpen={isSidebarOpen}
-          streamingMessage={streamingMessage}
-          apiError={apiError}
-          onRetry={retryLastMessage}
-          onStop={handleStop}
-          prefilledMessage={prefilledMessage}
-          onPrefilledMessageCleared={handlePrefilledMessageCleared}
-        />
+        ) : (
+          <ChatContainerComponent
+            messages={currentConversation.messages}
+            onSendMessage={handleSendMessage}
+            isStreaming={isStreaming}
+            isSidebarOpen={isSidebarOpen}
+            streamingMessage={streamingMessage}
+            apiError={apiError}
+            onRetry={retryLastMessage}
+            onStop={handleStop}
+            prefilledMessage={prefilledMessage}
+            onPrefilledMessageCleared={handlePrefilledMessageCleared}
+          />
+        )}
       </main>
       
       <SidebarComponent
@@ -131,6 +122,7 @@ export default function ChatPage() {
         currentConversationId={conversationId}
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        onNewChatClick={handleNewChatClick}
       />
     </div>
   );

@@ -13,7 +13,7 @@ import styles from './chat-container-component.module.css';
 type ChatContainerComponentProps = {
   messages: Message[];
   onSendMessage: (message: string) => void;
-  isLoading?: boolean;
+  isStreaming?: boolean;
   isSidebarOpen?: boolean;
   streamingMessage?: string;
   apiError?: string | null;
@@ -30,7 +30,7 @@ type ChatContainerComponentProps = {
 export default function ChatContainerComponent({ 
   messages, 
   onSendMessage, 
-  isLoading = false, 
+  isStreaming = false, 
   isSidebarOpen = false,
   streamingMessage = '',
   apiError = null,
@@ -162,7 +162,7 @@ export default function ChatContainerComponent({
             </div>
           )}
           
-          {isLoading && (
+          {isStreaming && (
             <div className={styles.streamingResponse}>
               {streamingMessage ? (
                 <ChatMessageComponent
@@ -184,7 +184,7 @@ export default function ChatContainerComponent({
         
         <InputMessageContainer 
           onSendMessage={onSendMessage}
-          isLoading={isLoading}
+          isStreaming={isStreaming}
           triggerFocusAnimation={triggerInputAnimation}
           prefilledMessage={prefilledMessage}
           onPrefilledMessageCleared={onPrefilledMessageCleared}

@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useRef, useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import HeaderComponent from '../../../components/header-component/header-component';
 import SidebarComponent from '../../../components/sidebar-component/sidebar-component';
 import ChatContainerComponent from '../../../components/chat-container-component/chat-container-component';
@@ -14,9 +14,10 @@ import styles from '../../page.module.css';
  */
 export default function NewChatPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const { 
     conversations,
-    isLoading, 
+    isStreaming, 
     streamingMessage, 
     apiError, 
     createConversation, 
@@ -34,11 +35,23 @@ export default function NewChatPage() {
   const shouldNavigateRef = useRef(false);
 
   /**
+   * Reset component state when navigating back to /chat/new
+   * This ensures a fresh start when clicking new chat after sending messages
+   */
+  useEffect(() => {
+    if (pathname === '/chat/new') {
+      setCurrentConversationId(null);
+      setPrefilledMessage('');
+      shouldNavigateRef.current = false;
+    }
+  }, [pathname]);
+
+  /**
    * Handles new chat click
    */
   const handleNewChatClick = () => {
-    // If currently loading/streaming, use the proper stop handler to respect input state
-    if (isLoading) {
+    // If currently streaming, use the proper stop handler to respect input state
+    if (isStreaming) {
       handleStop(''); // Use empty string to ensure no input overwrite
       return;
     }
@@ -51,22 +64,34 @@ export default function NewChatPage() {
   };
 
   /**
-   * Handles sending the first message and creating a new conversation
+   * Handles sending messages - creates new conversation only for first message
    */
   const handleSendMessage = async (messageContent: string) => {
-    // Create a new conversation when sending the first message
-    const newConversation = createConversation();
-    setCurrentConversationId(newConversation.id);
+    let conversationId: string;
     
-    // Set flag to navigate after successful completion
-    shouldNavigateRef.current = true;
+    // Only create a new conversation if this is truly the first message
+    if (!currentConversationId) {
+      // Create a new conversation when sending the first message
+      const newConversation = createConversation();
+      setCurrentConversationId(newConversation.id);
+      conversationId = newConversation.id;
+      
+      // Set flag to update URL after successful completion (only for first message)
+      shouldNavigateRef.current = true;
+    } else {
+      // Use existing conversation for subsequent messages
+      conversationId = currentConversationId;
+      shouldNavigateRef.current = false; // No URL change needed for subsequent messages
+    }
     
     // Send the message (this will start streaming)
-    await sendMessage(newConversation.id, messageContent);
+    await sendMessage(conversationId, messageContent);
     
-    // If we reach here and shouldNavigate is still true, navigate
+    // If we reach here and shouldNavigate is still true, update URL without navigation
     if (shouldNavigateRef.current) {
-      router.push(`/chat/${newConversation.id}`);
+      // Use replaceState to update URL without page reload/navigation
+      window.history.replaceState(null, '', `/chat/${conversationId}`);
+      shouldNavigateRef.current = false; // Reset flag after URL update
     }
   };
 
@@ -105,7 +130,7 @@ export default function NewChatPage() {
         <ChatContainerComponent
           messages={displayMessages}
           onSendMessage={handleSendMessage}
-          isLoading={isLoading}
+          isStreaming={isStreaming}
           isSidebarOpen={isSidebarOpen}
           streamingMessage={streamingMessage}
           apiError={apiError}

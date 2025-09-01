@@ -10,7 +10,7 @@ type InputMessageContainerProps = {
   /** Callback function called when user submits a message */
   onSendMessage: (message: string) => void;
   /** Whether the chat is currently loading (disables input) */
-  isLoading?: boolean;
+  isStreaming?: boolean;
   /** Whether to trigger the focus animation effect */
   triggerFocusAnimation?: boolean;
   /** Pre-filled message value for restoration */
@@ -27,7 +27,7 @@ type InputMessageContainerProps = {
  */
 export default function InputMessageContainer({ 
   onSendMessage, 
-  isLoading = false,
+  isStreaming = false,
   triggerFocusAnimation = false,
   prefilledMessage = '',
   onPrefilledMessageCleared,
@@ -66,7 +66,7 @@ export default function InputMessageContainer({
    */
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim() && !isLoading) {
+    if (inputValue.trim() && !isStreaming) {
       onSendMessage(inputValue.trim());
       setInputValue('');
     }
@@ -79,7 +79,7 @@ export default function InputMessageContainer({
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      if (!isLoading) {
+      if (!isStreaming) {
         handleSubmit(e);
       }
     }
@@ -108,7 +108,7 @@ export default function InputMessageContainer({
           dir="rtl"
           autoFocus
         />
-        {isLoading && onStop ? (
+        {isStreaming && onStop ? (
           <button
             type="button"
             className={styles.sendButton}
@@ -127,7 +127,7 @@ export default function InputMessageContainer({
           <button
             type="submit"
             className={styles.sendButton}
-            disabled={!inputValue.trim() || isLoading}
+            disabled={!inputValue.trim() || isStreaming}
             aria-label="Send message"
           >
             <svg className={styles.sendIcon} fill="currentColor" viewBox="0 0 20 20">
