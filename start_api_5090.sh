@@ -44,7 +44,10 @@ start_vllm() {
 
     echo "Waiting for vLLM to start..."
     for i in {1..1200}; do
-        if curl -s "http://localhost:${VLLM_PORT}/v1/models" >/dev/null 2>&1; then
+        if curl -s -X POST "http://localhost:${VLLM_PORT}/v1/chat/completions" \
+            -H "Content-Type: application/json" \
+            -d '{"model":"'"$MODEL"'","messages":[{"role":"user","content":"היי"}],"max_tokens":1}' \
+            >/dev/null 2>&1; then
             echo "✅ vLLM is ready!"
             break
         fi
@@ -66,6 +69,7 @@ if [ ! -f "main.py" ]; then
 fi
 
 echo "API: http://${LLM_API_HOST}:${LLM_API_PORT} | vLLM: http://localhost:${VLLM_PORT} | Model: ${MODEL}"
+
 
 if [ "$MODE" = "prod" ] || [ "$MODE" = "production" ]; then
     python -m uvicorn main:app \
