@@ -92,9 +92,6 @@ class ChatService:
         if consecutive_users_found > 0:
             logger.warning(f"🔧 Fixed {consecutive_users_found} consecutive user messages")
         
-        roles = [msg.role for msg in cleaned_messages]
-        logger.info(f"📝 Message structure: {roles}")
-        
         return cleaned_messages
     
 
