@@ -20,7 +20,7 @@ class TitleService:
 אתה עוזר מומחה לסיכום הודעות. המטרה שלך היא ליצור כותרת קצרה להודעת המשתמש עד 6 מילים בעברית.
 על הכותרת להיות תמציתית וברורה ולבטא את המטרה המרכבית של ההודעה.
 
-תן תשובה המכילה את הכותרת בלבד, ללא הסברים או טקסט נוסף.
+תן תשובה המכילה את הכותרת בלבד, ללא הסברים או טקסט נוסף וללא סימני פיסוק.
 """
 
     async def generate_title(self, user_message: str) -> TitleGenerationResponse:
@@ -40,23 +40,34 @@ class TitleService:
                 Message(role="user", content=user_message)
             ]
             
-            # Log the messages being sent to the model
-            logger.info("=== TITLE GENERATION - Messages sent to model ===")
-            for i, message in enumerate(messages):
-                logger.info(f"Message {i+1} [{message.role}]:")
-                logger.info(f"Content: {message.content}")
-                logger.info("=" * 50)
-            
-            # Get structured response from LLM
+            # Get simple text response from LLM (not structured)
             logger.info("Sending title generation request to LLM")
-            response = await self.engine.get_structured_completion(
+            
+            # Use the chat_stream method but collect the full response
+            title_content = ""
+            async for chunk in self.engine.chat_stream(
                 messages=messages,
-                output_schema=TitleGenerationResponse,
                 session_id="title_generation"
-            )
-
-            logger.info(f"Successfully generated title: {response.title}")
-            return response
+            ):
+                if chunk.startswith('data: '):
+                    data = chunk[6:].strip()
+                    if data == '[DONE]':
+                        break
+                    try:
+                        import json
+                        parsed = json.loads(data)
+                        if parsed.get('choices') and parsed['choices'][0].get('delta', {}).get('content'):
+                            title_content += parsed['choices'][0]['delta']['content']
+                    except:
+                        continue
+            
+            # Clean and validate the title
+            title = title_content.strip()
+            if not title:
+                title = "שיחה חדשה"
+            
+            logger.info(f"Successfully generated title: {title}")
+            return TitleGenerationResponse(title=title)
             
         except Exception as e:
             logger.error(f"Title generation error: {e}")
