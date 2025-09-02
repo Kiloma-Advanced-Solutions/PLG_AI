@@ -78,7 +78,21 @@ class ChatService:
             if messages[0].role != "system":
                 messages = [Message(role="system", content=self.CHAT_SYSTEM_PROMPT)] + messages
         
-        return messages
+        # Remove consecutive user messages (keep only the last one)
+        cleaned_messages = []
+        consecutive_users_found = 0
+        for msg in messages:
+            if msg.role == "user" and cleaned_messages and cleaned_messages[-1].role == "user":
+                consecutive_users_found += 1
+                # Replace previous user message with current one
+                cleaned_messages[-1] = msg
+            else:
+                cleaned_messages.append(msg)
+        
+        if consecutive_users_found > 0:
+            logger.warning(f"🔧 Fixed {consecutive_users_found} consecutive user messages")
+        
+        return cleaned_messages
     
 
     def extract_latest_user_message(self, messages: List[Message]) -> Optional[str]:

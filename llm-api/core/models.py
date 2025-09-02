@@ -65,6 +65,20 @@ TaskExtractionResponse = List[TaskItem]
 
 
 # ===============================
+# TITLE GENERATION MODELS
+# ===============================
+
+class TitleGenerationRequest(BaseModel):
+    """Request for generating a conversation title"""
+    user_message: str
+
+
+class TitleGenerationResponse(BaseModel):
+    """Response containing a 6-word title"""
+    title: str
+
+
+# ===============================
 # HEALTH CHECK MODELS
 # ===============================
 

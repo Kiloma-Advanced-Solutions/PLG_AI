@@ -6,15 +6,14 @@ API endpoints and request routing
 import logging
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from core.models import ChatRequest, TaskExtractionRequest, TaskExtractionResponse, HealthStatus
-from services.chat_service import chat_service
+from core.models import HealthStatus, ChatRequest, TaskExtractionRequest, TaskExtractionResponse, TitleGenerationRequest, TitleGenerationResponse
 from utils.health import health_checker
-from services.task_service import TaskService
+from services.chat_service import chat_service
+from services.task_service import task_service
+from services.title_service import title_service
 
 logger = logging.getLogger(__name__)
 
-# Initialize task service
-task_service = TaskService()
 
 def create_routes(app: FastAPI) -> None:
     """Configure all API routes with proper error handling"""
@@ -93,6 +92,31 @@ def create_routes(app: FastAPI) -> None:
                 detail=f"Failed to extract tasks: {e}"
             )
     
+    
+    # ===============================
+    # TITLE GENERATION ENDPOINT
+    # ===============================
+    
+    @app.post("/api/title/generate", response_model=TitleGenerationResponse)
+    async def generate_title(request: TitleGenerationRequest) -> TitleGenerationResponse:
+        """
+        Generate an up to 6-word conversation title from user message.
+        
+        Args:
+            request: TitleGenerationRequest containing the user message
+            
+        Returns:
+            TitleGenerationResponse containing the generated title
+        """
+        try:
+            result = await title_service.generate_title(request.user_message)
+            return result
+        except Exception as e:
+            logger.error(f"Title generation error: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to generate title: {e}"
+            )
     
     
     # ===============================

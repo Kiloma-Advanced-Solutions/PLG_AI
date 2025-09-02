@@ -2,8 +2,8 @@
 
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { Message, Conversation } from '../types';
-import { streamChatResponse } from '../utils/streaming-api';
-import { AppError, getErrorDisplayMessage } from '../utils/error-handling';
+import { streamChatResponse, generateConversationTitle } from '../utils/streaming-api';
+import { AppError } from '../utils/error-handling';
 import { generateConversationId, generateMessageId } from '../utils/conversation';
 import { getCurrentTimestamp } from '../utils/date';
 
@@ -16,9 +16,7 @@ type ConversationContextType = {
   isNavigationLoading: boolean;
   streamingMessage: string;
   apiError: string | null;
-  createConversation: () => Conversation;
-  updateConversation: (id: string, updates: Partial<Conversation>) => void;
-  deleteConversation: (id: string) => void;
+  createConversation: (firstMessage?: string) => Conversation;
   sendMessage: (conversationId: string, message: string) => Promise<void>;
   getConversation: (id: string) => Conversation | null;
   retryLastMessage: () => Promise<void>;
@@ -71,17 +69,184 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return [];
   });
   
-  const [isStreaming, setisStreaming] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [isNavigationLoading, setIsNavigationLoading] = useState(false);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [apiError, setApiError] = useState<string | null>(null);
   const [retryState, setRetryState] = useState<RetryState>(null);
   
-  // Refs for managing streaming state
+  // === REFS FOR STREAMING STATE MANAGEMENT ===
   const abortControllerRef = useRef<AbortController | null>(null);
   const streamingContentRef = useRef<string>('');
   const lastUserMessageRef = useRef<string | null>(null);
   const currentConversationIdRef = useRef<string | null>(null);
+
+  // === HELPER FUNCTIONS FOR STREAMING OPERATIONS ===
+  
+  /**
+   * Helper function to initialize streaming state
+   */
+  const initializeStreaming = (conversationId: string, userMessage: string): AbortController => {
+    setIsStreaming(true);
+    setStreamingMessage('');
+    streamingContentRef.current = '';
+    setApiError(null);
+    
+    lastUserMessageRef.current = userMessage;
+    currentConversationIdRef.current = conversationId;
+    
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+    
+    return abortController;
+  };
+
+  /**
+   * Helper function to clean up streaming state
+   */
+  const cleanupStreaming = () => {
+    setIsStreaming(false);
+    setStreamingMessage('');
+    streamingContentRef.current = '';
+    abortControllerRef.current = null;
+    lastUserMessageRef.current = null;
+    currentConversationIdRef.current = null;
+  };
+
+  /**
+   * Helper function to revert conversation by removing the last user message
+   */
+  const revertConversation = (conversationId: string) => {
+    setConversations(prev => 
+      prev.map(conv => {
+        // If the conversation ID is not the same as the one we want to revert, return the conversation as is
+        if (conv.id !== conversationId) return conv;
+        
+        // Remove the last message (the user message we just added)
+        const updatedMessages = conv.messages.slice(0, -1);
+        
+        // If conversation becomes empty, mark for deletion
+        if (updatedMessages.length === 0) return null;
+        
+        // Update conversation with remaining messages
+        const lastMessage = updatedMessages[updatedMessages.length - 1];
+        return {
+          ...conv,
+          messages: updatedMessages,
+          lastMessage: lastMessage.content,
+          timestamp: getCurrentTimestamp()
+        };
+      })
+      .filter((conv): conv is Conversation => conv !== null) // Remove empty conversations
+    );
+  };
+
+  /**
+   * Helper function to update conversation title
+   */
+  const updateConversationTitle = (conversationId: string, title: string) => {
+    setConversations(prev => prev.map(conv => {
+      if (conv.id === conversationId) {
+        return {
+          ...conv,
+          title: title,
+          timestamp: getCurrentTimestamp()
+        };
+      }
+      return conv;
+    }));
+  };
+
+  /**
+   * Helper function to add a message to conversation
+   * @param conversationId - ID of the conversation to add message to
+   * @param content - Content of the message
+   * @param type - Type of message ('user' or 'assistant')
+   * @returns The created message (useful for user messages that need to be referenced)
+   */
+  const addMessage = (
+    conversationId: string, 
+    content: string, 
+    type: 'user' | 'assistant'
+  ): Message => {
+    const message: Message = {
+      id: generateMessageId(type === 'assistant' ? 1 : 0),
+      type,
+      content,
+      timestamp: getCurrentTimestamp()
+    };
+
+    setConversations(prev => prev.map(conv => {
+      if (conv.id === conversationId) {
+        return {
+          ...conv,
+          messages: [...conv.messages, message],
+          lastMessage: content,
+          timestamp: getCurrentTimestamp()
+        };
+      }
+      return conv;
+    }));
+
+    return message;
+  };
+
+  /**
+   * Helper function to handle streaming chat response
+   * @param conversationId - ID of the conversation
+   * @param messages - Messages to send to AI
+   * @param userMessage - The user message content (for retry state)
+   * @param isRetry - Whether this is a retry attempt
+   */
+  const handleStreamingResponse = async (
+    conversationId: string,
+    messages: Message[],
+    userMessage: string,
+    isRetry: boolean = false
+  ) => {
+    const abortController = initializeStreaming(conversationId, userMessage);
+
+    await streamChatResponse(
+      messages,
+      // Token callback
+      (token: string) => {
+        streamingContentRef.current += token;
+        setStreamingMessage(streamingContentRef.current);
+      },
+      // Error callback
+      (error: AppError) => {
+        console.error(isRetry ? '❌ Retry streaming error:' : '❌ Streaming error:', {
+          error,
+          type: error?.type,
+          message: error?.message,
+          retryable: error?.retryable
+        });
+        
+        if (!isRetry) {
+          // Store retry information for new messages
+          const currentConversation = conversations.find(conv => conv.id === conversationId);
+          setRetryState({
+            conversationId,
+            lastUserMessage: userMessage,
+            messagesBeforeError: currentConversation?.messages || []
+          });
+        }
+        // For retries, keep existing retryState for future retry attempts
+        
+        setApiError(error.message);
+        cleanupStreaming();
+      },
+      // Complete callback
+      () => {
+        if (streamingContentRef.current.trim()) {
+          addMessage(conversationId, streamingContentRef.current, 'assistant');
+        }
+        cleanupStreaming();
+        setRetryState(null);
+      },
+      abortController
+    );
+  };
 
   // Persist conversations to localStorage whenever they change
   useEffect(() => {
@@ -90,10 +255,12 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, [conversations]);
 
+  // === CONVERSATION CRUD OPERATIONS ===
+  
   /**
    * Creates a new conversation with default values
    */
-  const createConversation = (): Conversation => {
+  const createConversation = (firstMessage?: string): Conversation => {
     const newConversation: Conversation = {
       id: generateConversationId(),
       title: 'שיחה חדשה',
@@ -103,23 +270,20 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
     
     setConversations(prev => [newConversation, ...prev]);
+    
+    // Generate title for first message (don't await, let it run in background)
+    if (firstMessage) {
+      generateConversationTitle(firstMessage)
+        .then((title: string) => {
+          updateConversationTitle(newConversation.id, title);
+        })
+        .catch((error: unknown) => {
+          console.warn('Failed to generate conversation title:', error);
+          // Keep the default title if generation fails
+        });
+    }
+    
     return newConversation;
-  };
-
-  /**
-   * Updates an existing conversation with partial data
-   */
-  const updateConversation = (id: string, updates: Partial<Conversation>) => {
-    setConversations(prev => prev.map(conv => 
-      conv.id === id ? { ...conv, ...updates } : conv
-    ));
-  };
-
-  /**
-   * Deletes a conversation by ID
-   */
-  const deleteConversation = (id: string) => {
-    setConversations(prev => prev.filter(conv => conv.id !== id));
   };
 
   /**
@@ -129,129 +293,24 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     return conversations.find(conv => conv.id === id) || null;
   };
 
+  // === MESSAGE SENDING AND STREAMING OPERATIONS ===
+  
   /**
-   * Sends a message and streams the AI response
+   * Sends a user message and streams the AI response
    */
   const sendMessage = async (conversationId: string, messageContent: string) => {
-    setApiError(null);
     setRetryState(null); // Clear any previous retry state
     
-    // Store the user message and conversation ID for potential stop/revert
-    lastUserMessageRef.current = messageContent;
-    currentConversationIdRef.current = conversationId;
-    
-    const userMessage: Message = {
-      id: generateMessageId(),
-      type: 'user',
-      content: messageContent,
-      timestamp: getCurrentTimestamp()
-    };
-
     const currentConversation = conversations.find(conv => conv.id === conversationId);
     
-    // Update conversation with user message
-    setConversations(prev => prev.map(conv => {
-      if (conv.id === conversationId) {
-        return {
-          ...conv,
-          title: conv.messages.length === 0 ? messageContent : conv.title,
-          messages: [...conv.messages, userMessage],
-          lastMessage: messageContent,
-          timestamp: getCurrentTimestamp()
-        };
-      }
-      return conv;
-    }));
-
-    // Store state for potential retry
-    const messagesBeforeRequest = currentConversation ? [...currentConversation.messages, userMessage] : [userMessage];
+    // Add user message to conversation
+    const userMessage = addMessage(conversationId, messageContent, 'user');
     
-    // Initialize streaming state
-    setisStreaming(true);
-    setStreamingMessage('');
-    streamingContentRef.current = '';
-
-    // Creates a new AbortController instance - a Web API that can cancel network request
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-
-    // Build complete message history for API request
-    const allMessages = messagesBeforeRequest;
-
-    await streamChatResponse(
-      allMessages,
-      // Token callback - called for each streamed token
-      (token: string) => {
-        streamingContentRef.current += token;
-        setStreamingMessage(streamingContentRef.current);
-      },
-      // Error callback - called when streaming fails
-      (error: AppError) => {
-        console.error('❌ Streaming error:', error);
-        
-        // Store retry information for the failed message
-        setRetryState({
-          conversationId,
-          lastUserMessage: messageContent,
-          messagesBeforeError: currentConversation?.messages || []
-        });
-        
-        // If error occurred during streaming, keep user message but remove any partial assistant response
-        setConversations(prev => prev.map(conv => {
-          if (conv.id === conversationId) {
-            const messagesWithUser = currentConversation ? [...currentConversation.messages, userMessage] : [userMessage];
-            return {
-              ...conv,
-              messages: messagesWithUser,
-              lastMessage: userMessage.content,
-              timestamp: getCurrentTimestamp()
-            };
-          }
-          return conv;
-        }));
-        
-        setApiError(error.message);
-        setisStreaming(false);
-        setStreamingMessage('');
-        streamingContentRef.current = '';
-        abortControllerRef.current = null;
-      },
-      // Complete callback - called when streaming finishes successfully
-      () => {
-        const finalContent = streamingContentRef.current;
-        
-        if (finalContent.trim()) {
-          const assistantMessage: Message = {
-            id: generateMessageId(1), // Add offset to ensure unique ID
-            type: 'assistant',
-            content: finalContent,
-            timestamp: getCurrentTimestamp()
-          };
-
-          setConversations(prev => prev.map(conv => {
-            if (conv.id === conversationId) {
-              return {
-                ...conv,
-                messages: [...conv.messages, assistantMessage],
-                lastMessage: assistantMessage.content,
-                timestamp: getCurrentTimestamp()
-              };
-            }
-            return conv;
-          }));
-        }
-        
-        // Clean up streaming state and retry info
-        setisStreaming(false);
-        setStreamingMessage('');
-        streamingContentRef.current = '';
-        abortControllerRef.current = null;
-        lastUserMessageRef.current = null;
-        currentConversationIdRef.current = null;
-        setRetryState(null);
-      },
-      abortController
-    );
+    // Build message history for API request
+    const messagesForRequest = currentConversation ? [...currentConversation.messages, userMessage] : [userMessage];
+    
+    // Handle streaming response
+    await handleStreamingResponse(conversationId, messagesForRequest, messageContent, false);
   };
 
   /**
@@ -265,80 +324,12 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
 
     const { conversationId, lastUserMessage } = retryState;
-    
-    // Clear error state but keep conversation as is (with user message)
-    setApiError(null);
-    
-    // Get current conversation with user message already included
     const currentConversation = conversations.find(conv => conv.id === conversationId);
+    
     if (!currentConversation) return;
 
-    // Initialize streaming state
-    setisStreaming(true);
-    setStreamingMessage('');
-    streamingContentRef.current = '';
-
-    // Create new AbortController for retry
-    const abortController = new AbortController();
-    abortControllerRef.current = abortController;
-
-    // Store references for potential stop/revert
-    lastUserMessageRef.current = lastUserMessage;
-    currentConversationIdRef.current = conversationId;
-
-    // Retry streaming with existing messages (user message already in conversation)
-    await streamChatResponse(
-      currentConversation.messages,
-      // Token callback
-      (token: string) => {
-        streamingContentRef.current += token;
-        setStreamingMessage(streamingContentRef.current);
-      },
-      // Error callback
-      (error: AppError) => {
-        console.error('❌ Retry streaming error:', error);
-        
-        // Preserve retry state so user can retry again
-        // retryState is already set, no need to change it
-        
-        setApiError(error.message);
-        setisStreaming(false);
-        setStreamingMessage('');
-        streamingContentRef.current = '';
-        abortControllerRef.current = null;
-        // Don't clear retryState here - keep it for future retries
-      },
-      // Complete callback
-      () => {
-        if (streamingContentRef.current) {
-          const assistantMessage: Message = {
-            id: generateMessageId(),
-            type: 'assistant',
-            content: streamingContentRef.current,
-            timestamp: getCurrentTimestamp()
-          };
-
-          setConversations(prev => prev.map(conv => {
-            if (conv.id === conversationId) {
-              return {
-                ...conv,
-                messages: [...conv.messages, assistantMessage],
-                lastMessage: assistantMessage.content,
-                timestamp: getCurrentTimestamp()
-              };
-            }
-            return conv;
-          }));
-        }
-
-        setisStreaming(false);
-        setStreamingMessage('');
-        streamingContentRef.current = '';
-        abortControllerRef.current = null;
-        setRetryState(null);
-      },
-      abortController
-    );
+    // Handle streaming response for retry
+    await handleStreamingResponse(conversationId, currentConversation.messages, lastUserMessage, true);
   };
 
   /**
@@ -346,54 +337,23 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
    * Returns the last user message content for restoration to input
    */
   const stopStreaming = (): string | null => {
-    // Get the user message to restore before we clear refs
+    // Capture state before cleanup
     const userMessageToRestore = lastUserMessageRef.current;
     const conversationId = currentConversationIdRef.current;
 
-    // Clear UI state
-    setisStreaming(false);
-    setStreamingMessage('');
-    streamingContentRef.current = '';
+    // Abort ongoing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Clear all state and UI
+    cleanupStreaming();
     setApiError(null);
     setRetryState(null);
 
-    // Abort the current streaming request after clearing state
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-      abortControllerRef.current = null;
-    }
-
-    // Clear refs after abort to prevent any callback issues
-    lastUserMessageRef.current = null;
-    currentConversationIdRef.current = null;
-
+    // Revert conversation if we have the necessary data
     if (conversationId && userMessageToRestore) {
-      // Revert the conversation state - remove the last user message
-      setConversations(prev => {
-        const updatedConversations = prev.map(conv => {
-          if (conv.id === conversationId) {
-            // Remove the last message (which should be the user message we just added)
-            const updatedMessages = conv.messages.slice(0, -1);
-            
-            // If conversation becomes empty after removing message, mark for deletion
-            if (updatedMessages.length === 0) {
-              return null; // Will be filtered out
-            }
-            
-            return {
-              ...conv,
-              messages: updatedMessages,
-              lastMessage: updatedMessages.length > 0 
-                ? updatedMessages[updatedMessages.length - 1].content 
-                : '',
-              timestamp: getCurrentTimestamp()
-            };
-          }
-          return conv;
-        }).filter((conv): conv is Conversation => conv !== null); // Remove null conversations (empty ones)
-        
-        return updatedConversations;
-      });
+      revertConversation(conversationId);
     }
 
     return userMessageToRestore;
@@ -420,24 +380,25 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  // === CONTEXT VALUE ASSEMBLY ===
+  
   const value: ConversationContextType = {
-    conversations,
-    isStreaming,
-    isNavigationLoading,
-    streamingMessage,
-    apiError,
-    createConversation,
-    updateConversation,
-    deleteConversation,
-    sendMessage,
-    getConversation,
-    retryLastMessage,
-    stopStreaming,
-    createStopHandler,
-    setNavigationLoading: setIsNavigationLoading,
+    conversations,         // Array of all conversations
+    isStreaming,           // Boolean: Is AI currently responding?
+    isNavigationLoading,   // Boolean: Is page navigation happening?
+    streamingMessage,      // String: Current AI response being typed
+    apiError,              // String | null: Any error messages
+    createConversation,    // (firstMessage?) => Creates new conversation
+    sendMessage,           // (id, message) => Sends message and streams response
+    getConversation,       // (id) => Retrieves specific conversation
+    retryLastMessage,      // () => Retries failed message
+    stopStreaming,         // () => Stops AI response, returns user message
+    createStopHandler,     // Factory for creating stop handlers
+    setNavigationLoading: setIsNavigationLoading,  // (boolean) => Sets navigation loading state
   };
 
   return (
+    // Provides the context value to all components within the ConversationProvider
     <ConversationContext.Provider value={value}>
       {children}
     </ConversationContext.Provider>
