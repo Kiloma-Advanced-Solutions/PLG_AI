@@ -215,7 +215,12 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       },
       // Error callback
       (error: AppError) => {
-        console.error(isRetry ? '❌ Retry streaming error:' : '❌ Streaming error:', error);
+        console.error(isRetry ? '❌ Retry streaming error:' : '❌ Streaming error:', {
+          error,
+          type: error?.type,
+          message: error?.message,
+          retryable: error?.retryable
+        });
         
         if (!isRetry) {
           // Store retry information for new messages

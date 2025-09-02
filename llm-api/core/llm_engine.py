@@ -145,9 +145,7 @@ class LLMEngine:
             
             async with client.stream("POST", self.chat_url, json=payload, headers=llm_config.vllm_headers) as response:
                 if response.status_code != 200:
-                    logger.error(f"vLLM API error: {response.status_code}")
-                    response_text = await response.text()
-                    logger.error(f"vLLM error response: {response_text}")
+                    logger.error(f"vLLM streaming request failed with status {response.status_code}")
                     yield f'data: {{"error": "LLM service error: {response.status_code}"}}\n\n'
                     return
                 

@@ -53,7 +53,7 @@ export default function ChatMessageComponent({
         <div className={styles.messageText} dir="rtl" data-streaming={isStreaming}>
           <ReactMarkdown
             remarkPlugins={[remarkGfm, remarkMath]}
-            rehypePlugins={[rehypeKatex, rehypeRaw]}
+            rehypePlugins={[rehypeKatex]}
             components={{
               code(props) {
                 const { children, className, inline, ...rest } = props as unknown as {
@@ -125,9 +125,12 @@ export default function ChatMessageComponent({
               ),
               // Allow basic HTML like <u>, <div> via rehypeRaw; no special mapping needed here
             }}
-          >
-            {isStreaming ? `${content}<span class="streaming-cursor">|</span>` : content}
+            >
+            {content}
           </ReactMarkdown>
+          {isStreaming && (
+            <span className={styles.streamingCursor}>|</span>
+          )}
           {!isStreaming && (
             <span className={styles.inlineTimestamp}>
               {timestamp}
