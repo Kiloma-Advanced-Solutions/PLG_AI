@@ -90,7 +90,9 @@ export default function ChatMessageComponent({
                         margin: '0',
                         borderRadius: '0.5rem',
                         maxWidth: '100%',
-                        overflow: 'auto'
+                        overflow: 'auto',
+                        padding: '1rem',
+                        direction: 'ltr',
                       }}
                       showLineNumbers={false}
                       wrapLines={false}
