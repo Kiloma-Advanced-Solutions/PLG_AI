@@ -77,7 +77,7 @@ export default function NewChatPage() {
     // Only create a new conversation if this is truly the first message
     if (!currentConversationId) {
       // Create a new conversation when sending the first message
-      const newConversation = createConversation();
+      const newConversation = createConversation(messageContent);
       setCurrentConversationId(newConversation.id);
       conversationId = newConversation.id;
       

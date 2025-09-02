@@ -12,12 +12,13 @@ import { AppError, createAppError } from './error-handling';
 
 const API_CONFIG = {
   // API URL - Set via environment variable
-  baseUrl: 'http://5.38.183.178:49853',
+  baseUrl: 'http://113.201.14.131:35701',
 
   // API Endpoints
   endpoints: {
     chat: '/api/chat/stream',
-    health: '/api/health'
+    health: '/api/health',
+    titleGenerate: '/api/title/generate'
   },
   
   // Storage keys
@@ -241,5 +242,37 @@ export const streamChatResponse = async (
       'שגיאה בחיבור לשרת',
       true
     ));
+  }
+};
+
+// ========================================
+// TITLE GENERATION FUNCTION
+// ========================================
+
+/**
+ * Generate a title for a conversation based on the user message
+ */
+export const generateConversationTitle = async (userMessage: string): Promise<string> => {
+  try {
+    const response = await fetch(
+      `${API_CONFIG.baseUrl}${API_CONFIG.endpoints.titleGenerate}`,
+      {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          user_message: userMessage
+        })
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Title generation failed: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.title || "שיחה חדשה";
+  } catch (error) {
+    console.warn('Failed to generate title, using fallback:', error);
+    return "שיחה חדשה";
   }
 }; 
