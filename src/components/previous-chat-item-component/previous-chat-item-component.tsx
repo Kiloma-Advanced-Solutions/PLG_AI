@@ -28,21 +28,21 @@ export default function PreviousChatItemComponent({
   onSelect,
   onTitleEdit
 }: PreviousChatItemComponentProps) {
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingTitle, setisEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState(conversation.title);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Focus input when entering edit mode
   useEffect(() => {
-    if (isEditing && inputRef.current) {
+    if (isEditingTitle && inputRef.current) {
       inputRef.current.focus();   // put the cursor in the input
       inputRef.current.select();  // highlight all text inside it
     }
-  }, [isEditing]);
+  }, [isEditingTitle]);
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering onSelect
-    setIsEditing(true);
+    setisEditingTitle(true);
     setEditTitle(conversation.title);
   };
 
@@ -51,12 +51,12 @@ export default function PreviousChatItemComponent({
     if (trimmedTitle && trimmedTitle !== conversation.title && onTitleEdit) {
       onTitleEdit(conversation.id, trimmedTitle);
     }
-    setIsEditing(false);
+    setisEditingTitle(false);
   };
 
   const handleCancel = () => {
     setEditTitle(conversation.title);
-    setIsEditing(false);
+    setisEditingTitle(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -81,7 +81,7 @@ export default function PreviousChatItemComponent({
       aria-label={`Open conversation: ${conversation.title}`}
     >
       <div className={styles.conversationItemTitle}>
-        {isEditing ? (
+        {isEditingTitle ? (
           <input
             ref={inputRef}                    // Reference for focus/select
             type="text"                       // Text input type
@@ -101,7 +101,7 @@ export default function PreviousChatItemComponent({
           height="16px" 
           viewBox="0 0 24 24" 
           fill="none" 
-          className={styles.editIcon} 
+          className={styles.editTitleIcon} 
           onClick={handleEditClick}
           role="button"
           tabIndex={0}
