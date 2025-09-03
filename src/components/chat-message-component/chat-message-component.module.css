@@ -124,6 +124,71 @@
   color: var(--text-secondary);
 }
 
+/* Edit Mode Styles */
+.editContainer {
+  width: 100%;
+}
+
+/* When in edit mode, expand user messages to full container width */
+.userMessageWrapper.editing {
+  max-width: 100%;
+  width: 100%;
+}
+
+.editTextarea {
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  background-color: var(--message-bg);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  resize: vertical;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.editTextarea:focus {
+  border-color: var(--primary-color);
+}
+
+.editButtons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.saveButton, .cancelButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveButton {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.saveButton:hover {
+  opacity: 0.9;
+}
+
+.cancelButton {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.cancelButton:hover {
+  background-color: var(--border-color);
+}
+
+
 /* Markdown Elements */
 .paragraph {
   margin: 0.5rem 0;
@@ -235,6 +300,11 @@
     max-width: 85%;
   }
 
+  .userMessageWrapper.editing {
+    max-width: 100%;
+    width: 100%;
+  }
+
   .messageContainer.assistant .messageBox {
     max-width: 90%;
   }
@@ -246,6 +316,7 @@
   }
 }
 
+
 /* Mobile Responsive */
 @media (max-width: 600px) {
   .messageContainer {
@@ -254,6 +325,11 @@
 
   .userMessageWrapper {
     max-width: 90%;
+  }
+
+  .userMessageWrapper.editing {
+    max-width: 100%;
+    width: 100%;
   }
 
   .messageBox {
@@ -275,61 +351,3 @@
   .heading3 { font-size: 1rem; }
 }
 
-/* Edit Mode Styles */
-.editContainer {
-  width: 100%;
-}
-
-.editTextarea {
-  width: 100%;
-  padding: 0.25rem;
-  border: none;
-  border-radius: 0.5rem;
-  background-color: var(--message-bg);
-  color: var(--text-primary);
-  font-family: inherit;
-  font-size: 0.95rem;
-  line-height: 1.4;
-  resize: none;
-  outline: none;
-  box-sizing: border-box;
-}
-
-.editTextarea:focus {
-  border-color: var(--primary-color);
-}
-
-.editButtons {
-  display: flex;
-  gap: 0.5rem;
-  /* margin-top: 0.5rem;
-  justify-content: flex-end; */
-}
-
-.saveButton, .cancelButton {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 0.5rem;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.saveButton {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.saveButton:hover {
-  opacity: 0.9;
-}
-
-.cancelButton {
-  background-color: var(--hover-bg);
-  color: var(--text-primary);
-}
-
-.cancelButton:hover {
-  background-color: var(--border-color);
-}

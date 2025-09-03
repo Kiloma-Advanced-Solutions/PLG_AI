@@ -71,16 +71,18 @@ export default function ChatMessageComponent({
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && e.ctrlKey) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
       handleSaveMessage();
     } else if (e.key === 'Escape') {
       handleCancel();
     }
   };
+
   return (
     <div className={`${styles.messageContainer} ${styles[type]}`}>
       {type === 'user' ? (
-        <div className={styles.userMessageWrapper}>
+        <div className={`${styles.userMessageWrapper} ${isEditing ? styles.editing : ''}`}>
           <div className={styles.messageBox}>
             {isEditing ? (
               <div className={styles.editContainer}>
