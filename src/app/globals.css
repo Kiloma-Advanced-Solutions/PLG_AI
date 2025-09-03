@@ -60,7 +60,7 @@
   --user-message-text: #0d0d0d;
   --scroll-bar-color: #cbd5e1;
   --scroll-bar-color-hover: #94a3b8;
-  --send-button-bg: var(--scroll-bar-color-hover);
+  --send-button-bg: var(--primary-color);
   --inverse-text: var(--background-color);
   --inverse-text-muted: #ffffffcc;
   
@@ -85,12 +85,12 @@
   --input-bg: #30302e;
   --border-color: #ffffff0d;
   --hover-bg: var(--input-bg);
-  --primary-color: #60a5fa;
+  --primary-color: #667eea;
   --user-message-bg: #323232d9;
   --user-message-text: #ffffff;
   --scroll-bar-color: #5a5a5a;
   --scroll-bar-color-hover: #8a8a8a;
-  --send-button-bg: var(--scroll-bar-color-hover);
+  --send-button-bg: var(--primary-color);
   --inverse-text: #ffffff;
   --inverse-text-muted: #ffffffcc;
   
