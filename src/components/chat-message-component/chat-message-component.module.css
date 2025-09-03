@@ -137,7 +137,6 @@
 
 .editTextarea {
   width: 100%;
-  min-height: 3rem;
   padding: 0.75rem 1rem;
   border: none;
   border-radius: 0.5rem;
@@ -158,6 +157,7 @@
 .editButtons {
   display: flex;
   gap: 0.5rem;
+  padding-top: 1rem;
 }
 
 .saveButton, .cancelButton {
