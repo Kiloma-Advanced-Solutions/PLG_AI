@@ -7,6 +7,7 @@ import SidebarComponent from '../../../components/sidebar-component/sidebar-comp
 import ChatContainerComponent from '../../../components/chat-container-component/chat-container-component';
 import { useConversationContext } from '../../../contexts/ConversationContext';
 import { getConversationsWithMessages } from '../../../utils/conversation';
+import { useSidebar } from '../../../hooks/useSidebar';
 import styles from '../../page.module.css';
 
 /**
@@ -31,8 +32,8 @@ export default function ChatPage() {
     setNavigationLoading
   } = useConversationContext();
   
+  const { isSidebarOpen, toggleSidebar } = useSidebar();
   const conversationsWithMessages = getConversationsWithMessages(conversations);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [prefilledMessage, setPrefilledMessage] = useState('');
   const currentConversation = getConversation(conversationId);
 
@@ -91,7 +92,7 @@ export default function ChatPage() {
     <div className={styles.container} dir="rtl">
       <HeaderComponent 
         isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+        onToggleSidebar={toggleSidebar}
         onNewChatClick={handleNewChatClick}
       />
       
@@ -124,7 +125,7 @@ export default function ChatPage() {
         conversations={conversationsWithMessages}
         currentConversationId={conversationId}
         isOpen={isSidebarOpen}
-        onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
+        onToggle={toggleSidebar}
         onNewChatClick={handleNewChatClick}
         onTitleEdit={updateConversationTitle}
       />

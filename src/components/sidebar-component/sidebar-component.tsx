@@ -32,10 +32,10 @@ export default function SidebarComponent({
   const { goToConversation, goToNewChat } = useNavigationHelpers();
   
   /**
-   * Handles conversation selection with sidebar closing
+   * Handles conversation selection
    */
   const handleConversationSelect = (conversationId: string) => {
-    goToConversation(conversationId, isOpen ? onToggle : undefined);
+    goToConversation(conversationId);
   };
   
   /**
