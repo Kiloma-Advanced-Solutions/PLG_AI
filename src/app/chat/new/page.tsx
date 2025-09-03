@@ -26,6 +26,7 @@ export default function NewChatPage() {
     updateConversationTitle,
     retryLastMessage,
     createStopHandler,
+    createMessageEditHandler,
     setNavigationLoading
   } = useConversationContext();
   
@@ -139,6 +140,7 @@ export default function NewChatPage() {
           key={currentConversationId || 'new'}
           messages={displayMessages}
           onSendMessage={handleSendMessage}
+          onMessageEdit={createMessageEditHandler(currentConversationId)}
           isStreaming={isStreaming}
           isSidebarOpen={isSidebarOpen}
           streamingMessage={streamingMessage}

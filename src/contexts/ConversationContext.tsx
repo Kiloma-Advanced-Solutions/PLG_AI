@@ -20,9 +20,11 @@ type ConversationContextType = {
   sendMessage: (conversationId: string, message: string) => Promise<void>;
   getConversation: (id: string) => Conversation | null;
   updateConversationTitle: (conversationId: string, title: string) => void;
+  editMessage: (conversationId: string, messageId: string, newContent: string) => Promise<void>;
   retryLastMessage: () => Promise<void>;
   stopStreaming: () => string | null;
   createStopHandler: (setPrefilledMessage: (message: string) => void, onAdditionalCleanup?: () => void) => (currentInputValue: string) => void;
+  createMessageEditHandler: (conversationId: string | null) => (messageId: string, newContent: string) => Promise<void>;
   setNavigationLoading: (loading: boolean) => void;
 };
 
@@ -318,6 +320,51 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   };
 
   /**
+   * Edits a message and clears the conversation from that point
+   */
+  const editMessage = async (conversationId: string, messageId: string, newContent: string) => {
+    setRetryState(null); // Clear any previous retry state
+    
+    const currentConversation = conversations.find(conv => conv.id === conversationId);
+    if (!currentConversation) return;
+
+    // Find the message to edit
+    const messageIndex = currentConversation.messages.findIndex(msg => msg.id === messageId);
+    if (messageIndex === -1) return;
+
+    const messageToEdit = currentConversation.messages[messageIndex];
+    if (messageToEdit.type !== 'user') return; // Only allow editing user messages
+
+    // Create updated message
+    const updatedMessage = {
+      ...messageToEdit,
+      content: newContent,
+      timestamp: getCurrentTimestamp()
+    };
+
+    // Create messages array up to and including the edited message
+    const newConversationMessages = [
+      ...currentConversation.messages.slice(0, messageIndex),
+      updatedMessage
+    ];
+
+    // Update conversation state in one go
+    setConversations(prev => prev.map(conv => {
+      if (conv.id !== conversationId) return conv;
+      
+      return {
+        ...conv,
+        messages: newConversationMessages,
+        lastMessage: newContent,
+        timestamp: getCurrentTimestamp()
+      };
+    }));
+
+    // Send the edited message to get new AI response
+    await handleStreamingResponse(conversationId, newConversationMessages, newContent, false);
+  };
+
+  /**
    * Retries the last failed message by resending it
    */
   const retryLastMessage = async () => {
@@ -384,6 +431,16 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   };
 
+  /**
+   * Creates a standardized message edit handler for pages
+   */
+  const createMessageEditHandler = (conversationId: string | null) => 
+    async (messageId: string, newContent: string) => {
+      if (conversationId) {
+        await editMessage(conversationId, messageId, newContent);
+      }
+    };
+
   // === CONTEXT VALUE ASSEMBLY ===
   
   const value: ConversationContextType = {
@@ -396,9 +453,11 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     sendMessage,           // (id, message) => Sends message and streams response
     getConversation,       // (id) => Retrieves specific conversation
     updateConversationTitle, // (id, title) => Updates conversation title
+    editMessage,           // (id, messageId, newContent) => Edits message and clears conversation
     retryLastMessage,      // () => Retries failed message
     stopStreaming,         // () => Stops AI response, returns user message
     createStopHandler,     // Factory for creating stop handlers
+    createMessageEditHandler, // Factory for creating message edit handlers
     setNavigationLoading: setIsNavigationLoading,  // (boolean) => Sets navigation loading state
   };
 

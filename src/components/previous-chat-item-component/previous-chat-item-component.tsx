@@ -46,7 +46,7 @@ export default function PreviousChatItemComponent({
     setEditTitle(conversation.title);
   };
 
-  const handleSave = () => {
+  const handleSaveTitle = () => {
     const trimmedTitle = editTitle.trim();
     if (trimmedTitle && trimmedTitle !== conversation.title && onTitleEdit) {
       onTitleEdit(conversation.id, trimmedTitle);
@@ -61,7 +61,7 @@ export default function PreviousChatItemComponent({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSave();
+      handleSaveTitle();
     } else if (e.key === 'Escape') {
       handleCancel();
     }
@@ -87,7 +87,7 @@ export default function PreviousChatItemComponent({
             type="text"                       // Text input type
             value={editTitle}                 // Controlled input value
             onChange={(e) => setEditTitle(e.target.value)}  // Update state on change
-            onBlur={handleSave}               // Save when user clicks away
+            onBlur={handleSaveTitle}          // Save when user clicks away
             onKeyDown={handleKeyDown}         // Handle Enter/Escape keys
             className={styles.titleInput}     // CSS styling
             maxLength={50}                    // Limit to 50 characters

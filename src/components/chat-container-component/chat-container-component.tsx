@@ -13,6 +13,7 @@ import styles from './chat-container-component.module.css';
 type ChatContainerComponentProps = {
   messages: Message[];
   onSendMessage: (message: string) => void;
+  onMessageEdit?: (messageId: string, newContent: string) => Promise<void>;
   isStreaming?: boolean;
   isSidebarOpen?: boolean;
   streamingMessage?: string;
@@ -30,6 +31,7 @@ type ChatContainerComponentProps = {
 export default function ChatContainerComponent({ 
   messages, 
   onSendMessage, 
+  onMessageEdit,
   isStreaming = false, 
   isSidebarOpen = false,
   streamingMessage = '',
@@ -135,6 +137,10 @@ export default function ChatContainerComponent({
                 type={message.type}
                 content={message.content}
                 timestamp={formatMessageTimestamp(message.timestamp)}
+                onMessageEdit={message.type === 'user' && onMessageEdit ? 
+                  (newContent: string) => onMessageEdit(message.id, newContent) : 
+                  undefined
+                }
               />
             ))
           )}

@@ -1,12 +1,18 @@
 /* Message Containers */
 .messageContainer {
   display: flex;
-  margin: 1rem 1.75rem;
+  margin: 0.5rem 1.75rem;
 }
 
 .messageContainer.user {
   justify-content: flex-end;
-  position: relative;
+}
+
+.userMessageWrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  max-width: 80%;
 }
 
 .messageContainer.assistant {
@@ -16,8 +22,8 @@
 
 /* User Message Box */
 .messageBox {
-  max-width: 80%;
-  padding: 1rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
   border-radius: 1rem;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -71,21 +77,51 @@
 }
 
 
-/* Timestamps */
+/* Message Features (timestamp + edit icon) */
+.messageFeatures {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-top: 0.2rem;
+}
+
 .messageContainer.user .messageTime {
   font-size: 0.75rem;
   opacity: 0.7;
-  position: absolute;
-  bottom: -1.5rem;
-  left: 0;
   color: var(--text-secondary);
+}
+
+.editIcon {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 1rem;
+  color: var(--text-secondary);
+  opacity: 0;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.userMessageWrapper:hover .editIcon {
+  opacity: 0.7;
+  pointer-events: auto;
+}
+
+.editIcon:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--text-primary);
 }
 
 .inlineTimestamp {
   font-size: 0.75rem;
   opacity: 0.7;
   margin-left: 0.5rem;
-  color: var(--text-secondary, rgba(128, 128, 128, 0.8));
+  color: var(--text-secondary);
 }
 
 /* Markdown Elements */
@@ -192,10 +228,10 @@
 /* Tablet Responsive */
 @media (max-width: 768px) {
   .messageContainer {
-    margin: 1rem 1rem;
+    margin: 0.5rem 1rem;
   }
 
-  .messageBox {
+  .userMessageWrapper {
     max-width: 85%;
   }
 
@@ -213,11 +249,14 @@
 /* Mobile Responsive */
 @media (max-width: 600px) {
   .messageContainer {
-    margin: 1rem 0.5rem;
+    margin: 0.5rem 0.5rem;
+  }
+
+  .userMessageWrapper {
+    max-width: 90%;
   }
 
   .messageBox {
-    max-width: 90%;
     padding: 0.75rem;
   }
 
@@ -234,4 +273,63 @@
   .heading1 { font-size: 1.25rem; }
   .heading2 { font-size: 1.125rem; }
   .heading3 { font-size: 1rem; }
+}
+
+/* Edit Mode Styles */
+.editContainer {
+  width: 100%;
+}
+
+.editTextarea {
+  width: 100%;
+  padding: 0.25rem;
+  border: none;
+  border-radius: 0.5rem;
+  background-color: var(--message-bg);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  resize: none;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.editTextarea:focus {
+  border-color: var(--primary-color);
+}
+
+.editButtons {
+  display: flex;
+  gap: 0.5rem;
+  /* margin-top: 0.5rem;
+  justify-content: flex-end; */
+}
+
+.saveButton, .cancelButton {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saveButton {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.saveButton:hover {
+  opacity: 0.9;
+}
+
+.cancelButton {
+  background-color: var(--hover-bg);
+  color: var(--text-primary);
+}
+
+.cancelButton:hover {
+  background-color: var(--border-color);
 }
