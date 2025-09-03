@@ -28,11 +28,11 @@ export default function PreviousChatItemComponent({
   onSelect,
   onTitleEdit
 }: PreviousChatItemComponentProps) {
-  const [isEditingTitle, setisEditingTitle] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState(conversation.title);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Focus input when entering edit mode
+  // Focus input when entering edit titlemode
   useEffect(() => {
     if (isEditingTitle && inputRef.current) {
       inputRef.current.focus();   // put the cursor in the input
@@ -42,7 +42,7 @@ export default function PreviousChatItemComponent({
 
   const handleEditClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering onSelect
-    setisEditingTitle(true);
+    setIsEditingTitle(true);
     setEditTitle(conversation.title);
   };
 
@@ -51,12 +51,12 @@ export default function PreviousChatItemComponent({
     if (trimmedTitle && trimmedTitle !== conversation.title && onTitleEdit) {
       onTitleEdit(conversation.id, trimmedTitle);
     }
-    setisEditingTitle(false);
+    setIsEditingTitle(false);
   };
 
   const handleCancel = () => {
     setEditTitle(conversation.title);
-    setisEditingTitle(false);
+    setIsEditingTitle(false);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -95,7 +95,7 @@ export default function PreviousChatItemComponent({
         ) : (
           <span className={styles.titleText}>{conversation.title}</span>
         )}
-        {/* edit conversation name icon */}
+        {/* edit conversation title icon */}
         <svg 
           width="16px" 
           height="16px" 
