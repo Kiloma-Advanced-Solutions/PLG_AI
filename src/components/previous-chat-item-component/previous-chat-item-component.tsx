@@ -40,7 +40,7 @@ export default function PreviousChatItemComponent({
     }
   }, [isEditingTitle]);
 
-  const handleEditClick = (e: React.MouseEvent) => {
+  const handleEditTitleClick = (e: React.MouseEvent) => {
     e.stopPropagation(); // Prevent triggering onSelect
     setIsEditingTitle(true);
     setEditTitle(conversation.title);
@@ -102,13 +102,13 @@ export default function PreviousChatItemComponent({
           viewBox="0 0 24 24" 
           fill="none" 
           className={styles.editTitleIcon} 
-          onClick={handleEditClick}
+          onClick={handleEditTitleClick}
           role="button"
           tabIndex={0}
           onKeyDown={(e) => {
             if (e.key === 'Enter' || e.key === ' ') {
               e.preventDefault();
-              handleEditClick(e as any);
+              handleEditTitleClick(e as any);
             }
           }}
           aria-label="Edit conversation title"
