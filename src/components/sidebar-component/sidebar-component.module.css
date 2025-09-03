@@ -87,10 +87,6 @@
   .sidebar.open {
     width: var(--sidebar-width-open-tablet);
   }
-  
-  /* .sidebarContent {
-    width: 180px;
-  } */
 }
 
 @media (max-width: 600px) {
@@ -102,9 +98,3 @@
     width: var(--sidebar-width-open-mobile);
   }
 }
-
-/* Dark mode styles */
-/* :global(.dark) .sidebar {
-  background-color: #1f2937;
-  border-left-color: #374151;
-} */

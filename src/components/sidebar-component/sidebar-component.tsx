@@ -15,6 +15,7 @@ type SidebarComponentProps = {
   isOpen: boolean;
   onToggle: () => void;
   onNewChatClick?: () => void;
+  onTitleEdit?: (conversationId: string, newTitle: string) => void;
 };
 
 /**
@@ -25,7 +26,8 @@ export default function SidebarComponent({
   currentConversationId,
   isOpen,
   onToggle,
-  onNewChatClick
+  onNewChatClick,
+  onTitleEdit
 }: SidebarComponentProps) {
   const { goToConversation, goToNewChat } = useNavigationHelpers();
   
@@ -72,6 +74,7 @@ export default function SidebarComponent({
             conversations={conversations}
             currentConversationId={currentConversationId}
             onConversationSelect={handleConversationSelect}
+            onTitleEdit={onTitleEdit}
           />
         </div>
       )}

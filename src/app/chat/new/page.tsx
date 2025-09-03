@@ -22,6 +22,7 @@ export default function NewChatPage() {
     apiError, 
     createConversation, 
     sendMessage, 
+    updateConversationTitle,
     retryLastMessage,
     createStopHandler,
     setNavigationLoading
@@ -67,6 +68,7 @@ export default function NewChatPage() {
       setTimeout(() => setTriggerInputAnimation(false), 100);
     }
   };
+
 
   /**
    * Handles sending messages - creates new conversation only for first message
@@ -154,6 +156,7 @@ export default function NewChatPage() {
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         onNewChatClick={handleNewChatClick}
+        onTitleEdit={updateConversationTitle}
       />
     </div>
   );

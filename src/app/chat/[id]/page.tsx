@@ -25,6 +25,7 @@ export default function ChatPage() {
     apiError, 
     getConversation, 
     sendMessage, 
+    updateConversationTitle,
     retryLastMessage,
     createStopHandler,
     setNavigationLoading
@@ -82,6 +83,7 @@ export default function ChatPage() {
     router.push('/chat/new');
   };
 
+
   /**
    * Renders the page with conditional main content based on loading state
    */
@@ -124,6 +126,7 @@ export default function ChatPage() {
         isOpen={isSidebarOpen}
         onToggle={() => setIsSidebarOpen(!isSidebarOpen)}
         onNewChatClick={handleNewChatClick}
+        onTitleEdit={updateConversationTitle}
       />
     </div>
   );

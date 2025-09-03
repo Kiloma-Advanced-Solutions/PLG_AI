@@ -11,6 +11,7 @@ type PreviousChatListComponentProps = {
   conversations: Conversation[];
   currentConversationId?: string;
   onConversationSelect: (conversationId: string) => void;
+  onTitleEdit?: (conversationId: string, newTitle: string) => void;
 };
 
 /**
@@ -19,7 +20,8 @@ type PreviousChatListComponentProps = {
 export default function PreviousChatListComponent({
   conversations,
   currentConversationId,
-  onConversationSelect
+  onConversationSelect,
+  onTitleEdit
 }: PreviousChatListComponentProps) {
   return (
     <div className={styles.conversationsList}>
@@ -36,6 +38,7 @@ export default function PreviousChatListComponent({
             conversation={conversation}
             isActive={currentConversationId === conversation.id}
             onSelect={() => onConversationSelect(conversation.id)}
+            onTitleEdit={onTitleEdit}
           />
         ))
       )}

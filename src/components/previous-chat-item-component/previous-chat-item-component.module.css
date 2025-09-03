@@ -3,8 +3,7 @@
   cursor: pointer;
   transition: background-color 0.2s ease;
   border-radius: 2rem;
-  margin: 0.25rem 0.25rem;
-  /* border: 1px solid var(--border-color); */
+  margin: 0.25rem;
   width: calc(100% - 0.5rem);
   box-sizing: border-box;
 }
@@ -23,4 +22,47 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.editIcon {
+  color: var(--text-secondary);
+  opacity: 0.6;
+  transition: opacity 0.2s ease, color 0.2s ease;
+  flex-shrink: 0;
+  display: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.conversationItem:hover .editIcon {
+  display: block;
+  opacity: 0.8;
+  color: var(--text-primary);
+}
+
+.conversationItem:has(.titleInput) .editIcon {
+  display: none;
+}
+
+.titleText,
+.titleInput {
+  flex: 1;
+  min-width: 0;
+}
+
+.titleInput {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: inherit;
+  outline: none;
+  font-family: inherit;
+  line-height: inherit;
 }

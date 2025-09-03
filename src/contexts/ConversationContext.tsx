@@ -19,6 +19,7 @@ type ConversationContextType = {
   createConversation: (firstMessage?: string) => Conversation;
   sendMessage: (conversationId: string, message: string) => Promise<void>;
   getConversation: (id: string) => Conversation | null;
+  updateConversationTitle: (conversationId: string, title: string) => void;
   retryLastMessage: () => Promise<void>;
   stopStreaming: () => string | null;
   createStopHandler: (setPrefilledMessage: (message: string) => void, onAdditionalCleanup?: () => void) => (currentInputValue: string) => void;
@@ -391,6 +392,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     createConversation,    // (firstMessage?) => Creates new conversation
     sendMessage,           // (id, message) => Sends message and streams response
     getConversation,       // (id) => Retrieves specific conversation
+    updateConversationTitle, // (id, title) => Updates conversation title
     retryLastMessage,      // () => Retries failed message
     stopStreaming,         // () => Stops AI response, returns user message
     createStopHandler,     // Factory for creating stop handlers
