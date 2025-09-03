@@ -14,6 +14,7 @@ const API_CONFIG = {
   // API URL - Set via environment variable
   baseUrl: 'http://70.53.171.34:40106',
 
+
   // API Endpoints
   endpoints: {
     chat: '/api/chat/stream',

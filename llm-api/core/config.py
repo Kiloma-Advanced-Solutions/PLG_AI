@@ -13,6 +13,7 @@ class LLMConfig:
         self.cloud_ip: str = os.getenv("LLM_API_CLOUD_IP", "70.53.171.34")  # The public IP of the cloud instance
         self.frontend_port: int = int(os.getenv("LLM_API_FRONTEND_PORT", "40061"))  # 3000 mapped port
         self.api_port: int = int(os.getenv("LLM_API_API_PORT", "40106"))  # 8090 mapped port
+
         self.vllm_port: int = int(os.getenv("LLM_API_VLLM_PORT", "8060"))  # vLLM server port
 
         # Server settings

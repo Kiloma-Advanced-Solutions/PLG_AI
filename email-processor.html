@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>עיבוד מיילים - חילוץ משימות וסיכום</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            transition: border-color 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        .buttons-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 200px;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-extract {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .btn-extract:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-summarize {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+        }
+
+        .btn-summarize:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(245, 158, 11, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .summary-length {
+            margin-bottom: 25px;
+        }
+
+        .summary-length input {
+            width: 100px;
+            padding: 8px 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 6px;
+            margin-right: 10px;
+        }
+
+        .results {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f9fafb;
+            border-radius: 10px;
+            border-right: 4px solid #4f46e5;
+        }
+
+        .results h3 {
+            color: #374151;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .task-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            border-right: 3px solid #10b981;
+        }
+
+        .task-title {
+            font-weight: 600;
+            color: #059669;
+            margin-bottom: 5px;
+        }
+
+        .task-details {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .task-description {
+            color: #374151;
+        }
+
+        .summary-text {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            color: #374151;
+            line-height: 1.6;
+            border-right: 3px solid #f59e0b;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #6b7280;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4f46e5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #fef2f2;
+            color: #dc2626;
+            padding: 15px;
+            border-radius: 8px;
+            border-right: 3px solid #dc2626;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+        }
+
+        @media (max-width: 640px) {
+            .buttons-group {
+                flex-direction: column;
+            }
+            
+            .btn {
+                min-width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 עיבוד מיילים חכם</h1>
+            <p>חלץ משימות או סכם תוכן מיילים באמצעות בינה מלאכותית</p>
+        </div>
+        
+        <div class="content">
+            <div class="input-group">
+                <label for="emailContent">תוכן המייל:</label>
+                <textarea 
+                    id="emailContent" 
+                    placeholder="הדבק כאן את תוכן המייל שברצונך לעבד..."
+                    dir="rtl">שלום צוות,
+
+אני רוצה לעדכן אתכם על המשימות השבועיות:
+
+דוד צריך להכין את הדוח הרבעוני עד יום רביעי הבא (25/12).
+רחל, בבקשה תבדקי את הנתונים של החודש הקודם עד מחר בבוקר.
+מיכל צריכה להכין את המצגת ללקוח החדש עד יום שישי.
+
+בנוסף, הפגישה השבועית תתקיים מחר ב-10:00 בחדר הישיבות.
+
+תודה,
+מנהל הפרויקט</textarea>
+            </div>
+
+            <div class="summary-length">
+                <label>
+                    אורך סיכום רצוי (תווים):
+                    <input type="number" id="summaryLength" value="100" min="50" max="500">
+                </label>
+            </div>
+
+            <div class="buttons-group">
+                <button class="btn btn-extract" onclick="extractTasks()">
+                    📋 חלץ משימות
+                </button>
+                <button class="btn btn-summarize" onclick="summarizeEmail()">
+                    📝 סכם מייל
+                </button>
+            </div>
+
+            <div id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8090/api';
+        
+        async function makeRequest(endpoint, data) {
+            try {
+                const response = await fetch(`${API_BASE}${endpoint}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`שגיאה בשרת: ${response.status}`);
+                }
+
+                return await response.json();
+            } catch (error) {
+                throw new Error(`שגיאה בחיבור: ${error.message}`);
+            }
+        }
+
+        function showLoading(message) {
+            const results = document.getElementById('results');
+            results.innerHTML = `
+                <div class="loading">
+                    ${message}<span class="spinner"></span>
+                </div>
+            `;
+            setButtonsDisabled(true);
+        }
+
+        function showError(message) {
+            const results = document.getElementById('results');
+            results.innerHTML = `
+                <div class="error">
+                    ❌ ${message}
+                </div>
+            `;
+            setButtonsDisabled(false);
+        }
+
+        function setButtonsDisabled(disabled) {
+            document.querySelectorAll('.btn').forEach(btn => {
+                btn.disabled = disabled;
+            });
+        }
+
+        async function extractTasks() {
+            const emailContent = document.getElementById('emailContent').value.trim();
+            
+            if (!emailContent) {
+                showError('אנא הזן תוכן מייל');
+                return;
+            }
+
+            showLoading('מחלץ משימות...');
+
+            try {
+                const result = await makeRequest('/tasks/extract', {
+                    email_content: emailContent
+                });
+
+                displayTasks(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function summarizeEmail() {
+            const emailContent = document.getElementById('emailContent').value.trim();
+            const summaryLength = parseInt(document.getElementById('summaryLength').value);
+            
+            if (!emailContent) {
+                showError('אנא הזן תוכן מייל');
+                return;
+            }
+
+            if (summaryLength < 50 || summaryLength > 500) {
+                showError('אורך הסיכום חייב להיות בין 50 ל-500 תווים');
+                return;
+            }
+
+            showLoading('מכין סיכום...');
+
+            try {
+                const result = await makeRequest('/summarization/summarize', {
+                    email_content: emailContent,
+                    length: summaryLength
+                });
+
+                displaySummary(result);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        function displayTasks(tasks) {
+            const results = document.getElementById('results');
+            setButtonsDisabled(false);
+
+            if (!tasks || tasks.length === 0) {
+                results.innerHTML = `
+                    <div class="results">
+                        <h3>📋 משימות שחולצו</h3>
+                        <div class="empty-state">לא נמצאו משימות במייל זה</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const tasksHtml = tasks.map(task => `
+                <div class="task-item">
+                    <div class="task-title">${task.title || 'ללא כותרת'}</div>
+                    <div class="task-details">
+                        👤 מוקצה ל: ${task.assigned_to || 'לא צוין'} | 
+                        📅 תאריך יעד: ${task.due_date || 'לא צוין'} |
+                        📧 שולח: ${task.sender || 'לא צוין'}
+                    </div>
+                    <div class="task-description">${task.description || 'ללא תיאור'}</div>
+                </div>
+            `).join('');
+
+            results.innerHTML = `
+                <div class="results">
+                    <h3>📋 משימות שחולצו (${tasks.length})</h3>
+                    ${tasksHtml}
+                </div>
+            `;
+        }
+
+        function displaySummary(summary) {
+            const results = document.getElementById('results');
+            setButtonsDisabled(false);
+
+            const summaryText = summary.summary || 'לא ניתן היה לסכם את המייל';
+            const actualLength = summaryText.length;
+
+            results.innerHTML = `
+                <div class="results">
+                    <h3>📝 סיכום המייל (${actualLength} תווים)</h3>
+                    <div class="summary-text">${summaryText}</div>
+                </div>
+            `;
+        }
+
+        // Check API health on page load
+        window.addEventListener('load', async () => {
+            try {
+                await fetch(`${API_BASE}/health`);
+                console.log('✅ API server is running');
+            } catch (error) {
+                showError('שרת ה-API אינו זמין. אנא ודא שהשרת רץ על http://localhost:8090');
+            }
+        });
+    </script>
+</body>
+</html>

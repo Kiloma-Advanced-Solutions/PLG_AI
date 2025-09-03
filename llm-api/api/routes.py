@@ -6,11 +6,12 @@ API endpoints and request routing
 import logging
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
-from core.models import HealthStatus, ChatRequest, TaskExtractionRequest, TaskExtractionResponse, TitleGenerationRequest, TitleGenerationResponse
+from core.models import HealthStatus, ChatRequest, TitleGenerationRequest, TitleGenerationResponse, TaskExtractionRequest, TaskExtractionResponse, EmailSummarizationRequest, EmailSummary
 from utils.health import health_checker
 from services.chat_service import chat_service
 from services.task_service import task_service
 from services.title_service import title_service
+from services.summarization_service import summarization_service
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +92,7 @@ def create_routes(app: FastAPI) -> None:
                 status_code=500,
                 detail=f"Failed to extract tasks: {e}"
             )
-    
+        
     
     # ===============================
     # TITLE GENERATION ENDPOINT
@@ -118,6 +119,36 @@ def create_routes(app: FastAPI) -> None:
                 detail=f"Failed to generate title: {e}"
             )
     
+
+
+    # ===============================
+    # EMAIL SUMMARIZATION ENDPOINT
+    # ===============================
+    
+    @app.post("/api/summarization/summarize", response_model=EmailSummary)
+    async def summarize_email(request: EmailSummarizationRequest) -> EmailSummary:
+        """
+        Summarize an email according to a given length.
+        
+        Args:
+            request: EmailSummarizationRequest containing the email content and the required summary length
+            
+        Returns:
+            EmailSummary containing the summary of the email
+        """
+        try:
+            result = await summarization_service.summarize_email(request.email_content, request.length)
+            return result
+        except Exception as e:
+            logger.error(f"Failed to summarize email: {e}")
+            raise HTTPException(
+                status_code=500,
+                detail=f"Failed to summarize email: {e}"
+            )
+
+
+
+
     
     # ===============================
     # HEALTH MONITORING ENDPOINTS

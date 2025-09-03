@@ -4,7 +4,7 @@ Data models and request/response schemas for the API
 """
 
 from typing import List, Dict, Any, Optional, Literal
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field, field_validator, EmailStr
 from datetime import datetime, date
 
 # ===============================
@@ -44,6 +44,22 @@ class ChatRequest(BaseModel):
 
 
 # ===============================
+# TITLE GENERATION MODELS
+# ===============================
+
+class TitleGenerationRequest(BaseModel):
+    """Request for generating a conversation title"""
+    user_message: str
+
+
+class TitleGenerationResponse(BaseModel):
+    """Response containing a 6-word title"""
+    title: str
+
+
+
+    
+# ===============================
 # TASK EXTRACTION MODELS
 # ===============================
 
@@ -60,22 +76,25 @@ class TaskExtractionRequest(BaseModel):
     email_content: str
     
     
-# Change this to be a list of TaskItem, not wrapped in a dict
+# List of TaskItems
 TaskExtractionResponse = List[TaskItem]
 
 
+
 # ===============================
-# TITLE GENERATION MODELS
+# EMAIL SUMMARIZATION MODELS
 # ===============================
 
-class TitleGenerationRequest(BaseModel):
-    """Request for generating a conversation title"""
-    user_message: str
+class EmailSummary(BaseModel):
+    sender: Optional[EmailStr] = None
+    sending_date: Optional[datetime] = None
+    title: Optional[str] = None
+    summary: Optional[str] = None
 
 
-class TitleGenerationResponse(BaseModel):
-    """Response containing a 6-word title"""
-    title: str
+class EmailSummarizationRequest(BaseModel):
+    email_content: str
+    length: int = 100
 
 
 # ===============================
