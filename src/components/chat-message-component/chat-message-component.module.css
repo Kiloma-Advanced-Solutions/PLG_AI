@@ -135,9 +135,15 @@
   width: 100%;
 }
 
+.userMessageWrapper.editing .messageBox {
+  padding-bottom: 0.5rem;
+}
+
 .editTextarea {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.25rem 0.5rem;
+  min-height: 1.5rem;
+  max-height: calc(1.4em * 4 + 0.5rem);   /* max height of 4 lines of text + padding */
   border: none;
   border-radius: 0.5rem;
   background-color: var(--message-bg);
@@ -145,9 +151,11 @@
   font-family: inherit;
   font-size: 0.95rem;
   line-height: 1.4;
-  resize: vertical;
+  resize: none;
   outline: none;
   box-sizing: border-box;
+  overflow-y: auto;
+  field-sizing: content;
 }
 
 .editTextarea:focus {
@@ -157,14 +165,15 @@
 .editButtons {
   display: flex;
   gap: 0.5rem;
-  padding-top: 1rem;
+  padding-top: 0.3rem;
 }
 
 .saveButton, .cancelButton {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 0.5rem;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
+  font-family: inherit;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;

@@ -27,7 +27,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   // Initialize theme from localStorage on component mount
   useEffect(() => {
     // Check for saved theme preference, default to light mode
-    const savedTheme = localStorage.getItem('theme');
+    const savedTheme = localStorage.getItem('chatplg-theme');
     const isInitiallyDark = savedTheme === 'dark';
     
     setIsDark(isInitiallyDark);
@@ -43,7 +43,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setIsDark(newIsDark);
     
     document.documentElement.classList.toggle('dark', newIsDark);
-    localStorage.setItem('theme', newIsDark ? 'dark' : 'light');
+    localStorage.setItem('chatplg-theme', newIsDark ? 'dark' : 'light');
   };
 
   return (

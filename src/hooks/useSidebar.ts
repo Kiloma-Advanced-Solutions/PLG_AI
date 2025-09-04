@@ -6,7 +6,7 @@ import { useState, useEffect } from 'react';
 export const useSidebar = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('sidebar-open');
+      const saved = localStorage.getItem('chatplg-sidebar-open');
       return saved === 'true';
     }
     return false;
@@ -16,7 +16,7 @@ export const useSidebar = () => {
    * Auto-save to localStorage whenever state changes
    */
   useEffect(() => {
-    localStorage.setItem('sidebar-open', isSidebarOpen.toString());
+    localStorage.setItem('chatplg-sidebar-open', isSidebarOpen.toString());
   }, [isSidebarOpen]);
 
   /**
