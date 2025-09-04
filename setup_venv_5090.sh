@@ -21,18 +21,18 @@ echo -e "${BLUE}====================================================${NC}"
 
 # Append environment variable settings to ~/.bashrc so they persist across terminal sessions
 cat >> ~/.bashrc << 'EOF'
-export MAX_JOBS=16
-export NVCC_THREADS=4
-export FLASHINFER_ENABLE_AOT=1
-export USE_CUDA=1
-export CUDA_HOME=/usr/local/cuda
-export TORCH_CUDA_ARCH_LIST='12.0+PTX'
-export CCACHE_DIR=$HOME/.ccache
-export CMAKE_BUILD_TYPE=Release
-export PATH="/usr/local/cuda/bin:$PATH"
-export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"
-export HF_HUB_DOWNLOAD_TIMEOUT=3000
-export HF_HUB_ENABLE_HF_TRANSFER=1
+export MAX_JOBS=16                           # number of jobs for building vLLM
+export NVCC_THREADS=4                        # number of threads for nvcc
+export FLASHINFER_ENABLE_AOT=1               # enable AOT for FlashInfer
+export USE_CUDA=1                            # use CUDA
+export CUDA_HOME=/usr/local/cuda             # CUDA home directory
+export TORCH_CUDA_ARCH_LIST='12.0+PTX'       # CUDA architecture list for PyTorch
+export CCACHE_DIR=$HOME/.ccache              # cache directory for ccache
+export CMAKE_BUILD_TYPE=Release              # build type for CMake
+export PATH="/usr/local/cuda/bin:$PATH"      # path to CUDA binaries
+export LD_LIBRARY_PATH="/usr/local/cuda/lib64:$LD_LIBRARY_PATH"     # path to CUDA libraries
+export HF_HUB_DOWNLOAD_TIMEOUT=3000          # timeout for Hugging Face Hub
+export HF_HUB_ENABLE_HF_TRANSFER=1           # enable HF transfer
 EOF
 
 # Apply the changes immediately to the current terminal session
@@ -81,33 +81,12 @@ export LLM_API_LOG_LEVEL="INFO"
 export LLM_API_MODEL_NAME="gaunernst/gemma-3-12b-it-qat-autoawq"
 
 # Connection Settings
-export LLM_API_REQUEST_TIMEOUT=300
-export LLM_API_HEALTH_CHECK_TIMEOUT=5
-export LLM_API_CONNECTION_POOL_SIZE=100
-export LLM_API_MAX_KEEPALIVE_CONNECTIONS=50
-export LLM_API_KEEPALIVE_EXPIRY=60.0
+export LLM_API_REQUEST_TIMEOUT=300            # request timeout in seconds
+export LLM_API_HEALTH_CHECK_TIMEOUT=5         # health check timeout in seconds
+export LLM_API_CONNECTION_POOL_SIZE=100       # HTTP connection pool size
+export LLM_API_MAX_KEEPALIVE_CONNECTIONS=50   # Maximum keepalive connections
+export LLM_API_KEEPALIVE_EXPIRY=60.0          # Keepalive expiry time
 
-
-# Function to check if a process is running
-is_process_running() {
-    local search_term=$1
-    if pgrep -f "$search_term" > /dev/null; then
-        return 0  # Process is running
-    else
-        return 1  # Process is not running
-    fi
-}
-
-
-# Function to cleanup on exit
-cleanup() {
-    echo -e "\n${YELLOW}Cleaning up...${NC}"
-    stop_vllm
-    exit 0
-}
-
-# Register cleanup function
-trap cleanup SIGINT SIGTERM
 
 
 # Check NVIDIA drivers and CUDA. If not found, print a red error message and exit.
@@ -135,34 +114,29 @@ echo "🔧 Installing xformers..."
 pip install git+https://github.com/facebookresearch/xformers.git@main#egg=xformers
 
 
-## Create workspace directory for building and installing dependencies
-# echo "📁 Creating workspace..."
-# mkdir -p ~/workspace 
-
-
 # Build and install BitsAndBytes
+# Already cloned and compiled bitsandbytes, so we don't need to do it again
+#   cd ./external_sources && git clone https://github.com/bitsandbytes-foundation/bitsandbytes.git && cd bitsandbytes
+#   cmake -DCOMPUTE_BACKEND=cuda -S . && make -j 4
 echo "🔩 Building BitsAndBytes..."
 cd ./external_sources/bitsandbytes
-# Already cloned and compiled bitsandbytes
-# cd ./external_sources && git clone https://github.com/bitsandbytes-foundation/bitsandbytes.git && cd bitsandbytes
-# cmake -DCOMPUTE_BACKEND=cuda -S . && make -j 4
-pip install -e .  # Instead of copying files to site-packages, it creates a link to your source code
+pip install -e .  # Instead of copying files to site-packages, it creates a link to the source code
 
 
 # Build and install FlashInfer
 echo "⚡ Building FlashInfer..."
-
-# cd ~/workspace && git clone https://github.com/flashinfer-ai/flashinfer.git --branch main --recursive
-# cd flashinfer && git checkout cd928a7e044c94bdd96e3f7ca79a0514b253ea6d
+# Already cloned and compiled flashinfer, so we don't need to do it again
+#   cd ~/workspace && git clone https://github.com/flashinfer-ai/flashinfer.git --branch main --recursive
+#   cd flashinfer && git checkout cd928a7e044c94bdd96e3f7ca79a0514b253ea6d
 cd ../flashinfer
 
 # Install build dependencies
 pip install ninja build packaging "setuptools>=75.6.0"
 
 # Build flashinfer
-python3 -m flashinfer.aot
-python3 -m build --no-isolation --wheel
-pip install dist/flashinfer*.whl
+python3 -m flashinfer.aot                   # Build AOT kernels
+python3 -m build --no-isolation --wheel     # Build FlashInfer wheel
+pip install dist/flashinfer*.whl            # Install FlashInfer wheel
 
 
 # Install additional dependencies
@@ -175,16 +149,15 @@ pip install rich==13.7.1
 pip install starlette==0.46.2
 pip install typing-extensions==4.14.1
 
+
+
 # Build and install vLLM
 echo "🏗️ Building vLLM..."
-# cd ~/workspace && git clone https://github.com/vllm-project/vllm.git --branch main
-# cd vllm && git checkout d84b97a3e33ed79aaba7552bfe5889d363875562
-
-
+# Already cloned and compiled vllm, so we don't need to do it again
+#   cd ~/workspace && git clone https://github.com/vllm-project/vllm.git --branch main
+#   cd vllm && git checkout d84b97a3e33ed79aaba7552bfe5889d363875562
+#   python3 use_existing_torch.py       # Configure for existing PyTorch
 cd ../vllm
-
-# # Configure for existing PyTorch
-# python3 use_existing_torch.py
 
 # Install build requirements
 pip install -r requirements/build.txt
