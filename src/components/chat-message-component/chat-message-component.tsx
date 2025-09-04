@@ -180,6 +180,7 @@ export default function ChatMessageComponent({
                         overflow: 'auto',
                         padding: '1rem',
                         direction: 'ltr',
+                        fontSize: '0.9rem',
                       }}
                       showLineNumbers={false}
                       wrapLines={false}

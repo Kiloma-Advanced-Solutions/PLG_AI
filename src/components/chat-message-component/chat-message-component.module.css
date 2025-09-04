@@ -55,26 +55,35 @@
   white-space: pre-wrap;
 }
 
-/* Code Blocks - Fixed width that never changes */
 
-.codeBlockContainer {
-  width: 50rem !important; /* Fixed rem width - scales with font size */
-  max-width: 50rem !important;
-  min-width: 50rem !important;
-  margin: 1rem 0;
-  overflow: auto;
-  direction: ltr;
-  box-sizing: border-box;
-  flex-shrink: 0 !important;
-}
+/* Force all internal elements to respect container width and font size */
 
-
-
-.codeBlockContainer > div {
-  width: 100% !important;
+.codeBlockContainer,
+.codeBlockContainer *,
+.codeBlockContainer div,
+.codeBlockContainer pre,
+.codeBlockContainer code,
+.codeBlockContainer span {
   max-width: 100% !important;
-  min-width: 100% !important;
+  box-sizing: border-box !important;
+  font-size: 0.9rem !important;
+  font-family: 'SFMono-Regular', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace !important;
 }
+
+/* Responsive width for code blocks - accounts for sidebar and padding */
+.codeBlockContainer {
+  width: 800px !important;
+  max-width: 100% !important;
+  overflow-x: auto !important;
+  box-sizing: border-box !important;
+}
+
+/* Specific handling for user messages to prevent shifting */
+.messageContainer.user .codeBlockContainer {
+  width: 500px !important;
+  max-width: 100% !important;
+}
+
 
 
 /* Message Features (timestamp + edit icon) */
@@ -281,6 +290,7 @@
   font-family: 'SFMono-Regular', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
 }
 
+
 /* Streaming Animation */
 .streamingCursor {
   animation: blink 1s infinite;
@@ -319,9 +329,13 @@
   }
 
   .codeBlockContainer {
-    width: 37.5rem !important; /* Medium fixed width for tablets */
-    max-width: 37.5rem !important;
-    min-width: 37.5rem !important;
+    width: min(500px, calc(100vw - 25rem)) !important; /* Responsive width for tablets */
+    max-width: 100% !important;
+  }
+  
+  .messageContainer.user .codeBlockContainer {
+    width: min(400px, calc(100vw - 25rem)) !important;
+    max-width: 100% !important;
   }
 }
 
@@ -350,9 +364,13 @@
   }
 
   .codeBlockContainer {
-    width: 22rem !important; /* Smaller fixed width for mobile */
-    max-width: 22rem !important;
-    min-width: 22rem !important;
+    width: min(350px, calc(100vw - 4rem)) !important; /* Responsive width for mobile */
+    max-width: 100% !important;
+  }
+  
+  .messageContainer.user .codeBlockContainer {
+    width: min(300px, calc(100vw - 4rem)) !important;
+    max-width: 100% !important;
   }
 
   .heading1 { font-size: 1.25rem; }

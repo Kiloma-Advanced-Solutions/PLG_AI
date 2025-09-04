@@ -22,6 +22,12 @@
   display: flex;
   flex-direction: column;
   padding: 1rem 15rem 2rem;
+  transition: padding 0.3s ease;
+}
+
+/* Reduced padding when sidebar is open */
+.chatContainer.shifted .messagesContainer {
+  padding: 1rem 8rem 2rem;
 }
 
 /* Center welcome message on empty chat */
@@ -208,13 +214,21 @@
 /* Mobile responsive design */
 @media (max-width: 768px) {
   .messagesContainer {
-    padding: 1rem 1rem 1.5rem 1rem; /* Maintain top padding on tablets */
+    padding: 1rem 2rem 1.5rem 2rem; /* Maintain top padding on tablets */
+  }
+  
+  .chatContainer.shifted .messagesContainer {
+    padding: 1rem 1rem 1.5rem 1rem; /* Reduced padding when sidebar is open on tablets */
   }
 }
 
 @media (max-width: 600px) {
   .messagesContainer {
     padding: 0.75rem 1rem 1rem 1rem; /* Slightly less padding but maintain top spacing */
+  }
+  
+  .chatContainer.shifted .messagesContainer {
+    padding: 0.75rem 0.5rem 1rem 0.5rem; /* Further reduced padding for mobile when sidebar is open */
   }
   
   .welcomeMessage {
