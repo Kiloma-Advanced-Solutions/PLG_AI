@@ -16,6 +16,7 @@ type ConversationContextType = {
   isNavigationLoading: boolean;
   streamingMessage: string;
   apiError: string | null;
+  isSidebarOpen: boolean;
   createConversation: (firstMessage?: string) => Conversation;
   sendMessage: (conversationId: string, message: string) => Promise<void>;
   getConversation: (id: string) => Conversation | null;
@@ -26,6 +27,7 @@ type ConversationContextType = {
   createStopHandler: (setPrefilledMessage: (message: string) => void, onAdditionalCleanup?: () => void) => (currentInputValue: string) => void;
   createMessageEditHandler: (conversationId: string | null) => (messageId: string, newContent: string) => Promise<void>;
   setNavigationLoading: (loading: boolean) => void;
+  toggleSidebar: () => void;
 };
 
 /**
@@ -78,6 +80,9 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [streamingMessage, setStreamingMessage] = useState('');
   const [apiError, setApiError] = useState<string | null>(null);
   const [retryState, setRetryState] = useState<RetryState>(null);
+  
+  // Sidebar state - starts closed, loads from localStorage after mount
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   
   // === REFS FOR STREAMING STATE MANAGEMENT ===
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -258,6 +263,16 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       localStorage.setItem('chatplg-conversations', JSON.stringify(conversations));
     }
   }, [conversations]);
+
+  // Load sidebar state from localStorage on mount and save on change
+  useEffect(() => {
+    const saved = localStorage.getItem('chatplg-sidebar-open');
+    if (saved === 'true') setIsSidebarOpen(true);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('chatplg-sidebar-open', isSidebarOpen.toString());
+  }, [isSidebarOpen]);
 
 
 
@@ -441,6 +456,11 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
     };
 
+  /**
+   * Toggle sidebar open state
+   */
+  const toggleSidebar = () => setIsSidebarOpen(prev => !prev);
+
   // === CONTEXT VALUE ASSEMBLY ===
   
   const value: ConversationContextType = {
@@ -459,6 +479,8 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     createStopHandler,     // Factory for creating stop handlers
     createMessageEditHandler, // Factory for creating message edit handlers
     setNavigationLoading: setIsNavigationLoading,  // (boolean) => Sets navigation loading state
+    isSidebarOpen,         // Boolean: Is sidebar currently open?
+    toggleSidebar,         // () => Toggles sidebar open/closed state
   };
 
   return (

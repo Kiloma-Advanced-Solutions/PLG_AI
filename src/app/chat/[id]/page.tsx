@@ -7,7 +7,6 @@ import SidebarComponent from '../../../components/sidebar-component/sidebar-comp
 import ChatContainerComponent from '../../../components/chat-container-component/chat-container-component';
 import { useConversationContext } from '../../../contexts/ConversationContext';
 import { getConversationsWithMessages } from '../../../utils/conversation';
-import { useSidebar } from '../../../hooks/useSidebar';
 import styles from '../../page.module.css';
 
 /**
@@ -30,10 +29,10 @@ export default function ChatPage() {
     retryLastMessage,
     createStopHandler,
     createMessageEditHandler,
-    setNavigationLoading
+    setNavigationLoading,
+    isSidebarOpen,
+    toggleSidebar
   } = useConversationContext();
-  
-  const { isSidebarOpen, toggleSidebar } = useSidebar();
   const conversationsWithMessages = getConversationsWithMessages(conversations);
   const [prefilledMessage, setPrefilledMessage] = useState('');
   const currentConversation = getConversation(conversationId);

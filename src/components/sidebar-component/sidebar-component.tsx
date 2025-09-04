@@ -35,7 +35,7 @@ export default function SidebarComponent({
    * Handles conversation selection
    */
   const handleConversationSelect = (conversationId: string) => {
-    goToConversation(conversationId);
+    goToConversation(conversationId, undefined); // Keep sidebar open when selecting chats
   };
   
   /**
