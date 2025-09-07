@@ -23,7 +23,8 @@ export default function AppLayout({ children }: AppLayoutProps) {
     conversations,
     isSidebarOpen,
     toggleSidebar,
-    updateConversationTitle
+    updateConversationTitle,
+    deleteConversation
   } = useConversationContext();
 
   /**
@@ -67,6 +68,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         onToggle={toggleSidebar}
         onNewChatClick={handleNewChatClick}
         onTitleEdit={updateConversationTitle}
+        onDelete={deleteConversation}
       />
     </div>
   );

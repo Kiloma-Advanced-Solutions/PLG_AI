@@ -21,6 +21,7 @@ type ConversationContextType = {
   sendMessage: (conversationId: string, message: string) => Promise<void>;
   getConversation: (id: string) => Conversation | null;
   updateConversationTitle: (conversationId: string, title: string) => void;
+  deleteConversation: (conversationId: string) => void;
   editMessage: (conversationId: string, messageId: string, newContent: string) => Promise<void>;
   retryLastMessage: () => Promise<void>;
   stopStreaming: () => string | null;
@@ -164,6 +165,23 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
       return conv;
     }));
+  };
+
+  /**
+   * Helper function to delete a conversation
+   */
+  const deleteConversation = (conversationId: string) => {
+    setConversations(prev => prev.filter(conv => conv.id !== conversationId));
+    
+    // If we're currently viewing the deleted conversation, navigate to new chat
+    if (typeof window !== 'undefined') {
+      const currentPath = window.location.pathname;
+      if (currentPath === `/chat/${conversationId}`) {
+        window.history.pushState(null, '', '/chat/new');
+        // Trigger a popstate event to update the UI
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
+    }
   };
 
   /**
@@ -473,6 +491,7 @@ export const ConversationProvider: React.FC<{ children: React.ReactNode }> = ({ 
     sendMessage,           // (id, message) => Sends message and streams response
     getConversation,       // (id) => Retrieves specific conversation
     updateConversationTitle, // (id, title) => Updates conversation title
+    deleteConversation,    // (id) => Deletes conversation
     editMessage,           // (id, messageId, newContent) => Edits message and clears conversation
     retryLastMessage,      // () => Retries failed message
     stopStreaming,         // () => Stops AI response, returns user message

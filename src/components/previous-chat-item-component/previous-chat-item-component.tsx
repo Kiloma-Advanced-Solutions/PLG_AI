@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Conversation } from '../../types';
+import { usePopup } from '../../contexts/PopupContext';
 import styles from './previous-chat-item-component.module.css';
 
 /**
@@ -16,6 +17,8 @@ type PreviousChatItemComponentProps = {
   onSelect: () => void;
   /** Callback function when the conversation title is edited */
   onTitleEdit?: (conversationId: string, newTitle: string) => void;
+  /** Callback function when the conversation is deleted */
+  onDelete?: (conversationId: string) => void;
 };
 
 /**
@@ -26,11 +29,13 @@ export default function PreviousChatItemComponent({
   conversation,
   isActive,
   onSelect,
-  onTitleEdit
+  onTitleEdit,
+  onDelete
 }: PreviousChatItemComponentProps) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [editTitle, setEditTitle] = useState(conversation.title);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { showConfirmation } = usePopup();
 
   // Focus input when entering edit titlemode
   useEffect(() => {
@@ -66,6 +71,26 @@ export default function PreviousChatItemComponent({
       handleCancel();
     }
   };
+
+  const handleDeleteConversationClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering onSelect
+    
+    // Show custom confirmation popup
+    showConfirmation({
+      title: 'מחיקת שיחה',
+      message: `האם אתה בטוח שברצונך למחוק את השיחה "${conversation.title}"?\n\nפעולה זו לא ניתנת לביטול.`,
+      confirmText: 'מחק',
+      cancelText: 'ביטול',
+      variant: 'danger',
+      onConfirm: () => {
+        if (onDelete) {
+          onDelete(conversation.id);
+        }
+      }
+    });
+  };
+
+
   return (
     <div
       className={`${styles.conversationItem} ${isActive ? styles.active : ''}`}
@@ -122,6 +147,33 @@ export default function PreviousChatItemComponent({
           />
           <path 
             d="M14.5 6.5L17.5 9.5" 
+            stroke="currentColor" 
+            strokeWidth="1.5" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+          />
+        </svg>
+
+        {/* delete conversation icon */}
+        <svg 
+          width="16px" 
+          height="16px" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          className={styles.deleteTitleIcon}
+          onClick={handleDeleteConversationClick}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              handleDeleteConversationClick(e as any);
+            }
+          }}
+          aria-label="Delete conversation"
+        >
+          <path 
+            d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6" 
             stroke="currentColor" 
             strokeWidth="1.5" 
             strokeLinecap="round" 

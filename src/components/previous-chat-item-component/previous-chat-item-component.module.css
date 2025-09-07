@@ -28,7 +28,8 @@
   gap: 0.5rem;
 }
 
-.editTitleIcon {
+.editTitleIcon,
+.deleteTitleIcon {
   color: var(--text-secondary);
   opacity: 0.6;
   transition: opacity 0.2s ease, color 0.2s ease;
@@ -38,13 +39,15 @@
   cursor: pointer;
 }
 
-.conversationItem:hover .editTitleIcon {
+.conversationItem:hover .editTitleIcon,
+.conversationItem:hover .deleteTitleIcon {
   display: block;
   opacity: 0.8;
   color: var(--text-primary);
 }
 
-.conversationItem:has(.titleInput) .editTitleIcon {
+.conversationItem:has(.titleInput) .editTitleIcon,
+.conversationItem:has(.titleInput) .deleteTitleIcon {
   display: none;
 }
 
