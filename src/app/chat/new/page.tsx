@@ -2,12 +2,8 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import HeaderComponent from '../../../components/header-component/header-component';
-import SidebarComponent from '../../../components/sidebar-component/sidebar-component';
 import ChatContainerComponent from '../../../components/chat-container-component/chat-container-component';
 import { useConversationContext } from '../../../contexts/ConversationContext';
-import { getConversationsWithMessages } from '../../../utils/conversation';
-import styles from '../../page.module.css';
 
 /**
  * New chat page component for starting fresh conversations
@@ -22,13 +18,11 @@ export default function NewChatPage() {
     apiError, 
     createConversation, 
     sendMessage, 
-    updateConversationTitle,
     retryLastMessage,
     createStopHandler,
     createMessageEditHandler,
     setNavigationLoading,
-    isSidebarOpen,
-    toggleSidebar
+    isSidebarOpen
   } = useConversationContext();
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [triggerInputAnimation, setTriggerInputAnimation] = useState(false);
@@ -39,7 +33,6 @@ export default function NewChatPage() {
   const sidebarConversations = pathname === '/chat/new' && currentConversationId
     ? conversations.filter(conv => conv.id !== currentConversationId)
     : conversations;
-  const conversationsWithMessages = getConversationsWithMessages(sidebarConversations);
 
   /**
    * Reset component state when navigating back to /chat/new
@@ -62,6 +55,11 @@ export default function NewChatPage() {
       handleStop(''); // Use empty string to ensure no input overwrite
       return;
     }
+    
+    // Get the current conversation and its messages for display
+    const currentConversation = currentConversationId ? 
+      conversations.find(conv => conv.id === currentConversationId) : null;
+    const displayMessages = currentConversation?.messages || [];
     
     // Only trigger animation if we're on an empty conversation
     if (!currentConversationId && !displayMessages.length) {
@@ -127,39 +125,20 @@ export default function NewChatPage() {
 
   // New chat page is always ready - no loading needed
   return (
-    <div className={styles.container} dir="rtl">
-      <HeaderComponent 
-        isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={toggleSidebar}
-        onNewChatClick={handleNewChatClick}
-      />
-      
-      <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
-        <ChatContainerComponent
-          key={currentConversationId || 'new'}
-          messages={displayMessages}
-          onSendMessage={handleSendMessage}
-          onMessageEdit={createMessageEditHandler(currentConversationId)}
-          isStreaming={isStreaming}
-          isSidebarOpen={isSidebarOpen}
-          streamingMessage={streamingMessage}
-          apiError={apiError}
-          onRetry={retryLastMessage}
-          onStop={handleStop}
-          triggerInputAnimation={triggerInputAnimation}
-          prefilledMessage={prefilledMessage}
-          onPrefilledMessageCleared={handlePrefilledMessageCleared}
-        />
-      </main>
-      
-      <SidebarComponent
-        conversations={conversationsWithMessages}
-        currentConversationId={currentConversationId || undefined}
-        isOpen={isSidebarOpen}
-        onToggle={toggleSidebar}
-        onNewChatClick={handleNewChatClick}
-        onTitleEdit={updateConversationTitle}
-      />
-    </div>
+    <ChatContainerComponent
+      key={currentConversationId || 'new'}
+      messages={displayMessages}
+      onSendMessage={handleSendMessage}
+      onMessageEdit={createMessageEditHandler(currentConversationId)}
+      isStreaming={isStreaming}
+      isSidebarOpen={isSidebarOpen}
+      streamingMessage={streamingMessage}
+      apiError={apiError}
+      onRetry={retryLastMessage}
+      onStop={handleStop}
+      triggerInputAnimation={triggerInputAnimation}
+      prefilledMessage={prefilledMessage}
+      onPrefilledMessageCleared={handlePrefilledMessageCleared}
+    />
   );
 } 

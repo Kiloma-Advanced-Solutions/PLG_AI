@@ -2,12 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import HeaderComponent from '../../../components/header-component/header-component';
-import SidebarComponent from '../../../components/sidebar-component/sidebar-component';
 import ChatContainerComponent from '../../../components/chat-container-component/chat-container-component';
 import { useConversationContext } from '../../../contexts/ConversationContext';
-import { getConversationsWithMessages } from '../../../utils/conversation';
-import styles from '../../page.module.css';
+import styles from './page.module.css';
 
 /**
  * Chat page component for displaying a specific conversation
@@ -25,15 +22,12 @@ export default function ChatPage() {
     apiError, 
     getConversation, 
     sendMessage, 
-    updateConversationTitle,
     retryLastMessage,
     createStopHandler,
     createMessageEditHandler,
     setNavigationLoading,
-    isSidebarOpen,
-    toggleSidebar
+    isSidebarOpen
   } = useConversationContext();
-  const conversationsWithMessages = getConversationsWithMessages(conversations);
   const [prefilledMessage, setPrefilledMessage] = useState('');
   const currentConversation = getConversation(conversationId);
 
@@ -77,59 +71,31 @@ export default function ChatPage() {
   };
 
   /**
-   * Handles new chat click from header
-   */
-  const handleNewChatClick = () => {
-    // Navigate to new chat page
-    router.push('/chat/new');
-  };
-
-
-  /**
-   * Renders the page with conditional main content based on loading state
+   * Renders the page content - only the chat container or loading state
    */
   return (
-    <div className={styles.container} dir="rtl">
-      <HeaderComponent 
-        isSidebarOpen={isSidebarOpen}
-        onToggleSidebar={toggleSidebar}
-        onNewChatClick={handleNewChatClick}
-      />
-      
-      <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
-        {(isNavigationLoading || !currentConversation) ? (
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', flex: 1 }}>
-            <div className={styles.loadingContainer}>
-              <div className={styles.spinner}></div>
-              <p>טוען...</p>
-            </div>
-          </div>
-        ) : (
-          <ChatContainerComponent
-            key={conversationId}
-            messages={currentConversation.messages}
-            onSendMessage={handleSendMessage}
-            onMessageEdit={createMessageEditHandler(conversationId)}
-            isStreaming={isStreaming}
-            isSidebarOpen={isSidebarOpen}
-            streamingMessage={streamingMessage}
-            apiError={apiError}
-            onRetry={retryLastMessage}
-            onStop={handleStop}
-            prefilledMessage={prefilledMessage}
-            onPrefilledMessageCleared={handlePrefilledMessageCleared}
-          />
-        )}
-      </main>
-      
-      <SidebarComponent
-        conversations={conversationsWithMessages}
-        currentConversationId={conversationId}
-        isOpen={isSidebarOpen}
-        onToggle={toggleSidebar}
-        onNewChatClick={handleNewChatClick}
-        onTitleEdit={updateConversationTitle}
-      />
-    </div>
+    <>
+      {(isNavigationLoading || !currentConversation) ? (
+        <div className={styles.loadingContainer}>
+          <div className={styles.spinner}></div>
+          <p>טוען...</p>
+        </div>
+      ) : (
+        <ChatContainerComponent
+          key={conversationId}
+          messages={currentConversation.messages}
+          onSendMessage={handleSendMessage}
+          onMessageEdit={createMessageEditHandler(conversationId)}
+          isStreaming={isStreaming}
+          isSidebarOpen={isSidebarOpen}
+          streamingMessage={streamingMessage}
+          apiError={apiError}
+          onRetry={retryLastMessage}
+          onStop={handleStop}
+          prefilledMessage={prefilledMessage}
+          onPrefilledMessageCleared={handlePrefilledMessageCleared}
+        />
+      )}
+    </>
   );
 } 

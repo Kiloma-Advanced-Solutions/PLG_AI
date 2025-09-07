@@ -1,6 +1,7 @@
 import "./globals.css";
 import { ThemeProvider } from "../contexts/ThemeContext";
 import { ConversationProvider } from "../contexts/ConversationContext";
+import AppLayout from "../components/app-layout/app-layout";
 import 'katex/dist/katex.min.css';
 
 /**
@@ -28,7 +29,9 @@ export default function RootLayout({
       <body>
         <ThemeProvider>
           <ConversationProvider>
-            {children}
+            <AppLayout>
+              {children}
+            </AppLayout>
           </ConversationProvider>
         </ThemeProvider>
       </body>

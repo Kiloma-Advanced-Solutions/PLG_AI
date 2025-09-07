@@ -1,0 +1,42 @@
+/* entire page */
+.container {
+  height: 100vh;
+  background-color: var(--background-color);
+  color: var(--text-primary);
+  display: flex;
+  flex-direction: column;
+}
+
+/* conversation area */
+.main {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  margin-right: var(--sidebar-width-closed);
+  transition: margin-right 0.3s ease;
+}
+
+.main.shifted {
+  margin-right: var(--sidebar-width-open);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    font-size: 14px;
+  }
+  
+  .main.shifted {
+    margin-right: var(--sidebar-width-open-tablet);
+  }
+}
+
+@media (max-width: 600px) {
+  .main {
+    margin-right: var(--sidebar-width-closed-mobile);
+  }
+  
+  .main.shifted {
+    margin-right: var(--sidebar-width-open-mobile);
+  }
+}
