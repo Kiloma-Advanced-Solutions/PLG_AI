@@ -34,39 +34,28 @@ export default function NewChatPage() {
     ? conversations.filter(conv => conv.id !== currentConversationId)
     : conversations;
 
-  /**
-   * Reset component state when navigating back to /chat/new
-   * This ensures a fresh start when clicking new chat after sending messages
-   */
+  // Reset state when navigating to new chat page
   useEffect(() => {
     if (pathname === '/chat/new') {
       setCurrentConversationId(null);
       setPrefilledMessage('');
       shouldNavigateRef.current = false;
+      
+      // Trigger animation
+      setTriggerInputAnimation(true);
     }
   }, [pathname]);
 
-  /**
-   * Handles new chat click
-   */
-  const handleNewChatClick = () => {
-    // If currently streaming, use the proper stop handler to respect input state
-    if (isStreaming) {
-      handleStop(''); // Use empty string to ensure no input overwrite
-      return;
-    }
+  // Listen for animation triggers from sidebar/header buttons
+  useEffect(() => {
+    const triggerAnimation = () => {
+      setTriggerInputAnimation(false); // Reset first
+      setTimeout(() => setTriggerInputAnimation(true), 10); // Then trigger
+    };
     
-    // Get the current conversation and its messages for display
-    const currentConversation = currentConversationId ? 
-      conversations.find(conv => conv.id === currentConversationId) : null;
-    const displayMessages = currentConversation?.messages || [];
-    
-    // Only trigger animation if we're on an empty conversation
-    if (!currentConversationId && !displayMessages.length) {
-      setTriggerInputAnimation(true);
-      setTimeout(() => setTriggerInputAnimation(false), 100);
-    }
-  };
+    window.addEventListener('triggerInputAnimation', triggerAnimation);
+    return () => window.removeEventListener('triggerInputAnimation', triggerAnimation);
+  }, []);
 
 
   /**

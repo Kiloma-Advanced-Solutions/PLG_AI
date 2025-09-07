@@ -44,7 +44,7 @@ export default function SidebarComponent({
    * Handles new chat creation with sidebar closing
    */
   const handleCreateNewChat = () => {
-    goToNewChat(isOpen ? onToggle : undefined, onNewChatClick);
+    goToNewChat(isOpen ? onToggle : undefined);
   };
   
   return (

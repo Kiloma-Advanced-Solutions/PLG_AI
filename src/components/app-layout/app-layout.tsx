@@ -31,7 +31,12 @@ export default function AppLayout({ children }: AppLayoutProps) {
    * Handles new chat creation from header or sidebar
    */
   const handleNewChatClick = () => {
-    router.push('/chat/new');
+    // If already on new chat page, trigger animation via custom event
+    if (pathname === '/chat/new') {
+      window.dispatchEvent(new CustomEvent('triggerInputAnimation'));
+    } else {
+      router.push('/chat/new');
+    }
   };
 
   /**
@@ -54,7 +59,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <HeaderComponent 
         isSidebarOpen={isSidebarOpen}
         onToggleSidebar={toggleSidebar}
-        onNewChatClick={handleNewChatClick}
       />
       
       <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>

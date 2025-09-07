@@ -18,14 +18,7 @@
   transition: all 0.3s ease;
 }
 
-.inputWrapper:focus-within {
-  border-color: var(--border-color);
-  outline: none !important;
-}
 
-.inputWrapper:focus {
-  outline: none !important;
-}
 
 /* input text area */
 .messageInput {
@@ -49,11 +42,6 @@
   box-shadow: none !important;
 }
 
-.inputContainer .inputWrapper:focus-within {
-  border-color: var(--border-color) !important;
-  outline: none !important;
-  box-shadow: none !important;
-}
 
 .messageInput:focus {
   outline: none !important;
@@ -146,23 +134,10 @@
 }
 
 @keyframes focusPulse {
-  0% {
+  0%, 100% {
     transform: scale(1);
-    border-color: var(--border-color);
   }
   50% {
     transform: scale(1.02);
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px var(--focus-shadow-color);
-  }
-  100% {
-    transform: scale(1);
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0 var(--focus-shadow-color);
   }
 }
-
-/* Keep blue border when focused */
-.inputWrapper:focus-within {
-  border-color: #3b82f6;
-} 

@@ -10,7 +10,6 @@ import styles from './header-component.module.css';
 type HeaderComponentProps = {
   isSidebarOpen: boolean;
   onToggleSidebar: () => void;
-  onNewChatClick?: () => void;
 };
 
 /**
@@ -18,8 +17,7 @@ type HeaderComponentProps = {
  */
 export default function HeaderComponent({ 
   isSidebarOpen, 
-  onToggleSidebar, 
-  onNewChatClick 
+  onToggleSidebar
 }: HeaderComponentProps) {
   const { goToNewChat } = useNavigationHelpers();
   
@@ -27,7 +25,7 @@ export default function HeaderComponent({
    * Handles new chat creation from header click
    */
   const handleCreateNewChat = () => {
-    goToNewChat(undefined, onNewChatClick);
+    goToNewChat();
   };
   
   return (

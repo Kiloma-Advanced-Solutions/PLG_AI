@@ -32,16 +32,13 @@ export const useNavigationHelpers = () => {
   /**
    * Navigate to new chat page with sidebar closing and animation
    */
-  const goToNewChat = (
-    toggleSidebar?: () => void,
-    onNewChatClick?: () => void
-  ) => {
+  const goToNewChat = (toggleSidebar?: () => void) => {
     stopStreaming();
     
-    // If already on new chat page, just close sidebar and trigger animation
+    // If already on new chat page, close sidebar and trigger animation
     if (pathname === '/chat/new') {
-      if (toggleSidebar) toggleSidebar();
-      if (onNewChatClick) onNewChatClick();
+      toggleSidebar?.();
+      window.dispatchEvent(new CustomEvent('triggerInputAnimation'));
       return;
     }
     
@@ -49,10 +46,7 @@ export const useNavigationHelpers = () => {
     setNavigationLoading(true);
     if (toggleSidebar) {
       toggleSidebar();
-      // Wait for sidebar close animation to complete (0.3s transition)
-      setTimeout(() => {
-        router.push('/chat/new');
-      }, 300);
+      setTimeout(() => router.push('/chat/new'), 300);
     } else {
       router.push('/chat/new');
     }

@@ -56,8 +56,10 @@ export default function InputMessageContainer({
   useEffect(() => {
     if (triggerFocusAnimation) {
       setShowFocusAnimation(true);
-      // Remove animation class after animation completes
-      setTimeout(() => setShowFocusAnimation(false), 600);
+      inputRef.current?.focus();
+      
+      const timer = setTimeout(() => setShowFocusAnimation(false), 600);
+      return () => clearTimeout(timer);
     }
   }, [triggerFocusAnimation]);
 
