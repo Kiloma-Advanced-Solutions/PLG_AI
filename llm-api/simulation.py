@@ -90,13 +90,7 @@ class SystemSnapshot:
     timestamp: float
     running_requests: int = 0
     waiting_requests: int = 0
-    gpu_cache_usage: float = 0.0
-    kv_cache_usage: float = 0.0
-    total_generation_tokens: float = 0.0
-    ttft_sum: float = 0.0
-    ttft_count: float = 0.0
-    time_per_token_sum: float = 0.0
-    time_per_token_count: float = 0.0
+    gpu_cache_usage: float = 0.0  # Only used for summary statistics
 
 class MultiUserSimulation:
     """Multi-user simulation with vLLM metrics integration"""
@@ -132,7 +126,7 @@ class MultiUserSimulation:
         self.monitoring_active = False
         self.simulation_start_time = 0.0
         
-        # Test prompts with increasing complexity (25 prompts total)
+        # Test prompts with increasing complexity (45 prompts total)
         self.prompts = [
             "שלום, איך אתה?",
             "תוכל לספר לי על ההיסטוריה של ישראל?",
@@ -158,7 +152,28 @@ class MultiUserSimulation:
             "תוכל להסביר לי על נוירוביולוגיה? איך עובד המערכת העצבית ואיך המוח מעבד אותות חושיים?",
             "מה אתה יודע על מתמטיקה טהורה? תוכל להסביר על תורת הקבוצות, טופולוגיה ואלגברה מופשטת?",
             "אני רוצה ללמוד על הנדסת תוכנה מתקדמת. איך מעצבים מערכות גדולות, מה זה clean code ואיך מבצעים testing נכון?",
-            "תוכל לספר לי על הפילוסופיה המזרחית - בודהיזם, הינדואיזם, וטאואיזם? איך השפות הפילוסופיות האלה רואות את המציאות והקיום?"
+            "תוכל לספר לי על הפילוסופיה המזרחית - בודהיזם, הינדואיזם, וטאואיזם? איך השפות הפילוסופיות האלה רואות את המציאות והקיום?",
+            "אני מעוניין ללמוד על כלכלה התנהגותית. איך הטיות קוגניטיביות משפיעות על החלטות כלכליות ומה אפשר ללמוד מכך על שווקים?",
+            "תוכל להסביר לי על תורת האבולוציה ועל הראיות התומכות בה? איך האבולוציה ממשיכה להשפיע על האנושות כיום?",
+            "מה אתה יודע על פילוסופיה של המדע? איך אנחנו יודעים מה שאנחנו יודעים ומה זה אומר על טבע הידע המדעי?",
+            "אני רוצה להבין את עולם האמנות הדיגיטלית. איך טכנולוגיות חדשות כמו VR, AR ו-AI משנות את היצירה והצריכה האמנותית?",
+            "תוכל לספר לי על תחום הביואתיקה? איזה דילמות מוסריות עולות מהתקדמות הרפואית והמחקר הביולוגי?",
+            "מה המשמעות של קיימות סביבתית בעידן המודרני? איך עסקים וחברות יכולים לאמץ פרקטיקות ירוקות באופן אפקטיבי?",
+            "אני מעוניין בתחום הפסיכולוגיה החברתית. איך קבוצות משפיעות על התנהגות אינדיבידואלית ומה נוכל ללמוד על דינמיקות חברתיות?",
+            "תוכל להסביר על עולם המוזיקה הקלאסית? מה ההבדלים בין התקופות השונות ואיך המוזיקה השתנתה לאורך ההיסטוריה?",
+            "מה אתה יודע על תורת המשחקים? איך עקרונות מתמטיים יכולים לעזור להבין אסטרטגיות וקבלת החלטות במצבים תחרותיים?",
+            "אני רוצה ללמוד על תחום הבלשנות. איך שפות מתפתחות ומשתנות, ומה אפשר ללמוד על החשיבה האנושית מחקר השפה?",
+            "תוכל לספר לי על תולדות הרפואה? איך התפתחו הידע והטכניקות הרפואיות מימי קדם ועד היום?",
+            "מה המשמעות של מהפכת המידע בעידן שלנו? איך הגישה הבלתי מוגבלת למידע משנה את החברה והפוליטיקה?",
+            "אני מעוניין בתחום הארכיאולוגיה. איך חוקרים מגלים ומפענחים את העבר האנושי דרך ממצאים חומריים?",
+            "תוכל להסביר על הקשר בין מתמטיקה לטבע? איך נוסחאות מתמטיות מתארות בדיוק כה רב תופעות פיזיקליות?",
+            "מה אתה יודע על תחום הסוציולוגיה? איך חוקרים חברתיים בוחנים מבנים חברתיים, חילוק מעמדי ושינויים חברתיים?",
+            "אני רוצה להבין את תחום האקולוגיה. איך מערכות אקולוגיות עובדות ומה הקשרים המורכבים בין יצורים חיים לסביבתם?",
+            "תוכל לספר על ההיסטוריה של המדע המערבי? איך התפתח המדע מימי יוון העתיקה ועד המהפכה המדעית?",
+            "מה המשמעות של גלובליזציה בעידן המודרני? איך תהליכי הגלובליזציה משפיעים על כלכלה, תרבות ופוליטיקה?",
+            "אני מעוניין בתחום הפילוסופיה הפוליטית. איך אידיאולוגיות שונות מגדירות את תפקיד המדינה ואת זכויות הפרט?",
+            "תוכל להסביר על תחום הגנטיקה המודרנית? איך טכנולוגיות כמו CRISPR משנות את היכולת שלנו לערוך ולהבין DNA?",
+            "מה ההשפעה של מדיה דיגיטלית על התודעה הציבורית? איך פלטפורמות חברתיות משנות את האופן שבו אנחנו צורכים מידע ומתקשרים?"
         ]
     
     def count_tokens(self, text: str) -> int:
@@ -238,18 +253,6 @@ class MultiUserSimulation:
                                 metrics['num_requests_waiting'] = int(metric_value)
                             elif metric_name == "vllm:gpu_cache_usage_perc":
                                 metrics['gpu_cache_usage_perc'] = metric_value
-                            elif metric_name == "vllm:kv_cache_usage_perc":
-                                metrics['kv_cache_usage_perc'] = metric_value
-                            elif metric_name == "vllm:generation_tokens_total":
-                                metrics['generation_tokens_total'] = metric_value
-                            elif metric_name == "vllm:time_to_first_token_seconds_sum":
-                                metrics['ttft_sum'] = metric_value
-                            elif metric_name == "vllm:time_to_first_token_seconds_count":
-                                metrics['ttft_count'] = metric_value
-                            elif metric_name == "vllm:time_per_output_token_seconds_sum":
-                                metrics['time_per_output_token_sum'] = metric_value
-                            elif metric_name == "vllm:time_per_output_token_seconds_count":
-                                metrics['time_per_output_token_count'] = metric_value
                         
                         return metrics
         except Exception as e:
@@ -289,13 +292,7 @@ class MultiUserSimulation:
                     timestamp=current_time - self.simulation_start_time,
                     running_requests=metrics.get('num_requests_running', 0),
                     waiting_requests=metrics.get('num_requests_waiting', 0),
-                    gpu_cache_usage=metrics.get('gpu_cache_usage_perc', 0.0),
-                    kv_cache_usage=metrics.get('kv_cache_usage_perc', 0.0),
-                    total_generation_tokens=metrics.get('generation_tokens_total', 0.0),
-                    ttft_sum=metrics.get('ttft_sum', 0.0),
-                    ttft_count=metrics.get('ttft_count', 0.0),
-                    time_per_token_sum=metrics.get('time_per_output_token_sum', 0.0),
-                    time_per_token_count=metrics.get('time_per_output_token_count', 0.0)
+                    gpu_cache_usage=metrics.get('gpu_cache_usage_perc', 0.0)
                 )
                 
                 self.system_snapshots.append(snapshot)
@@ -516,11 +513,6 @@ class MultiUserSimulation:
         
         logger.info("Multi-user simulation completed")
     
-
-
-
-
-
     
     def generate_graphs(self):
         """Generate the five performance graphs using vLLM metrics"""
@@ -534,7 +526,7 @@ class MultiUserSimulation:
             logger.error("No successful requests to analyze")
             return
 
-        # Create figure with 6 subplots (3x2 grid)
+        # Create figure with 5 subplots (3x2 grid, one empty)
         fig, axes = plt.subplots(3, 2, figsize=(16, 18))
         fig.suptitle('RTX PRO 6000 WS Simulation\nMulti-User LLM Performance Results', fontsize=18, fontweight='bold')
         
@@ -677,67 +669,8 @@ class MultiUserSimulation:
                     fontsize=12, bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray"))
             ax5.set_title('Request Status Over Time\n(Data unavailable)')
         
-        # 6. Request Status vs Total Context Length
-        ax6 = axes[2, 1]
-        
-        if self.system_snapshots:
-            # Create a mapping of timestamps to total context lengths from successful requests
-            timestamp_to_context = {}
-            for req in successful_requests:
-                if req.total_context_at_start is not None:
-                    # Approximate timestamp based on user start delay and request timing
-                    approx_timestamp = req.user_id * self.user_start_delay + req.request_id * self.request_delay
-                    timestamp_to_context[approx_timestamp] = req.total_context_at_start
-            
-            # Collect data by matching snapshots with context
-            context_data = []
-            for snapshot in self.system_snapshots:
-                # Find the closest context measurement to this timestamp
-                closest_context = None
-                min_time_diff = float('inf')
-                
-                for req_timestamp, context_length in timestamp_to_context.items():
-                    time_diff = abs(snapshot.timestamp - req_timestamp)
-                    if time_diff < min_time_diff:
-                        min_time_diff = time_diff
-                        closest_context = context_length
-                
-                # Only include if we found a reasonably close context measurement (within 30 seconds)
-                if closest_context is not None and min_time_diff < 30:
-                    context_data.append((closest_context, snapshot.running_requests, snapshot.waiting_requests))
-            
-            if context_data:
-                # Sort by context length
-                context_data.sort(key=lambda x: x[0])
-                
-                # Extract data for plotting
-                contexts = [x[0] for x in context_data]
-                running_requests = [x[1] for x in context_data]
-                waiting_requests = [x[2] for x in context_data]
-                
-                # Create line charts (same style as graph 5)
-                ax6.plot(contexts, running_requests, 
-                        marker='o', label='Running Requests', linewidth=2, markersize=4, color='green')
-                ax6.plot(contexts, waiting_requests, 
-                        marker='s', label='Waiting Requests', linewidth=2, markersize=4, color='red')
-                
-                ax6.set_xlabel('Total Context Length (tokens)')
-                ax6.set_ylabel('Number of Requests')
-                ax6.set_title('Request Status vs Total Context Length')
-                ax6.set_ylim(bottom=0)
-                ax6.legend()
-                ax6.grid(True, alpha=0.3)
-            else:
-                ax6.text(0.5, 0.5, 'No request status vs context data available', 
-                        ha='center', va='center', transform=ax6.transAxes,
-                        fontsize=12, bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray"))
-                ax6.set_title('Request Status vs Total Context Length\n(Data unavailable)')
-        else:
-            ax6.text(0.5, 0.5, 'No system snapshots available', 
-                    ha='center', va='center', transform=ax6.transAxes,
-                    fontsize=12, bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray"))
-            ax6.set_title('Request Status vs Total Context Length\n(Data unavailable)')
-        
+        # Hide the empty subplot
+        axes[2, 1].set_visible(False)
         
         plt.tight_layout()
         
@@ -887,13 +820,7 @@ class MultiUserSimulation:
                     'timestamp': snapshot.timestamp,
                     'running_requests': snapshot.running_requests,
                     'waiting_requests': snapshot.waiting_requests,
-                    'gpu_cache_usage': snapshot.gpu_cache_usage,
-                    'kv_cache_usage': snapshot.kv_cache_usage,
-                    'total_generation_tokens': snapshot.total_generation_tokens,
-                    'ttft_sum': snapshot.ttft_sum,
-                    'ttft_count': snapshot.ttft_count,
-                    'time_per_token_sum': snapshot.time_per_token_sum,
-                    'time_per_token_count': snapshot.time_per_token_count
+                    'gpu_cache_usage': snapshot.gpu_cache_usage
                 })
             
             system_df = pd.DataFrame(system_data)
