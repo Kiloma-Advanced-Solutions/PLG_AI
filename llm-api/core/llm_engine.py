@@ -77,7 +77,7 @@ class LLMEngine:
         """Check if vLLM server is healthy"""
         success, result = await self._make_request("GET", self.models_url)
         if success:
-            logger.info("vLLM health check passed")
+            # logger.info("vLLM health check passed")
             return True
         logger.warning(f"vLLM health check failed: {result}")
         return False
@@ -120,7 +120,7 @@ class LLMEngine:
         
         # Track session
         self.active_sessions[session_id] = datetime.now().isoformat()
-        logger.info(f"Starting chat for session {session_id}")
+        # logger.info(f"Starting chat for session {session_id}")
         
         # Build request payload for vLLM
         model_params = llm_config.get_model_params()
@@ -145,7 +145,33 @@ class LLMEngine:
             
             async with client.stream("POST", self.chat_url, json=payload, headers=llm_config.vllm_headers) as response:
                 if response.status_code != 200:
-                    logger.error(f"vLLM streaming request failed with status {response.status_code}")
+                    # Get the actual error details from vLLM
+                    try:
+                        error_content = await response.aread()
+                        error_text = error_content.decode('utf-8')
+                        logger.error(f"vLLM streaming request failed with status {response.status_code}")
+                        logger.error(f"vLLM error details: {error_text}")
+                        
+                        # Log the full request that failed
+                        logger.error(f"Failed vLLM request details:")
+                        logger.error(f"  Session ID: {session_id}")
+                        logger.error(f"  Request payload: {json.dumps(payload, ensure_ascii=False, indent=2)}")
+                        logger.error(f"  Messages sent to vLLM ({len(payload['messages'])}):")
+                        for i, msg in enumerate(payload['messages']):
+                            content_preview = msg["content"][:200] + "..." if len(msg["content"]) > 200 else msg["content"]
+                            logger.error(f"    Message {i+1} [{msg['role']}]: {content_preview}")
+                        
+                        # Try to parse error as JSON to get more details
+                        try:
+                            error_json = json.loads(error_text)
+                            error_detail = error_json.get('detail', error_text)
+                            logger.error(f"vLLM error detail: {error_detail}")
+                        except json.JSONDecodeError:
+                            logger.error(f"vLLM raw error: {error_text}")
+                            
+                    except Exception as e:
+                        logger.error(f"Failed to read vLLM error response: {e}")
+                    
                     yield f'data: {{"error": "LLM service error: {response.status_code}"}}\n\n'
                     return
                 
@@ -163,7 +189,7 @@ class LLMEngine:
                     chunk = line.removeprefix("data: ").strip()
                     
                     if chunk == "[DONE]":
-                        logger.info(f"Completed chat for session {session_id}")
+                        # logger.info(f"Completed chat for session {session_id}")
                         yield "data: [DONE]\n\n"
                         break
                         
@@ -174,6 +200,13 @@ class LLMEngine:
         
         except Exception as e:
             logger.error(f"Chat error: {e}")
+            logger.error(f"Failed LLM engine request details:")
+            logger.error(f"  Session ID: {session_id}")
+            logger.error(f"  Request payload: {json.dumps(payload, ensure_ascii=False, indent=2)}")
+            logger.error(f"  Messages sent to vLLM ({len(payload.get('messages', []))}):")
+            for i, msg in enumerate(payload.get('messages', [])):
+                content_preview = msg["content"][:200] + "..." if len(msg["content"]) > 200 else msg["content"]
+                logger.error(f"    Message {i+1} [{msg['role']}]: {content_preview}")
             yield f'data: {{"error": "An error occurred: {e}"}}\n\n'
         finally:
             # Cleanup session
@@ -193,7 +226,7 @@ class LLMEngine:
         
         # Track session
         self.active_sessions[session_id] = datetime.now().isoformat()
-        logger.info(f"Starting structured completion for session {session_id}")
+        # logger.info(f"Starting structured completion for session {session_id}")
         
         # Build request payload for vLLM (non-streaming)
         model_params = llm_config.get_model_params()
@@ -206,11 +239,11 @@ class LLMEngine:
         }
         
         # Log the formatted messages being sent to the model
-        logger.info("=== LLM ENGINE - Formatted messages sent to vLLM ===")
-        for i, msg in enumerate(formatted_messages):
-            logger.info(f"Formatted Message {i+1} [{msg['role']}]:")
-            logger.info(f"Content: {msg['content']}")
-            logger.info("=" * 50)
+        # logger.info("=== LLM ENGINE - Formatted messages sent to vLLM ===")
+        # for i, msg in enumerate(formatted_messages):
+        #     logger.info(f"Formatted Message {i+1} [{msg['role']}]:")
+        #     logger.info(f"Content: {msg['content']}")
+        #     logger.info("=" * 50)
         
         logger.debug(f"Structured completion payload: {json.dumps(payload, ensure_ascii=False)}")
         
@@ -225,6 +258,16 @@ class LLMEngine:
                 logger.error(f"vLLM API error: {response.status_code}")
                 response_text = await response.text()
                 logger.error(f"vLLM error response: {response_text}")
+                
+                # Log the full request that failed
+                logger.error(f"Failed vLLM structured completion details:")
+                logger.error(f"  Session ID: {session_id}")
+                logger.error(f"  Request payload: {json.dumps(payload, ensure_ascii=False, indent=2)}")
+                logger.error(f"  Messages sent to vLLM ({len(formatted_messages)}):")
+                for i, msg in enumerate(formatted_messages):
+                    content_preview = msg["content"][:200] + "..." if len(msg["content"]) > 200 else msg["content"]
+                    logger.error(f"    Message {i+1} [{msg['role']}]: {content_preview}")
+                
                 raise Exception(f"LLM request failed with status {response.status_code}")
             
             # Parse response
@@ -248,7 +291,7 @@ class LLMEngine:
                     json_data = json.loads(content)
                     adapter = TypeAdapter(output_schema)
                     result = adapter.validate_python(json_data)
-                    logger.info(f"Successfully validated structured completion for session {session_id}")
+                    # logger.info(f"Successfully validated structured completion for session {session_id}")
                     return result
                     
                 except json.JSONDecodeError as e:
@@ -263,6 +306,13 @@ class LLMEngine:
         
         except Exception as e:
             logger.error(f"Structured completion error: {e}")
+            logger.error(f"Failed structured completion request details:")
+            logger.error(f"  Session ID: {session_id}")
+            logger.error(f"  Request payload: {json.dumps(payload, ensure_ascii=False, indent=2)}")
+            logger.error(f"  Messages sent to vLLM ({len(formatted_messages)}):")
+            for i, msg in enumerate(formatted_messages):
+                content_preview = msg["content"][:200] + "..." if len(msg["content"]) > 200 else msg["content"]
+                logger.error(f"    Message {i+1} [{msg['role']}]: {content_preview}")
             raise Exception(f"Structured completion failed: {e}")
         finally:
             # Cleanup session

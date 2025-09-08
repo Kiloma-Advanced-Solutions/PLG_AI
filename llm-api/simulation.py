@@ -18,28 +18,59 @@ import pandas as pd
 import numpy as np
 from collections import defaultdict
 
-# Configure logging
+# Configure logging with colors
+class ColoredFormatter(logging.Formatter):
+    """Custom formatter to add colors to log levels"""
+    
+    # ANSI color codes
+    COLORS = {
+        'DEBUG': '\033[36m',    # Cyan
+        'INFO': '\033[32m',     # Green
+        'WARNING': '\033[33m',  # Yellow
+        'ERROR': '\033[31m',    # Red
+        'CRITICAL': '\033[35m'  # Magenta
+    }
+    RESET = '\033[0m'  # Reset color
+    
+    def format(self, record):
+        log_color = self.COLORS.get(record.levelname, '')
+        record.levelname = f"{log_color}{record.levelname}{self.RESET}"
+        return super().format(record)
+
+# Set up colored logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
 
+# Add colored formatter to console handler
+for handler in logger.handlers:
+    if isinstance(handler, logging.StreamHandler):
+        handler.setFormatter(ColoredFormatter('%(asctime)s - %(levelname)s - %(message)s'))
+
+# Also set up colored formatter for root logger to catch all simulation logs
+root_logger = logging.getLogger()
+for handler in root_logger.handlers:
+    if isinstance(handler, logging.StreamHandler):
+        handler.setFormatter(ColoredFormatter('%(asctime)s - %(levelname)s - %(message)s'))
+
 @dataclass
 class RequestMetrics:
-    """Metrics for a single request using vLLM native metrics"""
+    """Metrics for a single request using direct client-side timing"""
     user_id: int
     request_id: int
     prompt: str
     context_length: int  # tokens in prompt (from tokenizer)
     start_time: float
     end_time: Optional[float] = None
-    # vLLM metrics snapshots
-    vllm_metrics_start: Dict[str, float] = field(default_factory=dict)
-    vllm_metrics_end: Dict[str, float] = field(default_factory=dict)
-    # Derived metrics from vLLM data
-    ttft: Optional[float] = None  # Time to first token (from vLLM metrics)
-    tokens_per_second: Optional[float] = None  # From vLLM metrics
+    # Direct timing measurements (like inference_simulation.py)
+    first_token_time: Optional[float] = None  # When first token arrived
+    queue_time: Optional[float] = None  # Time from request sent to first token
+    generation_time: Optional[float] = None  # Time from first token to completion
+    ttft: Optional[float] = None  # Time to first token (queue_time)
+    tokens_per_second: Optional[float] = None  # response_tokens / generation_time
+    response_tokens: int = 0  # Number of tokens in response
     total_context_at_start: Optional[int] = None  # Total context of all users
     error: Optional[str] = None
 
@@ -82,7 +113,8 @@ class MultiUserSimulation:
         # Simulation configuration
         self.num_users = num_users
         self.user_start_delay = 5.0  # 5 seconds between user starts
-        self.request_delay = 10.0    # 10 seconds between requests per user
+        self.request_delay = 5.0    # 5 seconds between requests per user
+        self.instance_model = "rtx_6000"  # Instance identifier for file naming
         
         # Initialize tokenizer
         try:
@@ -100,7 +132,7 @@ class MultiUserSimulation:
         self.monitoring_active = False
         self.simulation_start_time = 0.0
         
-        # Test prompts with increasing complexity (15 prompts total)
+        # Test prompts with increasing complexity (25 prompts total)
         self.prompts = [
             "שלום, איך אתה?",
             "תוכל לספר לי על ההיסטוריה של ישראל?",
@@ -116,7 +148,17 @@ class MultiUserSimulation:
             "מה אתה יודע על רפואה מותאמת אישית וגנומיקה? איך הטכנולוגיות האלה משנות את הטיפול הרפואי?",
             "תוכל להסביר לי על תיאוריית היחסות של איינשטיין ואת ההשלכות שלה על הבנתנו את היקום?",
             "אני מעוניין ללמוד על פסיכולוגיה קוגניטיבית. איך המוח מעבד מידע ומה אנחנו יודעים על זיכרון ולמידה?",
-            "בואו נדבר על עתיד הטכנולוגיה. מה הטרנדים החשובים ביותר שאתה רואה בעשור הקרוב - בתחומי AI, ביוטכנולוגיה, אנרגיה מתחדשת וחקר החלל?"
+            "בואו נדבר על עתיד הטכנולוגיה. מה הטרנדים החשובים ביותר שאתה רואה בעשור הקרוב - בתחומי AI, ביוטכנולוגיה, אנרגיה מתחדשת וחקר החלל?",
+            "תוכל להסביר לי על בלוקצ'יין ומטבעות דיגיטליים? איך הטכנולוגיה הזו עובדת ומה היתרונות והחסרונות של השימוש בה?",
+            "אני רוצה ללמוד על ביולוגיה מולקולרית. איך עובדת שכפול DNA ומה התפקיד של RNA בתא?",
+            "מה אתה יודע על אסטרונומיה וחקר החלל? איך אנחנו מגלים כוכבי לכת חדשים ומה אנחנו לומדים עליהם?",
+            "תוכל לספר לי על הארכיטקטורה הקלאסית? איך השפיעו הרומאים והיוונים על הבנייה המודרנית?",
+            "אני מעוניין בתחום הרובוטיקה. איך בונים רובוטים אוטונומיים ומה הטכנולוגיות שמאפשרות להם לנווט בסביבה?",
+            "בואו נדבר על אנתרופולוגיה. איך התפתחה החברה האנושית ומה הגורמים העיקריים שהשפיעו על התרבויות השונות?",
+            "תוכל להסביר לי על נוירוביולוגיה? איך עובד המערכת העצבית ואיך המוח מעבד אותות חושיים?",
+            "מה אתה יודע על מתמטיקה טהורה? תוכל להסביר על תורת הקבוצות, טופולוגיה ואלגברה מופשטת?",
+            "אני רוצה ללמוד על הנדסת תוכנה מתקדמת. איך מעצבים מערכות גדולות, מה זה clean code ואיך מבצעים testing נכון?",
+            "תוכל לספר לי על הפילוסופיה המזרחית - בודהיזם, הינדואיזם, וטאואיזם? איך השפות הפילוסופיות האלה רואות את המציאות והקיום?"
         ]
     
     def count_tokens(self, text: str) -> int:
@@ -222,40 +264,16 @@ class MultiUserSimulation:
                 total_context += self.count_conversation_tokens(user.conversation)
         return total_context
     
-    def calculate_ttft_from_vllm_metrics(self, start_metrics: Dict, end_metrics: Dict) -> Optional[float]:
-        """Calculate average TTFT from vLLM metrics difference"""
+    def count_response_tokens(self, response: str) -> int:
+        """Count tokens in response text"""
         try:
-            start_sum = start_metrics.get('ttft_sum', 0)
-            end_sum = end_metrics.get('ttft_sum', 0)
-            start_count = start_metrics.get('ttft_count', 0)
-            end_count = end_metrics.get('ttft_count', 0)
-            
-            sum_diff = end_sum - start_sum
-            count_diff = end_count - start_count
-            
-            if count_diff > 0 and sum_diff > 0:
-                return sum_diff / count_diff
+            return len(self.tokenizer.encode(response))
         except Exception as e:
-            logger.debug(f"TTFT calculation failed: {e}")
-        return None
+            logger.warning(f"Response token counting failed: {e}")
+            # Fallback: rough estimation (4 chars per token average)
+            return len(response) // 4
     
-    def calculate_tokens_per_second_from_vllm_metrics(self, start_metrics: Dict, end_metrics: Dict) -> Optional[float]:
-        """Calculate tokens per second from vLLM metrics difference"""
-        try:
-            start_sum = start_metrics.get('time_per_output_token_sum', 0)
-            end_sum = end_metrics.get('time_per_output_token_sum', 0)
-            start_count = start_metrics.get('time_per_output_token_count', 0)
-            end_count = end_metrics.get('time_per_output_token_count', 0)
-            
-            sum_diff = end_sum - start_sum
-            count_diff = end_count - start_count
-            
-            if count_diff > 0 and sum_diff > 0:
-                avg_time_per_token = sum_diff / count_diff
-                return 1.0 / avg_time_per_token
-        except Exception as e:
-            logger.debug(f"Tokens per second calculation failed: {e}")
-        return None
+    
     
     async def system_metrics_monitor(self):
         """Continuously monitor system metrics during simulation"""
@@ -297,46 +315,40 @@ class MultiUserSimulation:
         logger.info("System metrics monitoring stopped")
     
     async def send_chat_request(self, user: UserState, prompt: str) -> RequestMetrics:
-        """Send a single chat request and capture metrics"""
+        """Send a single chat request to the API and track metrics"""
         request_id = user.request_count
         user.request_count += 1
         
-        # Prepare conversation with new user message (but don't add to user.conversation yet)
-        temp_conversation = user.conversation.copy()
-        temp_conversation.append({"role": "user", "content": prompt})
+        # Prepare conversation with new user message
+        user.conversation.append({"role": "user", "content": prompt})
         
         # Count tokens in the full conversation context
-        context_tokens = self.count_conversation_tokens(temp_conversation)
+        context_tokens = self.count_conversation_tokens(user.conversation)
         total_context = self.calculate_total_context_length()
         
-        logger.info(f"User {user.user_id} starting request {request_id+1} "
-                   f"(context: {context_tokens} tokens, total: {total_context} tokens)")
-        
+        # logger.info(f"User {user.user_id} starting request {request_id+1} "
+        logger.info(f"(context: {context_tokens} tokens, total: {total_context} tokens)")
+
         # Create metrics object
-        start_time = time.time()
+        send_time = time.time()
         metrics = RequestMetrics(
             user_id=user.user_id,
             request_id=request_id,
             prompt=prompt,
             context_length=context_tokens,
-            start_time=start_time,
+            start_time=send_time,
             total_context_at_start=total_context
         )
         
-        # Get vLLM metrics before starting request
-        metrics.vllm_metrics_start = await self.get_vllm_metrics()
-        
-        # Prepare request payload using the temporary conversation
+        # Prepare request payload (like frontend)
         payload = {
-            "messages": temp_conversation,
+            "messages": user.conversation,
             "session_id": user.session_id,
-            "stream": True,
-            "temperature": 0.7,
-            "max_tokens": 512
+            "stream": True
         }
         
         try:
-            timeout = aiohttp.ClientTimeout(total=1200)  # 20 minute timeout
+            timeout = aiohttp.ClientTimeout(total=300)  # 5 minute timeout
             async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.post(
                     self.chat_endpoint,
@@ -349,96 +361,75 @@ class MultiUserSimulation:
                         metrics.end_time = time.time()
                         return metrics
                     
-                    # Process streaming response
+                    # Track streaming metrics
                     assistant_response = ""
+                    first_token_received = False
                     
                     async for line in response.content:
                         line_str = line.decode('utf-8').strip()
                         
                         if line_str.startswith("data: "):
+                            # Capture first token time
+                            if not first_token_received:
+                                metrics.first_token_time = time.time()
+                                metrics.queue_time = metrics.first_token_time - send_time
+                                metrics.ttft = metrics.queue_time
+                                first_token_received = True
+                            
                             data_str = line_str[6:]  # Remove "data: " prefix
                             
                             if data_str == "[DONE]":
-                                logger.info(f"User {user.user_id} request {request_id+1} completed")
+                                metrics.end_time = time.time()
                                 break
                             
                             try:
                                 data = json.loads(data_str)
                                 
-                                # Handle different streaming response formats
                                 content = None
-                                
-                                # Format 1: Direct content field
-                                if "content" in data:
-                                    content = data["content"]
-                                
-                                # Format 2: OpenAI-style streaming with choices
+                                if "error" in data:
+                                    metrics.error = data["error"]
+                                    metrics.end_time = time.time()
+                                    user.empty_response_count += 1
+                                    # Remove user message on error
+                                    user.conversation.pop()
+                                    return metrics
+                                    
                                 elif "choices" in data and len(data["choices"]) > 0:
                                     choice = data["choices"][0]
                                     if "delta" in choice and "content" in choice["delta"]:
                                         content = choice["delta"]["content"]
-                                    elif "text" in choice:
-                                        content = choice["text"]
                                 
-                                # Format 3: Simple text field
-                                elif "text" in data:
-                                    content = data["text"]
-                                
-                                # Accumulate content
                                 if content:
                                     assistant_response += content
                                     
                             except json.JSONDecodeError:
-                                # Skip malformed JSON lines
                                 continue
                     
-                    # Add both user message and assistant response to conversation on success
+                    # Process results
                     if assistant_response:
-                        # Success: Add both user message and assistant response
-                        user.conversation.append({"role": "user", "content": prompt})
+                        # Success: Add assistant response
                         user.conversation.append({"role": "assistant", "content": assistant_response})
-                        user.empty_response_count = 0  # Reset counter on successful response
+                        
+                        # Calculate metrics
+                        if metrics.first_token_time and metrics.end_time:
+                            metrics.response_tokens = self.count_response_tokens(assistant_response)
+                            metrics.generation_time = metrics.end_time - metrics.first_token_time
+                            
+                            if metrics.generation_time > 0 and metrics.response_tokens > 0:
+                                metrics.tokens_per_second = metrics.response_tokens / metrics.generation_time
+                        
                         logger.info(f"User {user.user_id} request {request_id+1} completed: {len(assistant_response)} chars")
                     else:
-                        # Empty response - this shouldn't happen with vLLM queuing
-                        # But if it does, it indicates a real problem (timeout, connection error, etc.)
-                        user.empty_response_count += 1
-                        logger.error(f"User {user.user_id} request {request_id+1} failed - no response received (attempt #{user.empty_response_count})")
+                        # Remove user message on failure
+                        user.conversation.pop()
+                        logger.error(f"User {user.user_id} request {request_id+1} failed - no response received")
                         
-                        # Don't add anything to conversation - this request failed completely
-                        # The conversation should not include failed requests
-                        
-                        # Stop user only after multiple consecutive failures (real system issues)
-                        if user.empty_response_count >= 5:
-                            user.active = False
-                            logger.error(f"User {user.user_id} stopped due to {user.empty_response_count} consecutive failures - system may be down")
-                    
-                    # Record end time and get final metrics
-                    metrics.end_time = time.time()
-                    metrics.vllm_metrics_end = await self.get_vllm_metrics()
-                    
-                    # Calculate derived metrics from vLLM data
-                    metrics.ttft = self.calculate_ttft_from_vllm_metrics(
-                        metrics.vllm_metrics_start, metrics.vllm_metrics_end)
-                    metrics.tokens_per_second = self.calculate_tokens_per_second_from_vllm_metrics(
-                        metrics.vllm_metrics_start, metrics.vllm_metrics_end)
+
                         
         except Exception as e:
             metrics.error = str(e)
-            metrics.end_time = time.time()
-            # Still try to get end metrics even on error
-            metrics.vllm_metrics_end = await self.get_vllm_metrics()
-            
-            # Track consecutive failures
-            user.empty_response_count += 1
             logger.error(f"Request failed for user {user.user_id}: {e} (failure #{user.empty_response_count})")
             
-            # Don't add anything to conversation on exception
-            # Stop user after multiple consecutive failures
-            if user.empty_response_count >= 5:
-                user.active = False
-                logger.error(f"User {user.user_id} stopped due to {user.empty_response_count} consecutive failures")
-        
         return metrics
     
     async def simulate_user(self, user_id: int, start_delay: float):
@@ -459,7 +450,7 @@ class MultiUserSimulation:
             if not user.active:
                 break
                 
-            logger.info(f"User {user_id} sending request {i+1}: {prompt[:50]}...")
+            # logger.info(f"User {user_id} sending request {i+1}: {prompt[:50]}...")
             
             # Send request and collect metrics
             metrics = await self.send_chat_request(user, prompt)
@@ -471,7 +462,10 @@ class MultiUserSimulation:
             else:
                 logger.info(f"User {user_id} request {i+1} completed: "
                            f"Context={metrics.context_length} tokens, "
-                           f"TTFT={metrics.ttft:.3f}s" if metrics.ttft else "TTFT=N/A")
+                           f"Queue={metrics.queue_time:.3f}s, "
+                           f"Generation={metrics.generation_time:.3f}s, "
+                           f"Tokens Generated={metrics.response_tokens}, "
+                           f"TPS={metrics.tokens_per_second:.1f}")
             
             # Wait before next request (except for last request)
             if i < len(self.prompts) - 1:
@@ -522,6 +516,12 @@ class MultiUserSimulation:
         
         logger.info("Multi-user simulation completed")
     
+
+
+
+
+
+    
     def generate_graphs(self):
         """Generate the five performance graphs using vLLM metrics"""
         if not self.request_metrics:
@@ -533,8 +533,8 @@ class MultiUserSimulation:
         if not successful_requests:
             logger.error("No successful requests to analyze")
             return
-        
-        # Create figure with 5 subplots (3x2 grid, one subplot empty)
+
+        # Create figure with 6 subplots (3x2 grid)
         fig, axes = plt.subplots(3, 2, figsize=(16, 18))
         fig.suptitle('RTX PRO 6000 WS Simulation\nMulti-User LLM Performance Results', fontsize=18, fontweight='bold')
         
@@ -550,12 +550,12 @@ class MultiUserSimulation:
         
         for user_id in sorted(user_ttft_data.keys()):
             ax1.plot(user_request_ids[user_id], user_ttft_data[user_id], 
-                    marker='o', label=f'User {user_id}', linewidth=2, markersize=6)
+                    marker='o', linewidth=2, markersize=6)
         
         ax1.set_xlabel('Request Number')
         ax1.set_ylabel('Time to First Token (seconds)')
         ax1.set_title('Time to First Token per User')
-        ax1.legend()
+        ax1.set_ylim(bottom=0)
         ax1.grid(True, alpha=0.3)
         
         # 2. Token Generation Speed - Line Chart (one line per user)
@@ -570,36 +570,55 @@ class MultiUserSimulation:
         
         for user_id in sorted(user_tps_data.keys()):
             ax2.plot(user_tps_request_ids[user_id], user_tps_data[user_id], 
-                    marker='s', label=f'User {user_id}', linewidth=2, markersize=6)
+                    marker='s', linewidth=2, markersize=6)
         
         ax2.set_xlabel('Request Number')
         ax2.set_ylabel('Token Generation Speed (tokens/sec)')
         ax2.set_title('Token Generation Speed per User')
-        ax2.legend()
+        ax2.set_ylim(bottom=0)
         ax2.grid(True, alpha=0.3)
         
-        # 3. Request Status - Line Chart (running vs waiting requests)
+        # 3. Token Generation Speed per User vs Context Length
         ax3 = axes[1, 0]
-        if self.system_snapshots:
-            timestamps = [s.timestamp for s in self.system_snapshots]
-            running_requests = [s.running_requests for s in self.system_snapshots]
-            waiting_requests = [s.waiting_requests for s in self.system_snapshots]
+        
+        # Collect data for each user: context length vs token speed
+        user_context_data = defaultdict(list)
+        user_speed_data = defaultdict(list)
+        
+        for req in successful_requests:
+            if req.tokens_per_second is not None and req.context_length is not None:
+                user_context_data[req.user_id].append(req.context_length)
+                user_speed_data[req.user_id].append(req.tokens_per_second)
+        
+        if user_context_data and user_speed_data:
+            # Create line chart for each user
+            colors = plt.cm.tab10(np.linspace(0, 1, len(user_context_data)))
             
-            ax3.plot(timestamps, running_requests, 
-                    marker='o', label='Running Requests', linewidth=2, markersize=4, color='green')
-            ax3.plot(timestamps, waiting_requests, 
-                    marker='s', label='Waiting Requests', linewidth=2, markersize=4, color='red')
+            for i, user_id in enumerate(sorted(user_context_data.keys())):
+                contexts = user_context_data[user_id]
+                speeds = user_speed_data[user_id]
+                
+                if len(contexts) > 0 and len(speeds) > 0:
+                    # Sort data by context length for proper line connection
+                    sorted_data = sorted(zip(contexts, speeds))
+                    sorted_contexts = [x[0] for x in sorted_data]
+                    sorted_speeds = [x[1] for x in sorted_data]
+                    
+                    # Create line chart with markers
+                    ax3.plot(sorted_contexts, sorted_speeds, 
+                            marker='o', linewidth=2, markersize=6,
+                            color=colors[i % len(colors)], alpha=0.8)
             
-            ax3.set_xlabel('Time (seconds)')
-            ax3.set_ylabel('Number of Requests')
-            ax3.set_title('Request Status Over Time')
-            ax3.legend()
+            ax3.set_xlabel('Context Length (tokens)')
+            ax3.set_ylabel('Token Generation Speed (tokens/sec)')
+            ax3.set_title('Token Generation Speed vs Context Length per User')
+            ax3.set_ylim(bottom=0)
             ax3.grid(True, alpha=0.3)
         else:
-            ax3.text(0.5, 0.5, 'No system snapshots available', 
+            ax3.text(0.5, 0.5, 'No token speed vs context data available', 
                     ha='center', va='center', transform=ax3.transAxes,
                     fontsize=12, bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray"))
-            ax3.set_title('Request Status Over Time\n(Data unavailable)')
+            ax3.set_title('Token Generation Speed vs Context Length per User\n(Data unavailable)')
         
         # 4. Token Generation Speed (total) vs Total Context Length
         ax4 = axes[1, 1]
@@ -626,6 +645,7 @@ class MultiUserSimulation:
             ax4.set_xlabel('Total Context Length (tokens)')
             ax4.set_ylabel('Token Generation Speed (tokens/sec)')
             ax4.set_title('Token Generation Speed vs Total Context Length')
+            ax4.set_ylim(bottom=0)
             ax4.grid(True, alpha=0.3)
         else:
             ax4.text(0.5, 0.5, 'No token speed vs context data available', 
@@ -633,91 +653,97 @@ class MultiUserSimulation:
                     fontsize=12, bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray"))
             ax4.set_title('Token Generation Speed vs Total Context Length\n(Data unavailable)')
         
-        # 5. Request Status vs Total Context Length
+        # 5. Request Status - Line Chart (running vs waiting requests)
         ax5 = axes[2, 0]
-        
-        # Collect data points where we have both system snapshots and context information
-        context_running_data = []
-        context_waiting_data = []
-        context_total_data = []
-        
-        # Create a mapping of timestamps to total context lengths from successful requests
-        timestamp_to_context = {}
-        for req in successful_requests:
-            if req.total_context_at_start is not None:
-                # Approximate timestamp based on user start delay and request timing
-                approx_timestamp = req.user_id * self.user_start_delay + req.request_id * self.request_delay
-                timestamp_to_context[approx_timestamp] = req.total_context_at_start
-        
-        # Match system snapshots with context data
-        for snapshot in self.system_snapshots:
-            # Find the closest context measurement to this timestamp
-            closest_context = None
-            min_time_diff = float('inf')
+        if self.system_snapshots:
+            timestamps = [s.timestamp for s in self.system_snapshots]
+            running_requests = [s.running_requests for s in self.system_snapshots]
+            waiting_requests = [s.waiting_requests for s in self.system_snapshots]
             
-            for req_timestamp, context_length in timestamp_to_context.items():
-                time_diff = abs(snapshot.timestamp - req_timestamp)
-                if time_diff < min_time_diff:
-                    min_time_diff = time_diff
-                    closest_context = context_length
+            ax5.plot(timestamps, running_requests, 
+                    marker='o', label='Running Requests', linewidth=2, markersize=4, color='green')
+            ax5.plot(timestamps, waiting_requests, 
+                    marker='s', label='Waiting Requests', linewidth=2, markersize=4, color='red')
             
-            # Only include if we found a reasonably close context measurement (within 30 seconds)
-            if closest_context is not None and min_time_diff < 30:
-                context_running_data.append((closest_context, snapshot.running_requests))
-                context_waiting_data.append((closest_context, snapshot.waiting_requests))
-                context_total_data.append((closest_context, snapshot.running_requests + snapshot.waiting_requests))
-        
-        if context_running_data and context_waiting_data:
-            # Sort by context length for better visualization
-            context_running_data.sort(key=lambda x: x[0])
-            context_waiting_data.sort(key=lambda x: x[0])
-            context_total_data.sort(key=lambda x: x[0])
-            
-            # Extract context lengths and request counts
-            running_contexts = [x[0] for x in context_running_data]
-            running_counts = [x[1] for x in context_running_data]
-            waiting_contexts = [x[0] for x in context_waiting_data]
-            waiting_counts = [x[1] for x in context_waiting_data]
-            total_contexts = [x[0] for x in context_total_data]
-            total_counts = [x[1] for x in context_total_data]
-            
-            # Create scatter plots
-            ax5.scatter(running_contexts, running_counts, 
-                       alpha=0.7, s=30, color='green', label='Running Requests')
-            ax5.scatter(waiting_contexts, waiting_counts, 
-                       alpha=0.7, s=30, color='red', label='Waiting Requests')
-            ax5.scatter(total_contexts, total_counts, 
-                       alpha=0.5, s=20, color='blue', label='Total Requests')
-            
-            # Add trend lines if we have enough data points
-            if len(total_contexts) > 2:
-                try:
-                    z_total = np.polyfit(total_contexts, total_counts, 1)
-                    p_total = np.poly1d(z_total)
-                    ax5.plot(sorted(total_contexts), p_total(sorted(total_contexts)), 
-                            "b--", alpha=0.8, linewidth=2, label='Total Trend')
-                except np.RankWarning:
-                    pass  # Skip trend line if data is not suitable for fitting
-            
-            ax5.set_xlabel('Total Context Length (tokens)')
+            ax5.set_xlabel('Time (seconds)')
             ax5.set_ylabel('Number of Requests')
-            ax5.set_title('Request Status vs Total Context Length')
+            ax5.set_title('Request Status Over Time')
+            ax5.set_ylim(bottom=0)
             ax5.legend()
             ax5.grid(True, alpha=0.3)
         else:
-            ax5.text(0.5, 0.5, 'No request status vs context data available', 
+            ax5.text(0.5, 0.5, 'No system snapshots available', 
                     ha='center', va='center', transform=ax5.transAxes,
                     fontsize=12, bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray"))
-            ax5.set_title('Request Status vs Total Context Length\n(Data unavailable)')
+            ax5.set_title('Request Status Over Time\n(Data unavailable)')
         
-        # Hide the empty subplot
-        axes[2, 1].set_visible(False)
+        # 6. Request Status vs Total Context Length
+        ax6 = axes[2, 1]
+        
+        if self.system_snapshots:
+            # Create a mapping of timestamps to total context lengths from successful requests
+            timestamp_to_context = {}
+            for req in successful_requests:
+                if req.total_context_at_start is not None:
+                    # Approximate timestamp based on user start delay and request timing
+                    approx_timestamp = req.user_id * self.user_start_delay + req.request_id * self.request_delay
+                    timestamp_to_context[approx_timestamp] = req.total_context_at_start
+            
+            # Collect data by matching snapshots with context
+            context_data = []
+            for snapshot in self.system_snapshots:
+                # Find the closest context measurement to this timestamp
+                closest_context = None
+                min_time_diff = float('inf')
+                
+                for req_timestamp, context_length in timestamp_to_context.items():
+                    time_diff = abs(snapshot.timestamp - req_timestamp)
+                    if time_diff < min_time_diff:
+                        min_time_diff = time_diff
+                        closest_context = context_length
+                
+                # Only include if we found a reasonably close context measurement (within 30 seconds)
+                if closest_context is not None and min_time_diff < 30:
+                    context_data.append((closest_context, snapshot.running_requests, snapshot.waiting_requests))
+            
+            if context_data:
+                # Sort by context length
+                context_data.sort(key=lambda x: x[0])
+                
+                # Extract data for plotting
+                contexts = [x[0] for x in context_data]
+                running_requests = [x[1] for x in context_data]
+                waiting_requests = [x[2] for x in context_data]
+                
+                # Create line charts (same style as graph 5)
+                ax6.plot(contexts, running_requests, 
+                        marker='o', label='Running Requests', linewidth=2, markersize=4, color='green')
+                ax6.plot(contexts, waiting_requests, 
+                        marker='s', label='Waiting Requests', linewidth=2, markersize=4, color='red')
+                
+                ax6.set_xlabel('Total Context Length (tokens)')
+                ax6.set_ylabel('Number of Requests')
+                ax6.set_title('Request Status vs Total Context Length')
+                ax6.set_ylim(bottom=0)
+                ax6.legend()
+                ax6.grid(True, alpha=0.3)
+            else:
+                ax6.text(0.5, 0.5, 'No request status vs context data available', 
+                        ha='center', va='center', transform=ax6.transAxes,
+                        fontsize=12, bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray"))
+                ax6.set_title('Request Status vs Total Context Length\n(Data unavailable)')
+        else:
+            ax6.text(0.5, 0.5, 'No system snapshots available', 
+                    ha='center', va='center', transform=ax6.transAxes,
+                    fontsize=12, bbox=dict(boxstyle="round,pad=0.3", facecolor="lightgray"))
+            ax6.set_title('Request Status vs Total Context Length\n(Data unavailable)')
+        
         
         plt.tight_layout()
         
         # Save plot
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        plot_path = f"simulation_results_{timestamp}.png"
+        plot_path = f"{self.instance_model}_simulation_results_{timestamp}.png"
         plt.savefig(plot_path, dpi=300, bbox_inches='tight')
         logger.info(f"Simulation graphs saved to {plot_path}")
         
@@ -762,15 +788,25 @@ class MultiUserSimulation:
             print(f"  - No empty responses detected! 🎉")
         
         if successful_requests:
-            # TTFT analysis
-            ttft_values = [req.ttft for req in successful_requests if req.ttft is not None]
-            if ttft_values:
-                print(f"\nTime to First Token Analysis:")
-                print(f"  - Mean TTFT: {np.mean(ttft_values):.3f}s")
-                print(f"  - Median TTFT: {np.median(ttft_values):.3f}s")
-                print(f"  - Min TTFT: {np.min(ttft_values):.3f}s")
-                print(f"  - Max TTFT: {np.max(ttft_values):.3f}s")
-                print(f"  - Data points: {len(ttft_values)}/{len(successful_requests)}")
+            # Queue time (TTFT) analysis
+            queue_values = [req.queue_time for req in successful_requests if req.queue_time is not None]
+            if queue_values:
+                print(f"\nQueue Time (TTFT) Analysis:")
+                print(f"  - Mean Queue Time: {np.mean(queue_values):.3f}s")
+                print(f"  - Median Queue Time: {np.median(queue_values):.3f}s")
+                print(f"  - Min Queue Time: {np.min(queue_values):.3f}s")
+                print(f"  - Max Queue Time: {np.max(queue_values):.3f}s")
+                print(f"  - Data points: {len(queue_values)}/{len(successful_requests)}")
+            
+            # Generation time analysis
+            gen_values = [req.generation_time for req in successful_requests if req.generation_time is not None]
+            if gen_values:
+                print(f"\nGeneration Time Analysis:")
+                print(f"  - Mean Generation Time: {np.mean(gen_values):.3f}s")
+                print(f"  - Median Generation Time: {np.median(gen_values):.3f}s")
+                print(f"  - Min Generation Time: {np.min(gen_values):.3f}s")
+                print(f"  - Max Generation Time: {np.max(gen_values):.3f}s")
+                print(f"  - Data points: {len(gen_values)}/{len(successful_requests)}")
             
             # Token generation speed analysis
             tps_values = [req.tokens_per_second for req in successful_requests if req.tokens_per_second is not None]
@@ -781,6 +817,16 @@ class MultiUserSimulation:
                 print(f"  - Min TPS: {np.min(tps_values):.1f} tokens/s")
                 print(f"  - Max TPS: {np.max(tps_values):.1f} tokens/s")
                 print(f"  - Data points: {len(tps_values)}/{len(successful_requests)}")
+            
+            # Response tokens analysis
+            token_values = [req.response_tokens for req in successful_requests if req.response_tokens > 0]
+            if token_values:
+                print(f"\nResponse Token Analysis:")
+                print(f"  - Mean Response Tokens: {np.mean(token_values):.0f}")
+                print(f"  - Median Response Tokens: {np.median(token_values):.0f}")
+                print(f"  - Min Response Tokens: {np.min(token_values)}")
+                print(f"  - Max Response Tokens: {np.max(token_values)}")
+                print(f"  - Data points: {len(token_values)}/{len(successful_requests)}")
             
             # Context analysis
             context_lengths = [req.context_length for req in successful_requests]
@@ -829,7 +875,7 @@ class MultiUserSimulation:
             })
         
         request_df = pd.DataFrame(request_data)
-        request_csv_path = f"simulation_requests_{timestamp}.csv"
+        request_csv_path = f"{self.instance_model}_simulation_requests_{timestamp}.csv"
         request_df.to_csv(request_csv_path, index=False)
         logger.info(f"Request metrics saved to {request_csv_path}")
         
@@ -851,7 +897,7 @@ class MultiUserSimulation:
                 })
             
             system_df = pd.DataFrame(system_data)
-            system_csv_path = f"simulation_system_{timestamp}.csv"
+            system_csv_path = f"{self.instance_model}_simulation_system_{timestamp}.csv"
             system_df.to_csv(system_csv_path, index=False)
             logger.info(f"System metrics saved to {system_csv_path}")
 
@@ -860,7 +906,7 @@ async def main():
     # Configuration
     api_url = "http://localhost:8090"  # Change to your API URL
     model_name = "gaunernst/gemma-3-12b-it-qat-autoawq"  # Your model name
-    num_users = 10  # Number of concurrent users
+    num_users = 25  # Number of concurrent users
     
     simulation = MultiUserSimulation(api_url, model_name, num_users)
     

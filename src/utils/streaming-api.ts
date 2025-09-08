@@ -12,7 +12,7 @@ import { AppError, createAppError } from './error-handling';
 
 const API_CONFIG = {
   // API URL - Set via environment variable
-  baseUrl: 'http://71.191.12.15:22680',
+  baseUrl: 'http://104.189.178.116:2893',
 
 
   // API Endpoints
