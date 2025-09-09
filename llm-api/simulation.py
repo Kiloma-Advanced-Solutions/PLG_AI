@@ -106,7 +106,7 @@ class MultiUserSimulation:
         
         # Simulation configuration
         self.num_users = num_users
-        self.user_start_delay = 5.0  # 5 seconds between user starts
+        self.user_start_delay = 0.0  # 0 seconds between user starts
         self.request_delay = 5.0    # 5 seconds between requests per user
         self.instance_model = "rtx_6000"  # Instance identifier for file naming
         

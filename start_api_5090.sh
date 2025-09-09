@@ -34,7 +34,7 @@ stop_vllm
 start_vllm() {
     python -m vllm.entrypoints.openai.api_server \
         --model "$MODEL" \
-        --max-model-len 131072 \
+        --max-model-len 16384 \
         --port "$VLLM_PORT" \
         --gpu-memory-utilization 0.9 \
         --disable-log-requests &
