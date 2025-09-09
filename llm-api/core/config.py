@@ -10,9 +10,9 @@ class LLMConfig:
     def __init__(self):
         # Base URLs for services
         self.base_url: str = os.getenv("LLM_API_BASE_URL", "http://localhost")
-        self.cloud_ip: str = os.getenv("LLM_API_CLOUD_IP", "104.189.178.116")  # The public IP of the cloud instance
-        self.frontend_port: int = int(os.getenv("LLM_API_FRONTEND_PORT", "2862"))  # 3000 mapped port
-        self.api_port: int = int(os.getenv("LLM_API_API_PORT", "2893"))  # 8090 mapped port
+        self.cloud_ip: str = os.getenv("LLM_API_CLOUD_IP", "173.239.94.193")  # The public IP of the cloud instance
+        self.frontend_port: int = int(os.getenv("LLM_API_FRONTEND_PORT", "50618"))  # 3000 mapped port
+        self.api_port: int = int(os.getenv("LLM_API_API_PORT", "50626"))  # 8090 mapped port
 
         self.vllm_port: int = int(os.getenv("LLM_API_VLLM_PORT", "8060"))  # vLLM server port
 
@@ -28,6 +28,10 @@ class LLMConfig:
         self.max_tokens: int = int(os.getenv("LLM_API_MAX_TOKENS", "2048"))
         self.temperature: float = float(os.getenv("LLM_API_TEMPERATURE", "0.7"))
         self.top_p: float = float(os.getenv("LLM_API_TOP_P", "0.9"))
+        
+        # Context Management
+        self.max_context_tokens: int = int(os.getenv("LLM_API_MAX_CONTEXT_TOKENS", "16384"))
+        self.response_reserve_tokens: int = int(os.getenv("LLM_API_RESPONSE_RESERVE_TOKENS", "2048"))
         
         # Connection Settings
         self.request_timeout: int = int(os.getenv("LLM_API_REQUEST_TIMEOUT", "300"))
