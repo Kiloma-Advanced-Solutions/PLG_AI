@@ -27,24 +27,40 @@ class ConversationManager:
         
         try:
             self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-        except:
-            logger.warning(f"Could not load tokenizer for {model_name}")
+            logger.info(f"Successfully loaded tokenizer for {model_name}")
+        except Exception as e:
+            logger.error(f"CRITICAL: Could not load tokenizer for {model_name}: {e}")
+            logger.error("Token counting is REQUIRED for proper conversation truncation")
+            raise RuntimeError(f"Failed to load tokenizer for {model_name}. This is required for accurate token counting.") from e
     
     def _count_tokens(self, messages: List[Message]) -> int:
-        """Count tokens in messages using tokenizer"""
+        """Count tokens in messages using the model's tokenizer (REQUIRED)"""
         if not self.tokenizer:
-            return 0
+            raise RuntimeError("Tokenizer not available - this should never happen after initialization")
         
         try:
             formatted_messages = [{"role": msg.role, "content": msg.content} for msg in messages]
             if hasattr(self.tokenizer, 'apply_chat_template'):
-                formatted_text = self.tokenizer.apply_chat_template(formatted_messages, tokenize=False, add_generation_prompt=True)
-                return len(self.tokenizer.encode(formatted_text))
+                # Use the model's chat template for accurate token counting
+                formatted_text = self.tokenizer.apply_chat_template(
+                    formatted_messages, 
+                    tokenize=False, 
+                    add_generation_prompt=True
+                )
+                token_count = len(self.tokenizer.encode(formatted_text))
+                logger.debug(f"Token count via chat template: {token_count} tokens")
+                return token_count
             else:
+                # Fallback to simple concatenation if no chat template
                 total_text = " ".join([msg.content for msg in messages])
-                return len(self.tokenizer.encode(total_text))
-        except:
-            return 0
+                token_count = len(self.tokenizer.encode(total_text))
+                logger.debug(f"Token count via direct encoding: {token_count} tokens")
+                return token_count
+        except Exception as e:
+            logger.error(f"CRITICAL: Token counting failed with model tokenizer: {e}")
+            logger.error(f"This may cause context length errors. Messages: {len(messages)}")
+            # Re-raise the exception instead of falling back to unreliable estimation
+            raise RuntimeError(f"Token counting failed: {e}") from e
     
     def prepare_conversation(self, messages: List[Message], system_prompt: str) -> Tuple[List[Message], dict]:
         """
@@ -99,14 +115,24 @@ class ConversationManager:
     
     def _truncate_by_tokens(self, messages: List[Message], system_prompt: str, metadata: dict) -> List[Message]:
         """Truncate messages using token-based counting"""
-        # Reserve tokens for system prompt
-        system_prompt_tokens = self._count_tokens([Message(role="system", content=system_prompt)])
-        available_tokens = self.max_context_tokens - self.response_reserve_tokens - system_prompt_tokens
+        # Calculate maximum allowed tokens for the entire conversation (system + messages)
+        max_allowed_tokens = self.max_context_tokens - self.response_reserve_tokens
         original_count = len(messages)
         
+        # Create system message for token counting
+        system_message = Message(role="system", content=system_prompt)
+        
         # Remove oldest messages until we fit within token limit
-        while messages and self._count_tokens(messages) > available_tokens:
-            # Try to remove in user-assistant pairs to maintain conversation flow
+        # We check the total token count including the system prompt
+        while messages:
+            # Test the full conversation including system prompt
+            test_messages = [system_message] + messages
+            total_tokens = self._count_tokens(test_messages)
+            
+            if total_tokens <= max_allowed_tokens:
+                break  # We fit within the limit
+                
+            # Remove messages to make room
             if len(messages) >= 2:
                 # Check if first two messages form a user-assistant pair
                 if (messages[0].role == "user" and messages[1].role == "assistant"):
@@ -117,15 +143,17 @@ class ConversationManager:
                     # Just remove the oldest message
                     messages.pop(0)
             else:
-                # Remove all remaining messages if even one doesn't fit
-                messages.clear()
+                # Remove the last remaining message
+                messages.pop(0)
         
         messages_removed = original_count - len(messages)
         metadata["messages_truncated"] = messages_removed
         
         if messages_removed > 0:
-            final_tokens = self._count_tokens(messages) + system_prompt_tokens
-            logger.info(f"🧹 Token-based truncation: kept {len(messages)} messages, removed {messages_removed}, final tokens: {final_tokens}")
+            # Calculate final token count with system prompt included
+            final_messages = [system_message] + messages
+            final_tokens = self._count_tokens(final_messages)
+            logger.info(f"🧹 Token-based truncation: kept {len(messages)} messages, removed {messages_removed}, final tokens: {final_tokens}/{max_allowed_tokens}")
         
         return messages
 

@@ -319,12 +319,11 @@ class MultiUserSimulation:
         # Prepare conversation with new user message
         user.conversation.append({"role": "user", "content": prompt})
         
-        # Count tokens in the full conversation context
+        # Count tokens in the full conversation context (for metrics before truncation)
         context_tokens = self.count_conversation_tokens(user.conversation)
         total_context = self.calculate_total_context_length()
         
-        # logger.info(f"User {user.user_id} starting request {request_id+1} "
-        logger.info(f"(context: {context_tokens} tokens, total: {total_context} tokens)")
+        logger.info(f"User {user.user_id} request {request_id+1}: context={context_tokens} tokens, total={total_context} tokens")
 
         # Create metrics object
         send_time = time.time()
@@ -337,7 +336,7 @@ class MultiUserSimulation:
             total_context_at_start=total_context
         )
         
-        # Prepare request payload (like frontend)
+        # Prepare request payload (API handles truncation automatically)
         payload = {
             "messages": user.conversation,
             "session_id": user.session_id,
@@ -833,7 +832,7 @@ async def main():
     # Configuration
     api_url = "http://localhost:8090"  # Change to your API URL
     model_name = "gaunernst/gemma-3-12b-it-qat-autoawq"  # Your model name
-    num_users = 25  # Number of concurrent users
+    num_users = 1  # Number of concurrent users
     
     simulation = MultiUserSimulation(api_url, model_name, num_users)
     
