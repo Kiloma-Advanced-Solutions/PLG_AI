@@ -4,6 +4,8 @@
   align-items: center;          /* Center horizontally */
   justify-content: flex-start;      /* Align items to the top */
   position: fixed;
+  top: 0;
+  right: 0; /* Position sidebar to the right edge */
   width: var(--sidebar-width-closed);
   height: 100vh;
   background-color: var(--sidebar-bg);

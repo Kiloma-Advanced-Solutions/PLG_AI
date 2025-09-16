@@ -5,16 +5,17 @@
   background-color: var(--header-bg);
   /* border-bottom: 3px solid var(--border-color); */
   height: 70px;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
+  right: var(--sidebar-width-closed);
   z-index: 100;
   transition: all 0.3s ease;
-  margin-right: var(--sidebar-width-closed);
   box-sizing: border-box;
 }
 
 .header.shifted {
-  margin-right: var(--sidebar-width-open);
+  right: var(--sidebar-width-open);
 }
 
 /* theme icon and logo */
@@ -135,7 +136,7 @@
 @media (max-width: 768px) {
 
   .header.shifted {
-    margin-right: var(--sidebar-width-open-tablet); 
+    right: var(--sidebar-width-open-tablet); 
   }
   
   .appName.shifted {
@@ -146,11 +147,11 @@
 /* For screens <= 600px, center on screen regardless of sidebar */
 @media (max-width: 600px) {
   .header {
-    margin-right: var(--sidebar-width-closed-mobile);
+    right: var(--sidebar-width-closed-mobile);
   }
   
   .header.shifted {
-    margin-right: var(--sidebar-width-open-mobile);
+    right: var(--sidebar-width-open-mobile);
   }
 
   /* Always center on screen for mobile */

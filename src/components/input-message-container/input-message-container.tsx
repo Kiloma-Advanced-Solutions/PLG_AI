@@ -19,6 +19,8 @@ type InputMessageContainerProps = {
   onPrefilledMessageCleared?: () => void;
   /** Callback function called when user clicks stop button */
   onStop?: (currentInputValue: string) => void;
+  /** Whether the sidebar is open (for positioning) */
+  isSidebarOpen?: boolean;
 };
 
 /**
@@ -32,6 +34,7 @@ export default function InputMessageContainer({
   prefilledMessage = '',
   onPrefilledMessageCleared,
   onStop,
+  isSidebarOpen = false,
 }: InputMessageContainerProps) {
 
   const [inputValue, setInputValue] = useState('');
@@ -97,7 +100,7 @@ export default function InputMessageContainer({
 
 
   return (
-    <form className={styles.inputContainer} onSubmit={handleSubmit}>
+    <form className={`${styles.inputContainer} ${isSidebarOpen ? styles.shifted : ''}`} onSubmit={handleSubmit}>
       <div className={`${styles.inputWrapper} ${showFocusAnimation ? styles.focusAnimation : ''}`}>
         <textarea
           ref={inputRef}

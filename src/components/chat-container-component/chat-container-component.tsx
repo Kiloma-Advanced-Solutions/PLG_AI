@@ -79,7 +79,15 @@ export default function ChatContainerComponent({
     const handleScroll = useCallback(() => {
       if (!messagesContainerRef.current) return;
       
-      const { offsetHeight, scrollHeight, scrollTop } = messagesContainerRef.current;
+      const container = messagesContainerRef.current;
+      const { offsetHeight, scrollHeight, scrollTop } = container;
+      
+      // Prevent scrolling too high (beyond scroll boundary)
+      const minScrollTop = 0; // Don't allow scrolling above the scroll boundary
+      if (scrollTop < minScrollTop) {
+        container.scrollTop = minScrollTop;
+        return;
+      }
       
       // If user scrolled up from bottom (more than 10px), disable auto-scroll
       if (scrollHeight > scrollTop + offsetHeight + 10) {
@@ -95,7 +103,7 @@ export default function ChatContainerComponent({
       const container = messagesContainerRef.current;
       if (!container) return;
 
-      container.addEventListener('scroll', handleScroll, { passive: true });
+      container.addEventListener('scroll', handleScroll, { passive: false });
       return () => {
         container.removeEventListener('scroll', handleScroll);
       };
@@ -124,6 +132,9 @@ export default function ChatContainerComponent({
           ref={messagesContainerRef}
           className={`${styles.messagesContainer} ${messages.length === 0 ? styles.empty : ''}`}
         >
+          {/* Scroll boundary to prevent scrolling too high */}
+          <div className={styles.scrollBoundary}></div>
+          
           {messages.length === 0 ? (
             <div className={styles.welcomeMessage}>
               <h2>ברוכים הבאים ל-ChatPLG!</h2>
@@ -195,6 +206,7 @@ export default function ChatContainerComponent({
           prefilledMessage={prefilledMessage}
           onPrefilledMessageCleared={onPrefilledMessageCleared}
           onStop={onStop}
+          isSidebarOpen={isSidebarOpen}
         />
       </div>
     );

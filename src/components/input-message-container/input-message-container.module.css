@@ -1,8 +1,13 @@
 /* input area */
 .inputContainer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: var(--sidebar-width-closed);
   padding: 1rem;
   background-color: var(--background-color);
-  margin-bottom: 0.75rem;
+  z-index: 50;
+  transition: right 0.3s ease;
 }
 
 .inputWrapper {
@@ -117,10 +122,26 @@
   height: 1.25rem;
 }
 
+/* Shifted state when sidebar is open */
+.inputContainer.shifted {
+  right: var(--sidebar-width-open);
+}
+
 /* Mobile responsive design */
+@media (max-width: 768px) {
+  .inputContainer.shifted {
+    right: var(--sidebar-width-open-tablet);
+  }
+}
+
 @media (max-width: 600px) {
   .inputContainer {
     padding: 0.25rem;
+    right: var(--sidebar-width-closed-mobile);
+  }
+  
+  .inputContainer.shifted {
+    right: var(--sidebar-width-open-mobile);
   }
   
   .inputWrapper {
