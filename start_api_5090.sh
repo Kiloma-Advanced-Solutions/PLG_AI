@@ -34,18 +34,16 @@ stop_vllm
 start_vllm() {
     python -m vllm.entrypoints.openai.api_server \
         --model "$MODEL" \
-        --max-model-len 131072 \
+        --max-model-len 16384 \
         --port "$VLLM_PORT" \
-        --max-num-seqs 4 \
         --gpu-memory-utilization 0.9 \
-        --disable-log-requests \
-        --trust-remote-code &
+        --disable-log-requests &
 
     echo "Waiting for vLLM to start..."
     for i in {1..1200}; do
         if curl -s -X POST "http://localhost:${VLLM_PORT}/v1/chat/completions" \
             -H "Content-Type: application/json" \
-            -d '{"model":"'"$MODEL"'","messages":[{"role":"user","content":"היי, תכתוב בבקשה סיפור קצר"}],"max_tokens":1}' \
+            -d '{"model":"'"$MODEL"'","messages":[{"role":"user","content":"היי"}],"max_tokens":1}' \
             >/dev/null 2>&1; then
             echo "✅ vLLM is ready!"
             break

@@ -8,6 +8,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from core.models import HealthStatus, ChatRequest, TitleGenerationRequest, TitleGenerationResponse, TaskExtractionRequest, TaskExtractionResponse, EmailSummarizationRequest, EmailSummary
 from utils.health import health_checker
+from utils.conversation import get_conversation_manager
 from services.chat_service import chat_service
 from services.task_service import task_service
 from services.title_service import title_service
@@ -37,14 +38,21 @@ def create_routes(app: FastAPI) -> None:
             # Generate session ID if not provided
             session_id = chat_request.session_id or chat_service.generate_session_id()
 
-            # Extract latest user message
+            # Extract latest user message (from original messages for logging)
             user_msg = chat_service.extract_latest_user_message(chat_request.messages)
             logger.info(f"Chat request - User: {user_msg}")
             
-            # Stream chat response
+            # Prepare conversation using conversation manager (handles truncation)
+            conversation_manager = get_conversation_manager()
+            prepared_messages, metadata = conversation_manager.prepare_conversation(
+                chat_request.messages, 
+                chat_service.CHAT_SYSTEM_PROMPT
+            )
+            
+            # Stream chat response using prepared messages
             return StreamingResponse(
-                # Call chat service to generate response stream
-                chat_service.stream_chat(chat_request.messages, session_id),
+                # Call chat service to generate response stream with prepared messages
+                chat_service.stream_chat(prepared_messages, session_id),
                 media_type="text/event-stream",
                 headers={
                     "Cache-Control": "no-cache",

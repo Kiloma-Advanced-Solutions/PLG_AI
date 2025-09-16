@@ -18,7 +18,6 @@ class ChatService:
     def __init__(self):
         """Initialize the chat service"""
         self.engine = llm_engine
-        self.max_context_messages = 20  # Limit conversation history
 
     def generate_session_id(self) -> str:
         """Generate a unique session ID for chat sessions"""
@@ -40,59 +39,26 @@ class ChatService:
             Server-sent event formatted strings
         """
         try:
-            # Add system prompt if not present
-            if not messages or messages[0].role != "system":
-                messages = [Message(role="system", content=self.CHAT_SYSTEM_PROMPT)] + messages
-            
-            # Prepare conversation context
-            validated_messages = self._prepare_conversation(messages)
-            
             # Stream from LLM engine
-            async for chunk in self.engine.chat_stream(validated_messages, session_id):
+            async for chunk in self.engine.chat_stream(messages, session_id):
                 yield chunk
                 
         except ValueError as e:
             logger.error(f"Chat validation error: {e}")
+            logger.error(f"Failed request details:")
+            logger.error(f"  Session ID: {session_id}")
+            logger.error(f"  Original messages ({len(messages)}):")
+            for i, msg in enumerate(messages):
+                logger.error(f"    Message {i+1} [{msg.role}]: {msg.content[:200]}...")
             yield f'data: {{"error": "Invalid message format: {str(e)}"}}\n\n'
         except Exception as e:
             logger.error(f"Chat service error: {e}")
+            logger.error(f"Failed request details:")
+            logger.error(f"  Session ID: {session_id}")
+            logger.error(f"  Original messages ({len(messages)}):")
+            for i, msg in enumerate(messages):
+                logger.error(f"    Message {i+1} [{msg.role}]: {msg.content[:200]}...")
             yield f'data: {{"error": "Chat service unavailable"}}\n\n'
-
-
-    def _prepare_conversation(self, messages: List[Message]) -> List[Message]:
-        """
-        Prepare conversation context for LLM
-        
-        Args:
-            messages: Full conversation history
-            
-        Returns:
-            Processed message list ready for LLM
-        """
-        # Limit context to prevent token overflow
-        if len(messages) > self.max_context_messages:
-            logger.info(f"Truncating conversation from {len(messages)} to {self.max_context_messages} messages")
-            messages = messages[-self.max_context_messages:]
-            
-            # Make sure system prompt is preserved
-            if messages[0].role != "system":
-                messages = [Message(role="system", content=self.CHAT_SYSTEM_PROMPT)] + messages
-        
-        # Remove consecutive user messages (keep only the last one)
-        cleaned_messages = []
-        consecutive_users_found = 0
-        for msg in messages:
-            if msg.role == "user" and cleaned_messages and cleaned_messages[-1].role == "user":
-                consecutive_users_found += 1
-                # Replace previous user message with current one
-                cleaned_messages[-1] = msg
-            else:
-                cleaned_messages.append(msg)
-        
-        if consecutive_users_found > 0:
-            logger.warning(f"🔧 Fixed {consecutive_users_found} consecutive user messages")
-        
-        return cleaned_messages
     
 
     def extract_latest_user_message(self, messages: List[Message]) -> Optional[str]:
