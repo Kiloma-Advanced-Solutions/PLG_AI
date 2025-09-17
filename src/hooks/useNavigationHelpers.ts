@@ -26,7 +26,15 @@ export const useNavigationHelpers = () => {
     
     // Navigate to conversation page
     setNavigationLoading(true);
-    router.push(`/chat/${conversationId}`);
+    
+    // Close sidebar if toggle function is provided (mobile devices)
+    if (toggleSidebar) {
+      toggleSidebar();
+      // Add small delay to allow sidebar close animation before navigation
+      setTimeout(() => router.push(`/chat/${conversationId}`), 150);
+    } else {
+      router.push(`/chat/${conversationId}`);
+    }
   };
   
   /**

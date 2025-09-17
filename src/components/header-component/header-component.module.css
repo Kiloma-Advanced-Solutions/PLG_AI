@@ -1,71 +1,68 @@
+/* Mobile-first header design */
 .header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   background-color: var(--header-bg);
-  /* border-bottom: 3px solid var(--border-color); */
-  height: 70px;
+  height: var(--header-height);
   position: fixed;
   top: 0;
   left: 0;
   right: var(--sidebar-width-closed);
-  z-index: 100;
+  z-index: 10;
   transition: all 0.3s ease;
   box-sizing: border-box;
+  padding: 0 var(--spacing-sm);
+  border-bottom: 1px solid var(--border-color);
 }
 
 .header.shifted {
   right: var(--sidebar-width-open);
 }
 
-/* theme icon and logo */
+/* Mobile-first left section (theme icon and logo) */
 .leftSection {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: var(--spacing-sm);
   flex-shrink: 0;
-  padding-left: 1rem;
+  padding-left: var(--spacing-sm);
 }
 
 .logo {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   color: var(--text-primary);
   flex-shrink: 0;
   transition: all 0.2s ease;
 }
 
 .logoIcon {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
 }
 
+/* Mobile-first app name styling */
 .appName {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  flex: 1;
   text-align: center;
   transition: opacity 0.3s ease, visibility 0.3s ease;
-}
-
-/* For screens > 600px, center within header (accounting for sidebar) */
-.appName.shifted {
-  /* Center in the remaining visible area when sidebar is open */
-  left: calc((100vw - var(--sidebar-width-open)) / 2);
+  margin: 0 var(--spacing-sm);
 }
 
 .appName h1 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: var(--font-size-lg);
   font-weight: 700;
   color: var(--text-primary);
   background: linear-gradient(135deg, var(--app-color-1) 0%, var(--app-color-2) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  white-space: nowrap;
 }
 
 .clickable {
@@ -79,25 +76,26 @@
   outline: none; /* Remove focus outline as well */
 }
 
-/* Mobile controls */
+/* Mobile controls - visible by default on mobile */
 .mobileControls {
-  display: none;
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: var(--spacing-sm);
   flex-shrink: 0;
+  padding-right: var(--spacing-sm);
 }
 
 .mobileBurgerButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border: none;
   background: none;
   color: var(--text-primary);
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 6px;
   transition: all 0.2s ease;
 }
 
@@ -115,8 +113,8 @@
 }
 
 .mobileBurgerButton svg {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
 /* RTL Support */
@@ -132,58 +130,77 @@
   flex-direction: row-reverse;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+/* When sidebar is open, hide elements appropriately */
+.header.shifted .appName {
+  display: none;
+}
 
-  .header.shifted {
-    right: var(--sidebar-width-open-tablet); 
+.header.shifted .leftSection {
+  display: none;
+}
+
+.header.shifted .mobileControls {
+  display: none;
+}
+
+/* Tablet and larger screens (768px+) */
+@media (min-width: 768px) {
+  .leftSection {
+    gap: var(--spacing-md);
+    padding-left: var(--spacing-lg);
   }
   
-  .appName.shifted {
-    left: calc((100vw - var(--sidebar-width-open-tablet)) / 2);
+  .logo {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .logoIcon {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .appName h1 {
+    font-size: var(--font-size-xl);
+  }
+  
+  .mobileBurgerButton {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+  }
+  
+  .mobileBurgerButton svg {
+    width: 20px;
+    height: 20px;
+  }
+  
+  /* On tablets and up, when sidebar is open, restore some elements */
+  .header.shifted .appName {
+    display: block;
+  }
+  
+  .header.shifted .leftSection {
+    display: flex;
   }
 }
 
-/* For screens <= 600px, center on screen regardless of sidebar */
-@media (max-width: 600px) {
-  .header {
-    right: var(--sidebar-width-closed-mobile);
-  }
-  
-  .header.shifted {
-    right: var(--sidebar-width-open-mobile);
-  }
-
-  /* Always center on screen for mobile */
-  .appName,
-  .appName.shifted {
-    left: 50%;
-    transform: translateX(-50%);
-  }
-  
-  .appName.shifted {
-    display: none; /* Hide title when sidebar is open on mobile */
-  }
-
-  .appName h1 {
-    font-size: 1.4rem;
-  }
-  
+/* Desktop screens (1024px+) */
+@media (min-width: 1024px) {
   .leftSection {
-    gap: 0.2rem;
-    padding-left: 0.5rem;
+    gap: var(--spacing-lg);
+    padding-left: var(--spacing-xl);
   }
   
-  /* Hide theme toggle and logo when sidebar is open */
-  .header.shifted .leftSection {
+  .appName h1 {
+    font-size: var(--font-size-2xl);
+  }
+  
+  /* Hide mobile controls on desktop - use sidebar burger instead */
+  .mobileControls {
     display: none;
   }
   
-  .mobileControls {
-    display: flex;
-  }
-  
-  /* Hide mobile burger button when sidebar is open */
   .header.shifted .mobileControls {
     display: none;
   }

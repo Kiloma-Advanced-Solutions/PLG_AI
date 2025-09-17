@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Conversation } from '../../types';
 import NewChatButtonComponent from '../new-chat-button-component/new-chat-button-component';
 import PreviousChatListComponent from '../previous-chat-list-component/previous-chat-list-component';
@@ -32,19 +33,60 @@ export default function SidebarComponent({
   onDelete
 }: SidebarComponentProps) {
   const { goToConversation, goToNewChat } = useNavigationHelpers();
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Detect mobile screen size with proper SSR handling
+  useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+
+    // Initial check
+    checkIsMobile();
+
+    // Listen for window resize
+    window.addEventListener('resize', checkIsMobile);
+
+    return () => {
+      window.removeEventListener('resize', checkIsMobile);
+    };
+  }, []);
   
   /**
    * Handles conversation selection
+   * On mobile devices, auto-close sidebar after selection for better UX
    */
   const handleConversationSelect = (conversationId: string) => {
-    goToConversation(conversationId, undefined); // Keep sidebar open when selecting chats
+    // Auto-close sidebar on mobile devices for better UX
+    if (isMobile) {
+      // Immediately close sidebar on mobile
+      onToggle();
+      // Navigate after a brief delay
+      setTimeout(() => {
+        goToConversation(conversationId);
+      }, 150);
+    } else {
+      // Desktop behavior - keep sidebar open
+      goToConversation(conversationId);
+    }
   };
   
   /**
    * Handles new chat creation with sidebar closing
+   * On mobile devices, always close sidebar after creating new chat
    */
   const handleCreateNewChat = () => {
-    goToNewChat(isOpen ? onToggle : undefined);
+    if (isMobile) {
+      // Immediately close sidebar on mobile
+      onToggle();
+      // Navigate after a brief delay
+      setTimeout(() => {
+        goToNewChat();
+      }, 150);
+    } else {
+      // Desktop behavior - close if already open
+      goToNewChat(isOpen ? onToggle : undefined);
+    }
   };
   
   return (

@@ -1,7 +1,7 @@
-/* Message Containers */
+/* Mobile-first message containers */
 .messageContainer {
   display: flex;
-  margin: 0.5rem 1.75rem;
+  margin: var(--spacing-sm) var(--spacing-sm);
 }
 
 .messageContainer.user {
@@ -12,18 +12,18 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  max-width: 80%;
+  max-width: 90%;
 }
 
 .messageContainer.assistant {
   justify-content: flex-start;
-  max-width: 85%; /* Constrain assistant messages to reasonable width */
+  max-width: 95%;
 }
 
-/* User Message Box */
+/* Mobile-first message box */
 .messageBox {
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: var(--spacing-md) var(--spacing-lg);
   border-radius: 1rem;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -40,10 +40,10 @@
   color: var(--text-primary);
 }
 
-/* Message Text */
+/* Mobile-first message text */
 .messageText {
-  font-size: 0.95rem;
-  line-height: 1.4;
+  font-size: var(--font-size-base);
+  line-height: 1.5;
   overflow-wrap: break-word;
 }
 
@@ -58,6 +58,7 @@
 
 /* Force all internal elements to respect container width and font size */
 
+/* Mobile-first code blocks */
 .codeBlockContainer,
 .codeBlockContainer *,
 .codeBlockContainer div,
@@ -66,13 +67,13 @@
 .codeBlockContainer span {
   max-width: 100% !important;
   box-sizing: border-box !important;
-  font-size: 0.9rem !important;
+  font-size: var(--font-size-sm) !important;
   font-family: 'SFMono-Regular', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace !important;
 }
 
-/* Responsive width for code blocks - accounts for sidebar and padding */
+/* Mobile-first responsive width for code blocks */
 .codeBlockContainer {
-  width: 800px !important;
+  width: min(350px, calc(100vw - 4rem)) !important;
   max-width: 100% !important;
   overflow-x: auto !important;
   box-sizing: border-box !important;
@@ -80,7 +81,7 @@
 
 /* Specific handling for user messages to prevent shifting */
 .messageContainer.user .codeBlockContainer {
-  width: 500px !important;
+  width: min(300px, calc(100vw - 4rem)) !important;
   max-width: 100% !important;
 }
 
@@ -96,7 +97,7 @@
 }
 
 .messageContainer.user .messageTime {
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   opacity: 0.7;
   color: var(--text-secondary);
 }
@@ -127,9 +128,9 @@
 }
 
 .inlineTimestamp {
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   opacity: 0.7;
-  margin-left: 0.5rem;
+  margin-left: var(--spacing-sm);
   color: var(--text-secondary);
 }
 
@@ -150,16 +151,16 @@
 
 .editTextarea {
   width: 100%;
-  padding: 0.25rem 0.5rem;
+  padding: var(--spacing-xs) var(--spacing-sm);
   min-height: 1.5rem;
-  max-height: calc(1.4em * 4 + 0.5rem);   /* max height of 4 lines of text + padding */
+  max-height: calc(1.5em * 4 + var(--spacing-sm));
   border: none;
   border-radius: 0.5rem;
   background-color: var(--message-bg);
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 0.95rem;
-  line-height: 1.4;
+  font-size: var(--font-size-base);
+  line-height: 1.5;
   resize: none;
   outline: none;
   box-sizing: border-box;
@@ -173,15 +174,15 @@
 
 .editButtons {
   display: flex;
-  gap: 0.5rem;
-  padding-top: 0.3rem;
+  gap: var(--spacing-sm);
+  padding-top: var(--spacing-xs);
 }
 
 .saveButton, .cancelButton {
-  padding: 0.5rem 1rem;
+  padding: var(--spacing-sm) var(--spacing-lg);
   border: none;
   border-radius: 0.5rem;
-  font-size: 0.75rem;
+  font-size: var(--font-size-xs);
   font-family: inherit;
   font-weight: 500;
   cursor: pointer;
@@ -207,9 +208,9 @@
 }
 
 
-/* Markdown Elements */
+/* Mobile-first markdown elements */
 .paragraph {
-  margin: 0.5rem 0;
+  margin: var(--spacing-sm) 0;
   line-height: 1.6;
 }
 
@@ -223,22 +224,22 @@
 .heading1, .heading2, .heading3 {
   font-weight: 600;
   line-height: 1.3;
-  margin: 0.75rem 0 0.5rem 0;
+  margin: var(--spacing-md) 0 var(--spacing-sm) 0;
 }
 
-.heading1 { font-size: 1.5rem; margin-top: 1rem; }
-.heading2 { font-size: 1.25rem; margin-top: 0.875rem; }
-.heading3 { font-size: 1.125rem; }
+.heading1 { font-size: var(--font-size-xl); margin-top: var(--spacing-lg); }
+.heading2 { font-size: var(--font-size-lg); margin-top: var(--spacing-md); }
+.heading3 { font-size: var(--font-size-base); }
 
 .list, .orderedList {
-  margin: 0.5rem 0;
-  padding-inline-start: 1.25rem;
+  margin: var(--spacing-sm) 0;
+  padding-inline-start: var(--spacing-xl);
   line-height: 1.6;
   list-style-position: inside;
 }
 
 .listItem {
-  margin: 0.25rem 0;
+  margin: var(--spacing-xs) 0;
 }
 
 /* Tables */
@@ -309,27 +310,26 @@
   }
 }
 
-/* Tablet Responsive */
-@media (max-width: 768px) {
+/* Tablet and larger screens (768px+) */
+@media (min-width: 768px) {
   .messageContainer {
-    margin: 0.5rem 1rem;
+    margin: var(--spacing-md) var(--spacing-2xl);
   }
 
   .userMessageWrapper {
     max-width: 85%;
   }
 
-  .userMessageWrapper.editing {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .messageContainer.assistant .messageBox {
+  .messageContainer.assistant {
     max-width: 90%;
   }
 
+  .messageBox {
+    padding: var(--spacing-lg) var(--spacing-xl);
+  }
+
   .codeBlockContainer {
-    width: min(500px, calc(100vw - 25rem)) !important; /* Responsive width for tablets */
+    width: min(500px, calc(100vw - 25rem)) !important;
     max-width: 100% !important;
   }
   
@@ -337,44 +337,38 @@
     width: min(400px, calc(100vw - 25rem)) !important;
     max-width: 100% !important;
   }
+
+  .heading1 { font-size: var(--font-size-2xl); }
+  .heading2 { font-size: var(--font-size-xl); }
+  .heading3 { font-size: var(--font-size-lg); }
 }
 
-
-/* Mobile Responsive */
-@media (max-width: 600px) {
+/* Desktop screens (1024px+) */
+@media (min-width: 1024px) {
   .messageContainer {
-    margin: 0.5rem 0.5rem;
+    margin: var(--spacing-lg) calc(var(--spacing-3xl) * 2);
   }
 
   .userMessageWrapper {
-    max-width: 90%;
+    max-width: 80%;
   }
 
-  .userMessageWrapper.editing {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .messageBox {
-    padding: 0.75rem;
-  }
-
-  .messageContainer.assistant .messageBox {
-    max-width: 95%;
+  .messageContainer.assistant {
+    max-width: 85%;
   }
 
   .codeBlockContainer {
-    width: min(350px, calc(100vw - 4rem)) !important; /* Responsive width for mobile */
+    width: min(800px, calc(100vw - 30rem)) !important;
     max-width: 100% !important;
   }
   
   .messageContainer.user .codeBlockContainer {
-    width: min(300px, calc(100vw - 4rem)) !important;
+    width: min(500px, calc(100vw - 30rem)) !important;
     max-width: 100% !important;
   }
 
-  .heading1 { font-size: 1.25rem; }
-  .heading2 { font-size: 1.125rem; }
-  .heading3 { font-size: 1rem; }
+  .heading1 { font-size: var(--font-size-3xl); }
+  .heading2 { font-size: var(--font-size-2xl); }
+  .heading3 { font-size: var(--font-size-xl); }
 }
 

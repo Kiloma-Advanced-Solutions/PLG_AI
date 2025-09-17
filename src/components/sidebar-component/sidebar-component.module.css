@@ -1,68 +1,73 @@
+/* Mobile-first sidebar design */
 .sidebar {
   display: flex;
-  flex-direction: column;       /* Stack items vertically */
-  align-items: center;          /* Center horizontally */
-  justify-content: flex-start;      /* Align items to the top */
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   position: fixed;
   top: 0;
-  right: 0; /* Position sidebar to the right edge */
+  right: 0;
   width: var(--sidebar-width-closed);
   height: 100vh;
   background-color: var(--sidebar-bg);
-  border-left: 2px solid var(--border-color);
-  transition: width 0.3s ease;
+  border-left: 1px solid var(--border-color);
+  transition: all 0.3s ease;
   overflow: hidden;
-  z-index: 10;
+  z-index: 20; /* Higher z-index for mobile overlay */
+  transform: translateX(100%); /* Hidden by default on mobile */
 }
 
 .sidebar.open {
   width: var(--sidebar-width-open);
+  transform: translateX(0); /* Slide in when open on mobile */
 }
 
 .sidebarContent {
   height: 100%;
   width: 100%;
-  padding: 9rem 0.75rem 1rem 0rem;
-  overflow: visible; /* Remove scrolling from entire content */
+  padding: calc(var(--header-height) + var(--spacing-lg)) var(--spacing-md) var(--spacing-lg) 0;
+  overflow: visible;
   direction: rtl;
   box-sizing: border-box;
   display: flex;
-  flex-direction: column; /* Stack header and previous chats list vertically */
+  flex-direction: column;
 }
 
-.sidebarHeader {
-  padding: 0.5rem 0.5rem 1rem 0.5rem;
-  flex-shrink: 0; /* Prevent header from shrinking */
-}
+  .sidebarHeader {
+    padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-lg) var(--spacing-sm);
+    margin-top: var(--spacing-3xl); /* Increased space below the NewChatButton */
+    flex-shrink: 0;
+  }
+
 .sidebarHeader h2 {
-  font-size: 1rem;
+  font-size: var(--font-size-base);
   font-weight: 600;
   color: var(--text-primary);
 }
 
-/* burger area */
+/* Mobile-first burger area */
 .burgerSection {
   display: flex;
   align-items: center;
   flex-shrink: 0;
   position: absolute;
   top: 0;
-  right: 0.5rem;
-  height: 70px;
-  padding: 1rem 0;
+  right: var(--spacing-sm);
+  height: var(--header-height);
+  padding: var(--spacing-sm) 0;
 }
 
 .burgerButton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
+  width: 36px;
+  height: 36px;
   border: none;
   background: none;
   color: var(--text-primary);
   cursor: pointer;
-  border-radius: 8px;
+  border-radius: 6px;
   transition: all 0.2s ease;
 }
 
@@ -80,23 +85,46 @@
 }
 
 .burgerIcon {
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-  .sidebar.open {
-    width: var(--sidebar-width-open-tablet);
-  }
-}
-
-@media (max-width: 600px) {
+/* Tablet and larger screens (768px+) */
+@media (min-width: 768px) {
   .sidebar {
-    width: var(--sidebar-width-closed-mobile);
+    transform: translateX(0); /* Always visible on larger screens */
+    border-left: 2px solid var(--border-color);
   }
   
-  .sidebar.open {
-    width: var(--sidebar-width-open-mobile);
+  .burgerButton {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+  }
+  
+  .burgerIcon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .sidebarHeader h2 {
+    font-size: var(--font-size-lg);
   }
 }
+
+/* Desktop screens (1024px+) */
+@media (min-width: 1024px) {
+  .sidebarContent {
+    padding: calc(var(--header-height) + var(--spacing-xl)) var(--spacing-lg) var(--spacing-xl) 0;
+  }
+  
+   .sidebarHeader {
+     padding: var(--spacing-md) var(--spacing-md) var(--spacing-xl) var(--spacing-md);
+     margin-top: calc(var(--spacing-3xl) * 1.5); /* Even more space on desktop */
+   }
+  
+  .burgerSection {
+    right: var(--spacing-lg);
+  }
+}
+

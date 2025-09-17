@@ -1,14 +1,14 @@
-/* input and conversation area */
+/* Mobile-first chat container */
 .chatContainer {
   display: flex;
-  flex-direction: column;   /* placing the input text field below the chat area */
+  flex-direction: column;
   flex: 1;
   height: 100vh;
   min-height: 0;
   background-color: var(--background-color);
-  padding-top: 70px; /* Account for fixed header */
-  padding-bottom: 120px; /* Account for fixed input area */
-  margin-right: var(--sidebar-width-closed); /* Account for closed sidebar */
+  padding-top: var(--header-height);
+  padding-bottom: var(--input-bottom-padding);
+  margin-right: var(--sidebar-width-closed);
   transition: margin-right 0.3s ease;
 }
 
@@ -21,32 +21,31 @@
 /* When chat is empty, position input higher */
 .chatContainer.empty {
   justify-content: flex-start;
-  padding-top: 15rem; /* Account for fixed header */
+  padding-top: calc(var(--header-height) + var(--spacing-3xl));
 }
 
-/* conversation area */
+/* Mobile-first conversation area */
 .messagesContainer {
   flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  padding: 0 12rem 2rem; /* Remove top padding, handled by scroll boundary */
+  padding: 0 var(--spacing-lg) var(--spacing-xl);
   transition: padding 0.3s ease;
-  /* Improve scroll behavior */
   scroll-behavior: smooth;
   overscroll-behavior: contain;
 }
 
 /* Reduced horizontal padding when sidebar is open */
 .chatContainer.shifted .messagesContainer {
-  padding: 0 6rem 2rem; /* Reduced horizontal padding when sidebar is open */
+  padding: 0 var(--spacing-sm) var(--spacing-xl);
 }
 
 /* Scroll boundary to prevent scrolling too high */
 .scrollBoundary {
-  height: 2rem; /* Minimum visible space at top */
-  min-height: 2rem;
-  flex-shrink: 0; /* Prevent shrinking */
+  height: var(--spacing-xl);
+  min-height: var(--spacing-xl);
+  flex-shrink: 0;
   width: 100%;
 }
 
@@ -67,11 +66,12 @@
   color: var(--text-primary);
   opacity: 0;
   animation: welcomeFadeIn 2s ease-out forwards;
+  padding: var(--spacing-lg);
 }
 
 .welcomeMessage h2 {
-  margin-bottom: 1rem;
-  font-size: 2.5rem;
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-3xl);
   font-weight: 700;
   background: linear-gradient(
     135deg,
@@ -90,8 +90,8 @@
 }
 
 .welcomeMessage p {
-  font-size: 1.1rem;
-  margin-top: 2.5rem;
+  font-size: var(--font-size-lg);
+  margin-top: var(--spacing-2xl);
   line-height: 1.6;
   opacity: 0.8;
   animation: welcomeFadeIn 1.5s ease-out 0.3s forwards; 
@@ -231,45 +231,37 @@
 
 /* Responsive Design - spacing handled by main container */
 
-/* Mobile responsive design */
-@media (max-width: 768px) {
-  .chatContainer.shifted {
-    margin-right: var(--sidebar-width-open-tablet);
-  }
-  
+/* Tablet and larger screens (768px+) */
+@media (min-width: 768px) {
   .messagesContainer {
-    padding: 0 2rem 2rem 2rem; /* Remove top padding, handled by scroll boundary */
+    padding: 0 var(--spacing-3xl) var(--spacing-2xl);
   }
   
   .chatContainer.shifted .messagesContainer {
-    padding: 0 1rem 2rem 1rem; /* Further reduced horizontal padding when sidebar is open on tablets */
-  }
-}
-
-@media (max-width: 600px) {
-  .chatContainer {
-    padding-bottom: 100px; /* Slightly less padding for mobile input */
-    margin-right: var(--sidebar-width-closed-mobile);
-  }
-  
-  .chatContainer.shifted {
-    margin-right: var(--sidebar-width-open-mobile);
-  }
-  
-  .messagesContainer {
-    padding: 0 1rem 1rem 1rem; /* Remove top padding, handled by scroll boundary */
-  }
-  
-  .chatContainer.shifted .messagesContainer {
-    padding: 0 0.5rem 1rem 0.5rem; /* Minimal horizontal padding when sidebar is open on mobile */
+    padding: 0 var(--spacing-2xl) var(--spacing-2xl);
   }
   
   .welcomeMessage {
-    padding: 1.5rem 1rem 3rem 1rem; /* Adjusted for mobile */
+    padding: var(--spacing-2xl);
   }
+}
 
-  .welcomeMessage h2 {
-    font-size: 1.75rem; /* Slightly smaller on mobile */
+/* Desktop screens (1024px+) */
+@media (min-width: 1024px) {
+  .chatContainer.empty {
+    padding-top: calc(var(--header-height) + var(--spacing-3xl) * 2);
+  }
+  
+  .messagesContainer {
+    padding: 0 calc(var(--spacing-3xl) * 4) var(--spacing-3xl);
+  }
+  
+  .chatContainer.shifted .messagesContainer {
+    padding: 0 var(--spacing-3xl) var(--spacing-3xl);
+  }
+  
+  .welcomeMessage {
+    padding: var(--spacing-3xl);
   }
 }
 

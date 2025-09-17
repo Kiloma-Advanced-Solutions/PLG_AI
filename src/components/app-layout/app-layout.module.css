@@ -1,23 +1,31 @@
-/* entire page */
+/* Mobile-first app layout */
 .container {
   height: 100vh;
   background-color: var(--background-color);
   color: var(--text-primary);
   display: flex;
   flex-direction: column;
-  overflow: hidden; /* Prevent body scrolling */
+  overflow: hidden;
+  font-size: var(--font-size-sm);
 }
 
-/* conversation area */
+/* Main content area */
 .main {
   flex: 1;
   display: flex;
   min-height: 0;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
+/* Tablet and larger screens (768px+) */
+@media (min-width: 768px) {
   .container {
-    font-size: 14px;
+    font-size: var(--font-size-base);
+  }
+}
+
+/* Desktop screens (1024px+) */
+@media (min-width: 1024px) {
+  .container {
+    font-size: var(--font-size-lg);
   }
 }
