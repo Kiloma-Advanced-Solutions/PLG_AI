@@ -25,7 +25,7 @@
 .sidebarContent {
   height: 100%;
   width: 100%;
-  padding: calc(var(--header-height) + var(--spacing-lg)) var(--spacing-md) var(--spacing-lg) 0;
+  padding: calc(var(--header-height) + 1rem) 0.75rem 1rem 0;
   overflow: visible;
   direction: rtl;
   box-sizing: border-box;
@@ -34,13 +34,13 @@
 }
 
   .sidebarHeader {
-    padding: var(--spacing-sm) var(--spacing-sm) var(--spacing-lg) var(--spacing-sm);
-    margin-top: var(--spacing-3xl); /* Increased space below the NewChatButton */
+    padding: 0.5rem 0.5rem 1rem 0.5rem;
+    margin-top: 3rem; /* Increased space below the NewChatButton */
     flex-shrink: 0;
   }
 
 .sidebarHeader h2 {
-  font-size: var(--font-size-base);
+  font-size: 1rem;
   font-weight: 600;
   color: var(--text-primary);
 }
@@ -52,9 +52,9 @@
   flex-shrink: 0;
   position: absolute;
   top: 0;
-  right: var(--spacing-sm);
+  right: 0.5rem;
   height: var(--header-height);
-  padding: var(--spacing-sm) 0;
+  padding: 0.5rem 0;
 }
 
 .burgerButton {
@@ -108,23 +108,23 @@
   }
   
   .sidebarHeader h2 {
-    font-size: var(--font-size-lg);
+    font-size: 1.125rem;
   }
 }
 
 /* Desktop screens (1024px+) */
 @media (min-width: 1024px) {
   .sidebarContent {
-    padding: calc(var(--header-height) + var(--spacing-xl)) var(--spacing-lg) var(--spacing-xl) 0;
+    padding: calc(var(--header-height) + 1.5rem) 1rem 1.5rem 0;
   }
   
    .sidebarHeader {
-     padding: var(--spacing-md) var(--spacing-md) var(--spacing-xl) var(--spacing-md);
-     margin-top: calc(var(--spacing-3xl) * 1.5); /* Even more space on desktop */
+     padding: 0.75rem 0.75rem 1.5rem 0.75rem;
+     margin-top: calc(3rem * 1.5); /* Even more space on desktop */
    }
   
   .burgerSection {
-    right: var(--spacing-lg);
+    right: 1rem;
   }
 }
 

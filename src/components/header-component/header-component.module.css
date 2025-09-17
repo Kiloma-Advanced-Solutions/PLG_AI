@@ -12,7 +12,7 @@
   z-index: 10;
   transition: all 0.3s ease;
   box-sizing: border-box;
-  padding: 0 var(--spacing-sm);
+  padding: 0 0.5rem;
   border-bottom: 1px solid var(--border-color);
 }
 
@@ -24,9 +24,9 @@
 .leftSection {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 0.5rem;
   flex-shrink: 0;
-  padding-left: var(--spacing-sm);
+  padding-left: 0.5rem;
 }
 
 .logo {
@@ -50,12 +50,12 @@
   flex: 1;
   text-align: center;
   transition: opacity 0.3s ease, visibility 0.3s ease;
-  margin: 0 var(--spacing-sm);
+  margin: 0 0.5rem;
 }
 
 .appName h1 {
   margin: 0;
-  font-size: var(--font-size-lg);
+  font-size: 1.125rem;
   font-weight: 700;
   color: var(--text-primary);
   background: linear-gradient(135deg, var(--app-color-1) 0%, var(--app-color-2) 100%);
@@ -80,9 +80,9 @@
 .mobileControls {
   display: flex;
   align-items: center;
-  gap: var(--spacing-sm);
+  gap: 0.5rem;
   flex-shrink: 0;
-  padding-right: var(--spacing-sm);
+  padding-right: 0.5rem;
 }
 
 .mobileBurgerButton {
@@ -146,8 +146,8 @@
 /* Tablet and larger screens (768px+) */
 @media (min-width: 768px) {
   .leftSection {
-    gap: var(--spacing-md);
-    padding-left: var(--spacing-lg);
+    gap: 0.75rem;
+    padding-left: 1rem;
   }
   
   .logo {
@@ -161,7 +161,7 @@
   }
   
   .appName h1 {
-    font-size: var(--font-size-xl);
+    font-size: 1.25rem;
   }
   
   .mobileBurgerButton {
@@ -188,12 +188,12 @@
 /* Desktop screens (1024px+) */
 @media (min-width: 1024px) {
   .leftSection {
-    gap: var(--spacing-lg);
-    padding-left: var(--spacing-xl);
+    gap: 1rem;
+    padding-left: 1.5rem;
   }
   
   .appName h1 {
-    font-size: var(--font-size-2xl);
+    font-size: 1.5rem;
   }
   
   /* Hide mobile controls on desktop - use sidebar burger instead */

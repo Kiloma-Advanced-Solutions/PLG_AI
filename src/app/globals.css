@@ -67,24 +67,6 @@
   /* Focus animation colors */
   --focus-shadow-color: #667eea33;
 
-  /* Mobile-first design system */
-  /* Base (mobile) font sizes */
-  --font-size-xs: 0.75rem;    /* 12px */
-  --font-size-sm: 0.875rem;   /* 14px */
-  --font-size-base: 1rem;     /* 16px */
-  --font-size-lg: 1.125rem;   /* 18px */
-  --font-size-xl: 1.25rem;    /* 20px */
-  --font-size-2xl: 1.5rem;    /* 24px */
-  --font-size-3xl: 1.875rem;  /* 30px */
-  
-  /* Base (mobile) spacing */
-  --spacing-xs: 0.25rem;      /* 4px */
-  --spacing-sm: 0.5rem;       /* 8px */
-  --spacing-md: 0.75rem;      /* 12px */
-  --spacing-lg: 1rem;         /* 16px */
-  --spacing-xl: 1.5rem;       /* 24px */
-  --spacing-2xl: 2rem;        /* 32px */
-  --spacing-3xl: 3rem;        /* 48px */
   
   /* Mobile-first sidebar widths */
   --sidebar-width-closed: 0px;        /* Hidden by default on mobile */
@@ -134,25 +116,12 @@ body {
   font-family: 'Noto Sans Hebrew', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   direction: rtl;
   height: 100%;
-  font-size: var(--font-size-base);
+  font-size: 1rem;
 }
 
 /* Tablet and larger screen variables */
 @media (min-width: 768px) {
   :root {
-    /* Tablet font sizes - slightly larger */
-    --font-size-base: 1.125rem;   /* 18px */
-    --font-size-lg: 1.25rem;      /* 20px */
-    --font-size-xl: 1.375rem;     /* 22px */
-    --font-size-2xl: 1.75rem;     /* 28px */
-    --font-size-3xl: 2.25rem;     /* 36px */
-    
-    /* Tablet spacing - more generous */
-    --spacing-lg: 1.5rem;         /* 24px */
-    --spacing-xl: 2rem;           /* 32px */
-    --spacing-2xl: 3rem;          /* 48px */
-    --spacing-3xl: 4rem;          /* 64px */
-    
     /* Tablet sidebar */
     --sidebar-width-closed: 60px;
     --sidebar-width-open: 280px;
@@ -168,14 +137,6 @@ body {
 /* Desktop and larger screen variables */
 @media (min-width: 1024px) {
   :root {
-    /* Desktop font sizes */
-    --font-size-2xl: 2rem;        /* 32px */
-    --font-size-3xl: 2.5rem;      /* 40px */
-    
-    /* Desktop spacing */
-    --spacing-2xl: 4rem;          /* 64px */
-    --spacing-3xl: 6rem;          /* 96px */
-    
     /* Desktop sidebar */
     --sidebar-width-open: 320px;
     
