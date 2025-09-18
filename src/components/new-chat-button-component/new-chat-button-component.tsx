@@ -27,7 +27,7 @@ export default function NewChatButtonComponent({
         onClick={onClick}
         aria-label="Create new chat"
       >
-        <div className={styles.newChatIconIcon}>
+        <div className={styles.newChatIcon}>
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="currentColor">
             <g>
               <path 
