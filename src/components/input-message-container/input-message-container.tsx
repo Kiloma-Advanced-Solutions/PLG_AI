@@ -21,6 +21,8 @@ type InputMessageContainerProps = {
   onStop?: (currentInputValue: string) => void;
   /** Whether the sidebar is open (for positioning) */
   isSidebarOpen?: boolean;
+  /** Whether to use inline positioning instead of fixed (for empty chats) */
+  isInline?: boolean;
 };
 
 /**
@@ -35,6 +37,7 @@ export default function InputMessageContainer({
   onPrefilledMessageCleared,
   onStop,
   isSidebarOpen = false,
+  isInline = false,
 }: InputMessageContainerProps) {
 
   const [inputValue, setInputValue] = useState('');
@@ -100,7 +103,7 @@ export default function InputMessageContainer({
 
 
   return (
-    <form className={`${styles.inputContainer} ${isSidebarOpen ? styles.shifted : ''}`} onSubmit={handleSubmit}>
+    <form className={`${styles.inputContainer} ${isSidebarOpen ? styles.shifted : ''} ${isInline ? styles.inline : ''}`} onSubmit={handleSubmit}>
       <div className={`${styles.inputWrapper} ${showFocusAnimation ? styles.focusAnimation : ''}`}>
         <textarea
           ref={inputRef}

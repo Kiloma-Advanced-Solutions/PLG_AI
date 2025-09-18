@@ -55,7 +55,7 @@
 
 .appName h1 {
   margin: 0;
-  font-size: 1.125rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--text-primary);
   background: linear-gradient(135deg, var(--app-color-1) 0%, var(--app-color-2) 100%);
@@ -198,10 +198,6 @@
   
   /* Hide mobile controls on desktop - use sidebar burger instead */
   .mobileControls {
-    display: none;
-  }
-  
-  .header.shifted .mobileControls {
     display: none;
   }
 }

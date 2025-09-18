@@ -129,6 +129,18 @@
   right: var(--sidebar-width-open);
 }
 
+/* Inline positioning for empty chats */
+.inputContainer.inline {
+  position: relative;
+  bottom: auto;
+  left: auto;
+  right: auto;
+  padding: 0;
+  background-color: transparent;
+  border-top: none;
+  z-index: auto;
+}
+
 /* Tablet and larger screens (768px+) */
 @media (min-width: 768px) {
   .inputContainer {

@@ -45,16 +45,17 @@
   color: var(--text-primary);
 }
 
-/* Mobile-first burger area */
+/* Burger section - fixed position relative to viewport */
 .burgerSection {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  position: absolute;
+  position: fixed;
   top: 0;
   right: 0.5rem;
   height: var(--header-height);
   padding: 0.5rem 0;
+  z-index: 30; /* Higher than sidebar */
 }
 
 .burgerButton {
@@ -94,6 +95,10 @@
   .sidebar {
     transform: translateX(0); /* Always visible on larger screens */
     border-left: 2px solid var(--border-color);
+  }
+  
+  .burgerSection {
+    right: 1rem;
   }
   
   .burgerButton {

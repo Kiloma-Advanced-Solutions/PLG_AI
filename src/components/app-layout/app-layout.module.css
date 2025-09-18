@@ -14,12 +14,27 @@
   flex: 1;
   display: flex;
   min-height: 0;
+  margin-right: 0;
+  transition: margin-right 0.3s ease;
+}
+
+/* On mobile, sidebar overlays - no margin needed */
+.main.shifted {
+  margin-right: 0;
 }
 
 /* Tablet and larger screens (768px+) */
 @media (min-width: 768px) {
   .container {
     font-size: 1rem;
+  }
+  
+  .main {
+    margin-right: var(--sidebar-width-closed);
+  }
+  
+  .main.shifted {
+    margin-right: var(--sidebar-width-open);
   }
 }
 

@@ -8,20 +8,12 @@
   background-color: var(--background-color);
   padding-top: var(--header-height);
   padding-bottom: var(--input-bottom-padding);
-  margin-right: 0;
-  transition: margin-right 0.3s ease;
-}
-
-
-/* When sidebar is open */
-.chatContainer.shifted {
-  margin-right: var(--sidebar-width-open);
 }
 
 /* When chat is empty, position input higher */
 .chatContainer.empty {
-  justify-content: flex-start;
-  padding-top: calc(var(--header-height) + 3rem);
+  justify-content: center;
+  padding-top: var(--header-height);
 }
 
 /* Mobile-first conversation area */
@@ -39,13 +31,6 @@
   overscroll-behavior: contain;
 }
 
-/* Reduced horizontal padding when sidebar is open */
-.chatContainer.shifted .messagesContainer {
-  padding-top: 0;
-  padding-bottom: 1.5rem;
-  padding-inline-start: 0.5rem;
-  padding-inline-end: 0.5rem;
-}
 
 /* Scroll boundary to prevent scrolling too high */
 .scrollBoundary {
@@ -55,16 +40,21 @@
   width: 100%;
 }
 
-/* Center welcome message on empty chat */
+/* Position welcome message and input higher on empty chat */
 .messagesContainer.empty {
-  flex: 0 0 auto; 
-  justify-content: center;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 12rem;
+  gap: 2rem;
 }
 
-/* Center welcome message on empty chat */
-.messagesContainer.empty {
-  flex: 0 0 auto; 
-  justify-content: center;
+/* Input wrapper for empty chat state */
+.inputWrapper {
+  width: 100%;
+  max-width: 800px;
 }
 
 .welcomeMessage {
@@ -239,17 +229,14 @@
 
 /* Tablet and larger screens (768px+) */
 @media (min-width: 768px) {
-  .chatContainer {
-    margin-right: var(--sidebar-width-closed);
-  }
-  
   .messagesContainer {
     padding: 0 3rem 2rem;
   }
   
-  .chatContainer.shifted .messagesContainer {
-    padding: 0 2rem 2rem;
+  .messagesContainer.empty {
+    padding-top: 6rem;
   }
+  
   
   .welcomeMessage {
     padding: 2rem;
@@ -259,16 +246,17 @@
 /* Desktop screens (1024px+) */
 @media (min-width: 1024px) {
   .chatContainer.empty {
-    padding-top: calc(var(--header-height) + 3rem * 2);
+    padding-top: var(--header-height);
   }
   
   .messagesContainer {
     padding: 0 calc(3rem * 4) 3rem;
   }
   
-  .chatContainer.shifted .messagesContainer {
-    padding: 0 3rem 3rem;
+  .messagesContainer.empty {
+    padding-top: 8rem;
   }
+  
   
   .welcomeMessage {
     padding: 3rem;

@@ -61,7 +61,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
         onToggleSidebar={toggleSidebar}
       />
       
-      <main className={styles.main}>
+      <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
         {children}
       </main>
       
