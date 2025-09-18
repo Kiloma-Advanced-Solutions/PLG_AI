@@ -13,7 +13,7 @@
 
 .inputWrapper {
   display: flex;
-  align-items: center;
+  align-items: center; /* This centers the textarea and button vertically */
   gap: 0.5rem;
   background-color: var(--input-bg);
   border: 1px solid var(--border-color);
@@ -23,6 +23,7 @@
   max-width: none;
   margin: 0 auto;
   transition: all 0.3s ease;
+  min-height: 3rem; /* Ensure minimum height for proper centering */
 }
 
 
@@ -40,7 +41,7 @@
   font-family: 'Noto Sans Hebrew', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   min-height: 1.25rem;
   max-height: 4rem;
-  padding: 0.25rem 0.75rem;
+  padding: 0.5rem 0.75rem; /* Increase top/bottom padding for better vertical centering */
 }
 
 .inputContainer .inputWrapper .messageInput:focus {
@@ -160,7 +161,7 @@
     font-size: 1.125rem;
     min-height: 1.5rem;
     max-height: 6rem;
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1rem; /* Increase top/bottom padding for better vertical centering on tablet */
   }
   
   .sendButton {
