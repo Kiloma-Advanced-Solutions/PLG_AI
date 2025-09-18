@@ -91,18 +91,6 @@ export default function SidebarComponent({
   
   return (
     <div className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
-      <div className={styles.burgerSection}>
-        <button 
-          className={styles.burgerButton}
-          onClick={onToggle}
-          aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
-        >
-          <svg className={styles.burgerIcon} fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
-          </svg>
-        </button>
-      </div>
-
       <NewChatButtonComponent 
         onClick={handleCreateNewChat}
         isOpen={isOpen}

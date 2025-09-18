@@ -45,50 +45,6 @@
   color: var(--text-primary);
 }
 
-/* Burger section - fixed position relative to viewport */
-.burgerSection {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-  position: fixed;
-  top: 0;
-  right: 0.5rem;
-  height: var(--header-height);
-  padding: 0.5rem 0;
-  z-index: 30; /* Higher than sidebar */
-}
-
-.burgerButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: none;
-  color: var(--text-primary);
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.burgerButton:hover {
-  background-color: var(--hover-bg);
-  transform: scale(1.05);
-}
-
-.burgerButton:active {
-  transform: scale(0.95);
-}
-
-.burgerButton:focus {
-  outline: none;
-}
-
-.burgerIcon {
-  width: 18px;
-  height: 18px;
-}
 
 /* Tablet and larger screens (768px+) */
 @media (min-width: 768px) {
@@ -97,20 +53,6 @@
     border-left: 2px solid var(--border-color);
   }
   
-  .burgerSection {
-    right: 1rem;
-  }
-  
-  .burgerButton {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-  }
-  
-  .burgerIcon {
-    width: 20px;
-    height: 20px;
-  }
   
   .sidebarHeader h2 {
     font-size: 1.125rem;
@@ -128,8 +70,5 @@
      margin-top: calc(3rem * 1.5); /* Even more space on desktop */
    }
   
-  .burgerSection {
-    right: 1rem;
-  }
 }
 

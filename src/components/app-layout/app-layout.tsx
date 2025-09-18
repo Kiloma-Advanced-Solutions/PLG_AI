@@ -61,6 +61,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
         onToggleSidebar={toggleSidebar}
       />
       
+      {/* Burger button - independent of sidebar */}
+      <div className={styles.burgerSection}>
+        <button 
+          className={styles.burgerButton}
+          onClick={toggleSidebar}
+          aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+        >
+          <svg className={styles.burgerIcon} fill="currentColor" viewBox="0 0 20 20">
+            <path fillRule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM3 15a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clipRule="evenodd" />
+          </svg>
+        </button>
+      </div>
+      
       <main className={`${styles.main} ${isSidebarOpen ? styles.shifted : ''}`}>
         {children}
       </main>

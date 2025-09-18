@@ -30,7 +30,7 @@
 }
 
 .logo {
-  display: flex;
+  display: flex; /* Show logo on mobile */
   align-items: center;
   justify-content: center;
   width: 32px;
@@ -45,17 +45,20 @@
   height: 20px;
 }
 
-/* Mobile-first app name styling */
+/* Mobile-first app name styling - absolutely centered */
 .appName {
-  flex: 1;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   text-align: center;
   transition: opacity 0.3s ease, visibility 0.3s ease;
-  margin: 0 0.5rem;
+  pointer-events: auto;
 }
 
 .appName h1 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-primary);
   background: linear-gradient(135deg, var(--app-color-1) 0%, var(--app-color-2) 100%);
@@ -76,46 +79,11 @@
   outline: none; /* Remove focus outline as well */
 }
 
-/* Mobile controls - visible by default on mobile */
+/* Mobile controls - hidden, using sidebar burger instead */
 .mobileControls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
-  padding-right: 0.5rem;
+  display: none;
 }
 
-.mobileBurgerButton {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: none;
-  color: var(--text-primary);
-  cursor: pointer;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
-
-.mobileBurgerButton:hover {
-  background-color: var(--hover-bg);
-  transform: scale(1.05);
-}
-
-.mobileBurgerButton:active {
-  transform: scale(0.95);
-}
-
-.mobileBurgerButton:focus {
-  outline: none;
-}
-
-.mobileBurgerButton svg {
-  width: 18px;
-  height: 18px;
-}
 
 /* RTL Support */
 [dir="rtl"] .header {
@@ -139,18 +107,17 @@
   display: none;
 }
 
-.header.shifted .mobileControls {
-  display: none;
-}
 
 /* Tablet and larger screens (768px+) */
 @media (min-width: 768px) {
   .leftSection {
+    display: flex;
     gap: 0.75rem;
     padding-left: 1rem;
   }
   
   .logo {
+    display: flex; /* Show logo on tablet+ */
     width: 40px;
     height: 40px;
   }
@@ -160,24 +127,26 @@
     height: 24px;
   }
   
+  .appName {
+    position: static;
+    transform: none;
+    flex: 1;
+    margin: 0 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
   .appName h1 {
     font-size: 1.25rem;
   }
   
-  .mobileBurgerButton {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-  }
-  
-  .mobileBurgerButton svg {
-    width: 20px;
-    height: 20px;
-  }
   
   /* On tablets and up, when sidebar is open, restore some elements */
   .header.shifted .appName {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
   
   .header.shifted .leftSection {
@@ -196,8 +165,4 @@
     font-size: 1.5rem;
   }
   
-  /* Hide mobile controls on desktop - use sidebar burger instead */
-  .mobileControls {
-    display: none;
-  }
 }
