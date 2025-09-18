@@ -98,13 +98,15 @@
   flex-direction: row-reverse;
 }
 
-/* When sidebar is open, hide elements appropriately */
+/* When sidebar is open, keep elements visible and center the app name */
 .header.shifted .appName {
-  display: none;
+  /* App name stays centered regardless of screen size */
+  display: block;
 }
 
 .header.shifted .leftSection {
-  display: none;
+  /* Left section stays visible regardless of screen size */
+  display: flex;
 }
 
 
@@ -117,105 +119,16 @@
   .header.shifted {
     right: var(--sidebar-width-open);
   }
-  
-  .leftSection {
-    display: flex;
-    gap: 0.625rem;
-    padding-left: 0.875rem;
-  }
-  
-  .logo {
-    display: flex;
-    width: 36px;
-    height: 36px;
-  }
-  
-  .logoIcon {
-    width: 22px;
-    height: 22px;
-  }
-  
-  .appName {
-    position: static;
-    transform: none;
-    flex: 1;
-    margin: 0 0.375rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .appName h1 {
-    font-size: 1.1875rem;
-  }
-  
-  /* On small tablets, when sidebar is open, restore some elements */
-  .header.shifted .appName {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .header.shifted .leftSection {
-    display: flex;
-  }
 }
 
 /* Tablet and larger screens (768px+) */
 @media (min-width: 768px) {
-  .leftSection {
-    display: flex;
-    gap: 0.75rem;
-    padding-left: 1rem;
+  .header {
+    right: var(--sidebar-width-closed);
   }
   
-  .logo {
-    display: flex; /* Show logo on tablet+ */
-    width: 40px;
-    height: 40px;
-  }
-  
-  .logoIcon {
-    width: 24px;
-    height: 24px;
-  }
-  
-  .appName {
-    position: static;
-    transform: none;
-    flex: 1;
-    margin: 0 0.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .appName h1 {
-    font-size: 1.25rem;
-  }
-  
-  
-  /* On tablets and up, when sidebar is open, restore some elements */
-  .header.shifted .appName {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .header.shifted .leftSection {
-    display: flex;
+  .header.shifted {
+    right: var(--sidebar-width-open);
   }
 }
 
-/* Desktop screens (1024px+) */
-@media (min-width: 1024px) {
-  .leftSection {
-    gap: 1rem;
-    padding-left: 1.5rem;
-  }
-  
-  .appName h1 {
-    font-size: 1.5rem;
-  }
-  
-}
