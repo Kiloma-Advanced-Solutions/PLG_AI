@@ -69,3 +69,37 @@
   font-family: inherit;
   line-height: inherit;
 }
+
+/* Small tablet screens (576-768px) */
+@media (min-width: 576px) and (max-width: 767px) {
+  .conversationItem {
+    padding: 0.75rem 1rem; /* Keep closer to mobile */
+    margin: 0.25rem; /* Keep same as mobile */
+    width: calc(100% - 0.5rem); /* Keep same as mobile */
+  }
+  
+  .conversationItemTitle {
+    font-size: 0.95rem; /* Keep same as mobile */
+  }
+  
+  .titleInput {
+    font-size: 0.95rem; /* Keep same as mobile */
+  }
+}
+
+/* Tablet and larger screens (768px+) */
+@media (min-width: 768px) {
+  .conversationItem {
+    padding: 0.75rem 1rem; /* Keep closer to mobile */
+    margin: 0.25rem; /* Keep same as mobile */
+    width: calc(100% - 0.5rem); /* Keep same as mobile */
+  }
+  
+  .conversationItemTitle {
+    font-size: 0.95rem; /* Keep same as mobile */
+  }
+  
+  .titleInput {
+    font-size: 0.95rem; /* Keep same as mobile */
+  }
+}

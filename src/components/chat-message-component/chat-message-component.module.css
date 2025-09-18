@@ -3,8 +3,8 @@
   display: flex;
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
-  margin-inline-start: 1.25rem;
-  margin-inline-end: 1.25rem;
+  margin-left: 0.75rem;
+  margin-right: 0.75rem;
 }
 
 .messageContainer.user {
@@ -313,18 +313,51 @@
   }
 }
 
-/* Tablet and larger screens (768px+) */
-@media (min-width: 768px) {
+/* Small tablet screens (576-768px) */
+@media (min-width: 576px) and (max-width: 767px) {
   .messageContainer {
-    margin: 0.75rem 2rem;
+    margin: 0.625rem 1rem;
   }
 
   .userMessageWrapper {
-    max-width: 85%;
+    max-width: 90%;
   }
 
   .messageContainer.assistant {
-    max-width: 90%;
+    max-width: 95%;
+  }
+
+  .messageBox {
+    padding: 0.875rem 1.25rem;
+  }
+
+  .codeBlockContainer {
+    width: 100% !important;
+    max-width: calc(100vw - 3rem) !important; /* Further reduced margins */
+  }
+  
+  .messageContainer.user .codeBlockContainer {
+    width: 100% !important;
+    max-width: calc(100vw - 3.5rem) !important; /* More constrained for user messages */
+  }
+
+  .heading1 { font-size: 1.375rem; }
+  .heading2 { font-size: 1.1875rem; }
+  .heading3 { font-size: 1.0625rem; }
+}
+
+/* Tablet and larger screens (768px+) */
+@media (min-width: 768px) {
+  .messageContainer {
+    margin: 0.75rem 1.25rem;
+  }
+
+  .userMessageWrapper {
+    max-width: 88%;
+  }
+
+  .messageContainer.assistant {
+    max-width: 93%;
   }
 
   .messageBox {
@@ -333,12 +366,12 @@
 
   .codeBlockContainer {
     width: 100% !important;
-    max-width: calc(100vw - 350px) !important; /* Account for sidebar + padding */
+    max-width: calc(100vw - 280px) !important; /* Account for sidebar + further reduced padding */
   }
   
   .messageContainer.user .codeBlockContainer {
     width: 100% !important;
-    max-width: calc(100vw - 380px) !important; /* More constrained for user messages */
+    max-width: calc(100vw - 310px) !important; /* More constrained for user messages */
   }
 
   .heading1 { font-size: 1.5rem; }

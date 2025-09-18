@@ -21,6 +21,13 @@
   margin-right: var(--sidebar-width-open);
 }
 
+/* Small tablet screens (576-768px) */
+@media (min-width: 576px) and (max-width: 767px) {
+  .container {
+    font-size: 0.9375rem;
+  }
+}
+
 /* Tablet and larger screens (768px+) */
 @media (min-width: 768px) {
   .container {

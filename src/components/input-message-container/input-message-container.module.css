@@ -141,6 +141,49 @@
   z-index: auto;
 }
 
+/* Small tablet screens (576-768px) */
+@media (min-width: 576px) and (max-width: 767px) {
+  .inputContainer {
+    right: var(--sidebar-width-closed);
+    padding: 1.125rem;
+  }
+  
+  .inputContainer.shifted {
+    right: var(--sidebar-width-open);
+  }
+  
+  .inputWrapper {
+    width: 95%;
+    max-width: 800px;
+    border-radius: 28px;
+    padding: 0.625rem;
+    border: 1.5px solid var(--border-color);
+  }
+  
+  .messageInput {
+    font-size: 1rem;
+    min-height: 1.375rem;
+    max-height: 5rem;
+    padding: 0.625rem 0.875rem;
+  }
+  
+  .sendButton {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  
+  .stopButton {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  
+  .sendIcon,
+  .stopIcon {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
 /* Tablet and larger screens (768px+) */
 @media (min-width: 768px) {
   .inputContainer {
@@ -148,9 +191,13 @@
     padding: 1rem;
   }
   
+  .inputContainer.shifted {
+    right: var(--sidebar-width-open);
+  }
+  
   .inputWrapper {
-    width: 80%;
-    max-width: 800px;
+    width: 90%;
+    max-width: 900px;
     border-radius: 32px;
     padding: 0.75rem;
     border: 2px solid var(--border-color);

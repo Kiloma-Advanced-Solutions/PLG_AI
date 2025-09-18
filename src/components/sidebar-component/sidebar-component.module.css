@@ -25,7 +25,7 @@
 .sidebarContent {
   height: 100%;
   width: 100%;
-  padding: calc(var(--header-height) + 1rem) 0.75rem 1rem 0;
+  padding: calc(60px + 1rem) 0.75rem 1rem 0; /* Fixed base padding */
   overflow: visible;
   direction: rtl;
   box-sizing: border-box;
@@ -33,11 +33,11 @@
   flex-direction: column;
 }
 
-  .sidebarHeader {
-    padding: 0.5rem 0.5rem 1rem 0.5rem;
-    margin-top: 3rem; /* Increased space below the NewChatButton */
-    flex-shrink: 0;
-  }
+.sidebarHeader {
+  padding: 0.5rem 0.5rem 1rem 0.5rem;
+  margin-top: 3rem; /* Fixed space below the NewChatButton */
+  flex-shrink: 0;
+}
 
 .sidebarHeader h2 {
   font-size: 1rem;
@@ -46,6 +46,31 @@
 }
 
 
+/* Small tablet screens (576-768px) */
+@media (min-width: 576px) and (max-width: 767px) {
+  .sidebar {
+    transform: translateX(0); /* Always visible like larger screens */
+    border-left: 1.5px solid var(--border-color);
+  }
+  
+  .sidebar.open {
+    transform: translateX(0); /* No change needed when open */
+  }
+  
+  .sidebarContent {
+    padding: calc(60px + 1rem) 0.75rem 1rem 0; /* Keep same base as mobile */
+  }
+  
+  .sidebarHeader {
+    padding: 0.5rem 0.5rem 1rem 0.5rem;
+    margin-top: 3rem; /* Keep consistent with mobile */
+  }
+  
+  .sidebarHeader h2 {
+    font-size: 1rem;
+  }
+}
+
 /* Tablet and larger screens (768px+) */
 @media (min-width: 768px) {
   .sidebar {
@@ -53,9 +78,17 @@
     border-left: 2px solid var(--border-color);
   }
   
+  .sidebarContent {
+    padding: calc(60px + 1rem) 0.75rem 1rem 0; /* Keep same base as mobile */
+  }
+  
+  .sidebarHeader {
+    padding: 0.5rem 0.5rem 1rem 0.5rem;
+    margin-top: 3rem; /* Keep consistent across all breakpoints */
+  }
   
   .sidebarHeader h2 {
-    font-size: 1.125rem;
+    font-size: 1rem; /* Keep same as mobile */
   }
 }
 
@@ -65,10 +98,10 @@
     padding: calc(var(--header-height) + 1.5rem) 1rem 1.5rem 0;
   }
   
-   .sidebarHeader {
-     padding: 0.75rem 0.75rem 1.5rem 0.75rem;
-     margin-top: calc(3rem * 1.5); /* Even more space on desktop */
-   }
+  .sidebarHeader {
+    padding: 0.75rem 0.75rem 1.5rem 0.75rem;
+    margin-top: 3rem; /* Keep consistent margin-top across all breakpoints */
+  }
   
 }
 

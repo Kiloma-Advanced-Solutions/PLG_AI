@@ -23,6 +23,36 @@
   margin-right: 0;
 }
 
+/* Small tablet screens (576-768px) */
+@media (min-width: 576px) and (max-width: 767px) {
+  .container {
+    font-size: 0.9375rem;
+  }
+  
+  .main {
+    margin-right: var(--sidebar-width-closed);
+  }
+  
+  .main.shifted {
+    margin-right: var(--sidebar-width-open);
+  }
+  
+  .burgerSection {
+    right: 0.75rem;
+  }
+  
+  .burgerButton {
+    width: 38px;
+    height: 38px;
+    border-radius: 7px;
+  }
+  
+  .burgerIcon {
+    width: 19px;
+    height: 19px;
+  }
+}
+
 /* Tablet and larger screens (768px+) */
 @media (min-width: 768px) {
   .container {
@@ -61,7 +91,7 @@
   position: fixed;
   top: 0;
   right: 0.5rem;
-  height: var(--header-height);
+  height: 60px; /* Fixed height to match mobile header */
   padding: 0.5rem 0;
   z-index: 30; /* Higher than sidebar */
 }

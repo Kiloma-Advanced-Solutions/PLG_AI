@@ -119,6 +119,21 @@ body {
   font-size: 1rem;
 }
 
+/* Small tablet support (576-768px) */
+@media (min-width: 576px) and (max-width: 767px) {
+  :root {
+    /* Small tablet sidebar */
+    --sidebar-width-closed: 50px;       /* Collapsed sidebar like larger screens */
+    --sidebar-width-open: 30vw;         /* Slightly smaller than full width */
+    
+    /* Small tablet header */
+    --header-height: 65px;              /* Between mobile and large tablet */
+    
+    /* Small tablet input padding */
+    --input-bottom-padding: 90px;       /* Between mobile and large tablet */
+  }
+}
+
 /* Tablet and larger screen variables */
 @media (min-width: 768px) {
   :root {

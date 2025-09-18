@@ -8,6 +8,9 @@
   background-color: var(--background-color);
   padding-top: var(--header-height);
   padding-bottom: var(--input-bottom-padding);
+  /* Center content with equal margins */
+  max-width: 100%;
+  margin: 0 auto;
 }
 
 /* When chat is empty, position input higher */
@@ -24,11 +27,14 @@
   flex-direction: column;
   padding-top: 0;
   padding-bottom: 1.5rem;
-  padding-inline-start: 1.75rem;
-  padding-inline-end: 1.75rem;
+  padding-left: 1rem;
+  padding-right: 1rem;
   transition: padding 0.3s ease;
   scroll-behavior: smooth;
   overscroll-behavior: contain;
+  /* Ensure content is properly centered */
+  width: 100%;
+  box-sizing: border-box;
 }
 
 
@@ -102,7 +108,7 @@
 .errorMessage {
   display: flex;
   justify-content: flex-start;
-  margin: 0.5rem 1.75rem;
+  margin: 0.5rem 1rem;
 }
 
 .errorContent {
@@ -225,12 +231,35 @@
 
 
 
-/* Responsive Design - spacing handled by main container */
+/* Responsive Design */
+
+/* Small tablet screens (576-768px) */
+@media (min-width: 576px) and (max-width: 767px) {
+  .messagesContainer {
+    padding: 0 1rem 1.75rem;
+  }
+  
+  .messagesContainer.empty {
+    padding-top: 7rem;
+  }
+  
+  .welcomeMessage {
+    padding: 1.25rem;
+  }
+  
+  .welcomeMessage h2 {
+    font-size: 2rem;
+  }
+  
+  .welcomeMessage p {
+    font-size: 1.1875rem;
+  }
+}
 
 /* Tablet and larger screens (768px+) */
 @media (min-width: 768px) {
   .messagesContainer {
-    padding: 0 3rem 2rem;
+    padding: 0 1.5rem 2rem;
   }
   
   .messagesContainer.empty {
@@ -239,7 +268,7 @@
   
   
   .welcomeMessage {
-    padding: 2rem;
+    padding: 1.5rem;
   }
 }
 

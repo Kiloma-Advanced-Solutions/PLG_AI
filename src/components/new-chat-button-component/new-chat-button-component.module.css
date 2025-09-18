@@ -4,9 +4,9 @@
   align-items: center;
   flex-shrink: 0;
   position: absolute;
-  top: var(--header-height);
+  top: 60px; /* Fixed position to match mobile header height */
   right: 0.5rem;
-  width: calc(100% - 1rem);
+  left: 0.5rem;
   height: 40px;
   padding: 0;
   box-sizing: border-box;
@@ -66,29 +66,53 @@
   visibility: visible;
 }
 
-/* Tablet and larger screens (768px+) */
-@media (min-width: 768px) {
+/* Small tablet screens (576-768px) */
+@media (min-width: 576px) and (max-width: 767px) {
   .newChatIconSectionWrapper {
-    right: 1rem;
-    width: calc(100% - 2rem);
+    top: 60px; /* Keep same top position as mobile */
+    right: 0.5rem; /* Keep same margin as mobile */
+    left: 0.5rem; /* Keep same margin as mobile */
   }
   
   .newChatIconButton {
-    padding-left: 0.75rem;
+    padding-left: 0.5rem; /* Keep same as mobile */
   }
   
   .newChatIconTitle {
-    font-size: 1.125rem;
+    font-size: 1rem; /* Keep same as mobile */
+  }
+}
+
+/* Tablet and larger screens (768px+) */
+@media (min-width: 768px) {
+  .newChatIconSectionWrapper {
+    top: 60px; /* Keep same top position as mobile */
+    right: 0.5rem; /* Keep same margin as mobile */
+    left: 0.5rem; /* Keep same margin as mobile */
+  }
+  
+  .newChatIconButton {
+    padding-left: 0.5rem; /* Keep same as mobile */
+  }
+  
+  .newChatIconTitle {
+    font-size: 1rem; /* Keep same as mobile */
   }
 }
 
 /* Desktop screens (1024px+) */
 @media (min-width: 1024px) {
   .newChatIconSectionWrapper {
-    right: 1.5rem;
+    top: 60px; /* Keep same top position as mobile */
+    right: 0.5rem; /* Keep same margin as mobile */
+    left: 0.5rem; /* Keep same margin as mobile */
   }
   
   .newChatIconButton {
-    padding-left: 1rem;
+    padding-left: 0.5rem; /* Keep same as mobile */
+  }
+  
+  .newChatIconTitle {
+    font-size: 1rem; /* Keep same as mobile */
   }
 }
