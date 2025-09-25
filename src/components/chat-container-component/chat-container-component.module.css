@@ -12,9 +12,9 @@
   margin: 0 auto;
   z-index: var(--z-chat-container);
   overflow-y: auto; /* Auto scrollbar when needed */
+  overflow-x: hidden; /* Prevent horizontal scroll */
   scroll-behavior: smooth;
   overscroll-behavior: contain;
-  scrollbar-gutter: stable both-edges; /* Reserve space on both sides to maintain centering */
 }
 
 /* When chat is empty, position input higher */
@@ -241,7 +241,7 @@
   }
 
   .messagesContainer {
-    width: 750px;
+    width: calc(100% - 3rem);
     max-width: 750px;
     padding: 0 1.5rem 1.5rem 1.5rem;
     margin: 0 auto;

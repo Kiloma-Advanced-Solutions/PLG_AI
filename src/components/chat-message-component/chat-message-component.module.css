@@ -366,7 +366,7 @@
   }
 
   .codeBlockContainer {
-    /* Tablet: Match fixed chat container width (750px - padding) */
+    /* Tablet: Fixed width to match chat container design */
     width: 650px !important;
     max-width: 650px !important;
     min-width: 650px !important;
