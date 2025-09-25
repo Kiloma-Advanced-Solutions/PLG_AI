@@ -7,10 +7,11 @@
   min-height: 0;
   background-color: var(--background-color);
   padding-top: var(--header-height);
-  padding-bottom: var(--input-bottom-padding);
+  /* padding-bottom: var(--input-bottom-padding); */
   /* Center content with equal margins */
   max-width: 100%;
   margin: 0 auto;
+  z-index: 1; 
 }
 
 /* When chat is empty, position input higher */

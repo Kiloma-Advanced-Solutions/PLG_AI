@@ -5,15 +5,15 @@
   align-items: center;
   justify-content: flex-start;
   position: fixed;
-  top: 0;
+  top: 0; /* Full height on tablets */
+  height: 100vh; /* Full viewport height on tablets */
   right: 0;
   width: var(--sidebar-width-closed);
-  height: 100vh;
   background-color: var(--sidebar-bg);
   border-left: 1px solid var(--border-color);
   transition: all 0.3s ease;
   overflow: hidden;
-  z-index: 20; /* Higher z-index for mobile overlay */
+  z-index: 25; 
   transform: translateX(100%); /* Hidden by default on mobile */
 }
 
@@ -25,7 +25,7 @@
 .sidebarContent {
   height: 100%;
   width: 100%;
-  padding: calc(60px + 1rem) 0.75rem 1rem 0; /* Fixed base padding */
+  padding: calc(var(--header-height) + 1rem) 0.75rem 1rem 0; 
   overflow: visible;
   direction: rtl;
   box-sizing: border-box;
@@ -56,19 +56,6 @@
   .sidebar.open {
     transform: translateX(0); /* No change needed when open */
   }
-  
-  .sidebarContent {
-    padding: calc(60px + 1rem) 0.75rem 1rem 0; /* Keep same base as mobile */
-  }
-  
-  .sidebarHeader {
-    padding: 0.5rem 0.5rem 1rem 0.5rem;
-    margin-top: 3rem; /* Keep consistent with mobile */
-  }
-  
-  .sidebarHeader h2 {
-    font-size: 1rem;
-  }
 }
 
 /* Tablet and larger screens (768px+) */
@@ -76,19 +63,6 @@
   .sidebar {
     transform: translateX(0); /* Always visible on larger screens */
     border-left: 2px solid var(--border-color);
-  }
-  
-  .sidebarContent {
-    padding: calc(60px + 1rem) 0.75rem 1rem 0; /* Keep same base as mobile */
-  }
-  
-  .sidebarHeader {
-    padding: 0.5rem 0.5rem 1rem 0.5rem;
-    margin-top: 3rem; /* Keep consistent across all breakpoints */
-  }
-  
-  .sidebarHeader h2 {
-    font-size: 1rem; /* Keep same as mobile */
   }
 }
 
@@ -100,8 +74,6 @@
   
   .sidebarHeader {
     padding: 0.75rem 0.75rem 1.5rem 0.75rem;
-    margin-top: 3rem; /* Keep consistent margin-top across all breakpoints */
   }
-  
 }
 

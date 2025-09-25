@@ -33,19 +33,6 @@
   transform: rotate(25deg);
 }
 
-/* Small tablet screens (576-768px) */
-@media (min-width: 576px) and (max-width: 767px) {
-  .themeToggle {
-    width: 42px;
-    height: 42px;
-  }
-  
-  .icon {
-    width: 21px;
-    height: 21px;
-  }
-}
-
 /* Tablet and larger screens (768px+) */
 @media (min-width: 768px) {
   .themeToggle {

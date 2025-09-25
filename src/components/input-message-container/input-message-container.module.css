@@ -6,7 +6,7 @@
   right: 0;
   padding: 1.25rem;
   background-color: var(--background-color);
-  z-index: 50;
+  z-index: 10;
   transition: right 0.3s ease;
 }
 
@@ -27,8 +27,8 @@
 
 /* When inline, constrain the input wrapper to prevent overflow */
 .inputContainer.inline .inputWrapper {
-  /*max-width: 100%; /* Ensure it doesn't overflow the container */
-  /* box-sizing: border-box; */
+  max-width: 100%; /* Ensure it doesn't overflow the container */
+  box-sizing: border-box;
 }
 
 
@@ -130,9 +130,9 @@
   height: 1rem;
 }
 
-/* Shifted state when sidebar is open */
+/* Shifted state when sidebar is open - only applies to tablets+ where sidebar doesn't overlay */
 .inputContainer.shifted {
-  right: var(--sidebar-width-open);
+  right: 0; /* On mobile, sidebar overlays so input stays full width */
 }
 
 /* Inline positioning for empty chats */
@@ -158,6 +158,38 @@
 
 
 
+/* Small tablet screens (576-768px) */
+@media (min-width: 576px) and (max-width: 767px) {
+  .inputContainer {
+    right: var(--sidebar-width-closed);
+    padding: 0.875rem; /* Between mobile and large tablet */
+  }
+  
+  .inputContainer.shifted {
+    right: var(--sidebar-width-open); /* Adjust for open sidebar on tablets */
+  }
+  
+  .inputWrapper {
+    width: 88%; /* Slightly smaller than mobile but larger than desktop */
+    max-width: 600px;
+  }
+  
+  .messageInput {
+    min-height: 1.5rem; /* Between mobile and desktop */
+    font-size: 0.95rem;
+  }
+  
+  .sendButton {
+    width: 2.25rem;
+    height: 2.25rem;
+  }
+  
+  .sendIcon {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+}
+
 /* Tablet and larger screens (768px+) */
 @media (min-width: 768px) {
   .inputContainer {
@@ -166,8 +198,7 @@
   }
   
   .inputContainer.shifted {
-    /* On tablets, main content has margin-right, so avoid double offset */
-    right: var(--sidebar-width-closed);
+    right: var(--sidebar-width-open); /* Adjust for open sidebar on desktop */
   }
   
   .inputWrapper {

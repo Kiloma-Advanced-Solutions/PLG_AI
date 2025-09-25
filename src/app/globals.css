@@ -74,9 +74,6 @@
   
   /* Mobile-first header height */
   --header-height: 60px;              /* Slightly smaller on mobile */
-  
-  /* Mobile-first input padding */
-  --input-bottom-padding: 80px;       /* Less padding on mobile */
 }
 
 /* Dark mode variables */
@@ -126,11 +123,8 @@ body {
     --sidebar-width-closed: 50px;       /* Collapsed sidebar like larger screens */
     --sidebar-width-open: 30vw;         /* Slightly smaller than full width */
     
-    /* Small tablet header */
-    --header-height: 65px;              /* Between mobile and large tablet */
-    
-    /* Small tablet input padding */
-    --input-bottom-padding: 90px;       /* Between mobile and large tablet */
+    /* Small tablet header - same as mobile */
+    --header-height: 60px;              /* Same as mobile for consistency */
   }
 }
 
@@ -143,9 +137,6 @@ body {
     
     /* Tablet header */
     --header-height: 70px;
-    
-    /* Tablet input padding */
-    --input-bottom-padding: 100px;
   }
 }
 
@@ -154,9 +145,7 @@ body {
   :root {
     /* Desktop sidebar */
     --sidebar-width-open: 320px;
-    
-    /* Desktop input padding */
-    --input-bottom-padding: 120px;
+
   }
 }
 

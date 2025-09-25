@@ -19,45 +19,59 @@
 .conversationItemTitle {
   font-weight: 400;
   font-size: 0.95rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.5rem;
+  width: 100%;
+}
+
+.iconsContainer {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  width: 0; /* Start with no width */
+  overflow: hidden;
+  transition: width 0.2s ease;
 }
 
 .editTitleIcon,
 .deleteTitleIcon {
   color: var(--text-secondary);
-  opacity: 0.6;
+  opacity: 0; /* Start invisible but still take up space */
   transition: opacity 0.2s ease, color 0.2s ease;
   flex-shrink: 0;
-  display: none;
+  width: 16px;
+  height: 16px;
   outline: none;
   cursor: pointer;
 }
 
+.conversationItem:hover .iconsContainer {
+  width: 38px; /* Width for two 16px icons + gap */
+}
+
 .conversationItem:hover .editTitleIcon,
 .conversationItem:hover .deleteTitleIcon {
-  display: block;
   opacity: 0.8;
   color: var(--text-primary);
 }
 
-.conversationItem:has(.titleInput) .editTitleIcon,
-.conversationItem:has(.titleInput) .deleteTitleIcon {
+.conversationItem:has(.titleInput) .iconsContainer {
   display: none;
 }
 
-.titleText,
-.titleInput {
+.titleText {
   flex: 1;
   min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .titleInput {
+  flex: 1;
+  min-width: 0;
   background: transparent;
   border: none;
   padding: 0;

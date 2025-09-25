@@ -120,66 +120,69 @@ export default function PreviousChatItemComponent({
         ) : (
           <span className={styles.titleText}>{conversation.title}</span>
         )}
-        {/* edit conversation title icon */}
-        <svg 
-          width="16px" 
-          height="16px" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          className={styles.editTitleIcon} 
-          onClick={handleEditTitleClick}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleEditTitleClick(e as any);
-            }
-          }}
-          aria-label="Edit conversation title"
-        >
-          <path 
-            d="M4.33295 16.048L16.5714 3.80952C17.5708 2.81015 19.1911 2.81015 20.1905 3.80952C21.1898 4.8089 21.1898 6.4292 20.1905 7.42857L7.952 19.667C7.6728 19.9462 7.3172 20.1366 6.93002 20.214L3 21L3.786 17.07C3.86344 16.6828 4.05375 16.3272 4.33295 16.048Z" 
-            stroke="currentColor" 
-            strokeWidth="1.5" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-          />
-          <path 
-            d="M14.5 6.5L17.5 9.5" 
-            stroke="currentColor" 
-            strokeWidth="1.5" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-          />
-        </svg>
+        
+        <div className={styles.iconsContainer}>
+          {/* edit conversation title icon */}
+          <svg 
+            width="16px" 
+            height="16px" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            className={styles.editTitleIcon} 
+            onClick={handleEditTitleClick}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleEditTitleClick(e as any);
+              }
+            }}
+            aria-label="Edit conversation title"
+          >
+            <path 
+              d="M4.33295 16.048L16.5714 3.80952C17.5708 2.81015 19.1911 2.81015 20.1905 3.80952C21.1898 4.8089 21.1898 6.4292 20.1905 7.42857L7.952 19.667C7.6728 19.9462 7.3172 20.1366 6.93002 20.214L3 21L3.786 17.07C3.86344 16.6828 4.05375 16.3272 4.33295 16.048Z" 
+              stroke="currentColor" 
+              strokeWidth="1.5" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            />
+            <path 
+              d="M14.5 6.5L17.5 9.5" 
+              stroke="currentColor" 
+              strokeWidth="1.5" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            />
+          </svg>
 
-        {/* delete conversation icon */}
-        <svg 
-          width="16px" 
-          height="16px" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          className={styles.deleteTitleIcon}
-          onClick={handleDeleteConversationClick}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter' || e.key === ' ') {
-              e.preventDefault();
-              handleDeleteConversationClick(e as any);
-            }
-          }}
-          aria-label="Delete conversation"
-        >
-          <path 
-            d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6" 
-            stroke="currentColor" 
-            strokeWidth="1.5" 
-            strokeLinecap="round" 
-            strokeLinejoin="round"
-          />
-        </svg>
+          {/* delete conversation icon */}
+          <svg 
+            width="16px" 
+            height="16px" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            className={styles.deleteTitleIcon}
+            onClick={handleDeleteConversationClick}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                handleDeleteConversationClick(e as any);
+              }
+            }}
+            aria-label="Delete conversation"
+          >
+            <path 
+              d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14zM10 11v6M14 11v6" 
+              stroke="currentColor" 
+              strokeWidth="1.5" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            />
+          </svg>
+        </div>
       </div>
     </div>
   );

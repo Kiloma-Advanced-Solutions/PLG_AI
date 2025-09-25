@@ -8,16 +8,17 @@
   position: fixed;
   top: 0;
   left: 0;
-  right: var(--sidebar-width-closed);
-  z-index: 10;
+  right: 0; /* Full width on mobile for overlay approach */
+  z-index: 25; /* Higher than sidebar (z-index: 20) to stay above */
   transition: all 0.3s ease;
   box-sizing: border-box;
   padding: 0 0.5rem;
   border-bottom: 1px solid var(--border-color);
 }
 
+/* No shifting on mobile - header stays full width */
 .header.shifted {
-  right: var(--sidebar-width-open);
+  right: 0; /* Keep full width on mobile */
 }
 
 /* Mobile-first left section (theme icon and logo) */

@@ -38,7 +38,7 @@ export default function SidebarComponent({
   // Detect mobile screen size with proper SSR handling
   useEffect(() => {
     const checkIsMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
+      setIsMobile(window.innerWidth < 576); // Only true mobile devices, not tablets
     };
 
     // Initial check
@@ -57,16 +57,11 @@ export default function SidebarComponent({
    * On mobile devices, auto-close sidebar after selection for better UX
    */
   const handleConversationSelect = (conversationId: string) => {
-    // Auto-close sidebar on mobile devices for better UX
     if (isMobile) {
-      // Immediately close sidebar on mobile
-      onToggle();
-      // Navigate after a brief delay
-      setTimeout(() => {
-        goToConversation(conversationId);
-      }, 150);
+      // Mobile: close sidebar and navigate with delay
+      goToConversation(conversationId, onToggle);
     } else {
-      // Desktop behavior - keep sidebar open
+      // Tablet/Desktop: keep sidebar open, navigate immediately
       goToConversation(conversationId);
     }
   };
@@ -77,15 +72,11 @@ export default function SidebarComponent({
    */
   const handleCreateNewChat = () => {
     if (isMobile) {
-      // Immediately close sidebar on mobile
-      onToggle();
-      // Navigate after a brief delay
-      setTimeout(() => {
-        goToNewChat();
-      }, 150);
+      // Mobile: close sidebar and navigate with delay
+      goToNewChat(onToggle);
     } else {
-      // Desktop behavior - close if already open
-      goToNewChat(isOpen ? onToggle : undefined);
+      // Tablet/Desktop: keep sidebar open, just navigate
+      goToNewChat();
     }
   };
   

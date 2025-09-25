@@ -133,19 +133,4 @@
   .container {
     font-size: 1.125rem;
   }
-  
-  .burgerSection {
-    right: 1rem;
-  }
-  
-  .burgerButton {
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-  }
-  
-  .burgerIcon {
-    width: 20px;
-    height: 20px;
-  }
 }
