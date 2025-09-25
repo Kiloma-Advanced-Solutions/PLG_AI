@@ -7,6 +7,30 @@
   flex-direction: column;
   overflow: hidden;
   font-size: 0.875rem;
+  
+  /* Z-index hierarchy - single source of truth for all layout elements */
+  --z-content: 1;
+  --z-chat-container: 5;
+  --z-input: 10;
+  --z-header: 15;
+  --z-sidebar: 20;
+  --z-burger: 25;
+  --z-popup: 1000;
+  
+  /* Layout positioning control - coordinate fixed elements */
+  /* App-layout controls positioning strategy for all fixed elements */
+  --layout-header-position: fixed;
+  --layout-sidebar-position: fixed;
+  --layout-input-position: fixed;
+  --layout-burger-position: fixed;
+  --layout-popup-position: fixed;
+  
+  /* Layout architecture notes:
+   * - App-layout defines positioning strategy and z-index hierarchy
+   * - Components handle their own sizing, spacing, and content positioning
+   * - Responsive width/margin adjustments remain in components
+   * - This prevents z-index conflicts and provides layout coordination
+   */
 }
 
 /* Main content area */
@@ -53,8 +77,8 @@
   }
 }
 
-/* Desktop and larger (992px+) */
-@media (min-width: 992px) {
+/* Desktop laptop (992-1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
   .container {
     font-size: 1rem;
   }
@@ -75,17 +99,24 @@
   }
 }
 
+/* Large desktop and larger (1200px+) */
+@media (min-width: 1200px) {
+  .container {
+    font-size: 1.125rem;
+  }
+}
+
 /* Burger button - independent of sidebar */
 .burgerSection {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  position: fixed;
+  position: var(--layout-burger-position);
   top: 0;
   right: 0.5rem;
   height: 60px; /* Fixed height to match mobile header */
   padding: 0.5rem 0;
-  z-index: 30; /* Higher than sidebar */
+  z-index: var(--z-burger);
 }
 
 .burgerButton {
@@ -120,9 +151,3 @@
   height: 18px;
 }
 
-/* Desktop screens (1024px+) */
-@media (min-width: 1024px) {
-  .container {
-    font-size: 1.125rem;
-  }
-}

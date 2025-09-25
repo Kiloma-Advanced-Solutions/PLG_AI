@@ -134,11 +134,21 @@ body {
   }
 }
 
-/* Desktop and larger screen variables (992px+) */
-@media (min-width: 992px) {
+/* Desktop laptop screens (992-1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
   :root {
-    /* Desktop sidebar */
-    --sidebar-width-open: 320px;
+    /* Desktop laptop */
+    --sidebar-width-closed: 60px;
+    --sidebar-width-open: 280px; 
+  }
+}
+
+/* Large desktop and larger screen variables (1200px+) */
+@media (min-width: 1200px) {
+  :root {
+    /* Large desktop */
+    --sidebar-width-closed: 60px;
+    --sidebar-width-open: 280px;
 
   }
 }

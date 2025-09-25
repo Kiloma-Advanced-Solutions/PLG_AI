@@ -27,7 +27,7 @@
 .messageBox {
   width: 100%;
   padding: 0.75rem 1rem;
-  border-radius: 1rem;
+  border-radius: 18px;
   overflow-wrap: break-word;
   word-break: break-word;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -45,7 +45,7 @@
 
 /* Mobile-first message text */
 .messageText {
-  font-size: 1rem;
+  font-size: 0.9rem;
   line-height: 1.5;
   overflow-wrap: break-word;
 }
@@ -377,34 +377,5 @@
   .heading1 { font-size: 1.5rem; }
   .heading2 { font-size: 1.25rem; }
   .heading3 { font-size: 1.125rem; }
-}
-
-/* Desktop screens (1024px+) */
-@media (min-width: 1024px) {
-  .messageContainer {
-    margin: 0.5rem calc(3rem * 2);
-  }
-
-  .userMessageWrapper {
-    max-width: 80%;
-  }
-
-  .messageContainer.assistant {
-    max-width: 85%;
-  }
-
-  .codeBlockContainer {
-    width: 100% !important;
-    max-width: calc(100vw - 450px) !important; /* Account for sidebar + larger padding */
-  }
-  
-  .messageContainer.user .codeBlockContainer {
-    width: 100% !important;
-    max-width: calc(100vw - 500px) !important; /* More constrained for user messages */
-  }
-
-  .heading1 { font-size: 1.875rem; }
-  .heading2 { font-size: 1.5rem; }
-  .heading3 { font-size: 1.25rem; }
 }
 
