@@ -61,31 +61,30 @@
 
 /* Force all internal elements to respect container width and font size */
 
-/* Mobile-first code blocks */
-.codeBlockContainer,
-.codeBlockContainer *,
-.codeBlockContainer div,
-.codeBlockContainer pre,
-.codeBlockContainer code,
-.codeBlockContainer span {
-  max-width: 100% !important;
-  box-sizing: border-box !important;
-  font-size: 0.875rem !important;
-  font-family: 'SFMono-Regular', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace !important;
-}
-
-/* Mobile-first responsive width for code blocks */
+/* Mobile-first code blocks with fixed width */
 .codeBlockContainer {
-  width: 100% !important;
-  max-width: calc(100vw - 4.5rem) !important;
+  /* Mobile-first: Use input container width (full width minus padding) */
+  width: calc(100vw - 5rem) !important;
+  max-width: calc(100vw - 5rem) !important;
+  min-width: calc(100vw - 5rem) !important;
+  margin: 1rem 0 !important;
+  position: relative !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  margin-left: 0 !important;
+  margin-right: 0 !important;
   overflow-x: auto !important;
   box-sizing: border-box !important;
 }
 
-/* Specific handling for user messages to prevent shifting */
-.messageContainer.user .codeBlockContainer {
-  width: 100% !important;
-  max-width: calc(100vw - 5.5rem) !important;
+/* Force all internal elements to respect container width */
+.codeBlockContainer,
+.codeBlockContainer *,
+.codeBlockContainer div,
+.codeBlockContainer pre,
+.codeBlockContainer code {
+  max-width: 100% !important;
+  box-sizing: border-box !important;
 }
 
 
@@ -332,13 +331,15 @@
   }
 
   .codeBlockContainer {
-    width: 100% !important;
-    max-width: calc(100vw - 3rem) !important; /* Further reduced margins */
-  }
-  
-  .messageContainer.user .codeBlockContainer {
-    width: 100% !important;
-    max-width: calc(100vw - 3.5rem) !important; /* More constrained for user messages */
+    /* Small tablet: Match input wrapper (85% width, max 580px) */
+    width: 80vw !important;
+    max-width: 80px !important;
+    min-width: 80vw !important;
+    margin: 1rem 0 !important;
+    position: relative !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    overflow-x: auto !important;
   }
 
   .heading1 { font-size: 1.375rem; }
@@ -365,17 +366,49 @@
   }
 
   .codeBlockContainer {
-    width: 100% !important;
-    max-width: calc(100vw - 280px) !important; /* Account for sidebar + further reduced padding */
-  }
-  
-  .messageContainer.user .codeBlockContainer {
-    width: 100% !important;
-    max-width: calc(100vw - 310px) !important; /* More constrained for user messages */
+    /* Tablet: Match input wrapper (85% width, max 580px) */
+    width: 85vw !important;
+    max-width: 580px !important;
+    min-width: 85vw !important;
+    margin: 1rem 0 !important;
+    position: relative !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    overflow-x: auto !important;
   }
 
   .heading1 { font-size: 1.5rem; }
   .heading2 { font-size: 1.25rem; }
   .heading3 { font-size: 1.125rem; }
+}
+
+/* Desktop laptop (992-1199px) */
+@media (min-width: 992px) and (max-width: 1199px) {
+  .codeBlockContainer {
+    /* Desktop laptop: Match input wrapper (narrower for better centering) */
+    width: calc(100vw - 6rem) !important;
+    max-width: 900px !important;
+    min-width: calc(100vw - 6rem) !important;
+    margin: 1rem 0 !important;
+    position: relative !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    overflow-x: auto !important;
+  }
+}
+
+/* Large desktop screens (1200px+) - fixed width code blocks */
+@media (min-width: 1200px) {
+  .codeBlockContainer {
+    /* Large desktop: Match input wrapper fixed width (slightly narrower) */
+    width: 750px !important;
+    max-width: 750px !important;
+    min-width: 750px !important;
+    margin: 1rem 0 !important;
+    position: relative !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+    overflow-x: auto !important;
+  }
 }
 
