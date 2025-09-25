@@ -193,7 +193,7 @@ a {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background:var(--scroll-bar-color-hover);
+  background: var(--scroll-bar-color-hover);
 }
 
 

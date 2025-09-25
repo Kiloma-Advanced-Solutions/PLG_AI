@@ -11,9 +11,10 @@
   max-width: 100%;
   margin: 0 auto;
   z-index: var(--z-chat-container);
-  overflow-y: auto; /* Move scroll to container level */
+  overflow-y: auto; /* Auto scrollbar when needed */
   scroll-behavior: smooth;
   overscroll-behavior: contain;
+  scrollbar-gutter: stable both-edges; /* Reserve space on both sides to maintain centering */
 }
 
 /* When chat is empty, position input higher */
