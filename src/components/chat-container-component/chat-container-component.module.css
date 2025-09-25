@@ -232,21 +232,45 @@
 
 /* Responsive Design */
 
-/* Large desktop screens (1200px+) */
-@media (min-width: 1200px) {  
-  /* Keep chatContainer full width so scrollbar stays at browser edge */
+/* Large tablets (768px+) */
+@media (min-width: 768px) {
   .chatContainer {
-    max-width: 100%; /* Full width for proper scrollbar placement */
+    max-width: 100%;
     margin: 0 auto;
-    align-items: center; /* Center content horizontally */
+    align-items: center;
   }
 
   .messagesContainer {
-    /* Center content within the full-width scroll area */
-    width: 900px; /* Fixed width to match input */
-    max-width: 900px; /* Match input width */
-    padding: 0 2rem 1.5rem 2rem; /* Content padding */
-    margin: 0 auto; /* Center within the chat container */
+    width: 750px;
+    max-width: 750px;
+    padding: 0 1.5rem 1.5rem 1.5rem;
+    margin: 0 auto;
+  }
+
+  .welcomeMessage {
+    padding: 2.5rem;
+  }
+}
+
+/* Small desktops (992px+) */
+@media (min-width: 992px) {
+  .messagesContainer {
+    width: 850px;
+    max-width: 850px;
+    padding: 0 1.75rem 1.5rem 1.75rem;
+  }
+
+  .welcomeMessage {
+    padding: 2.75rem;
+  }
+}
+
+/* Large desktop screens (1200px+) */
+@media (min-width: 1200px) {  
+  .messagesContainer {
+    width: 900px;
+    max-width: 900px;
+    padding: 0 2rem 1.5rem 2rem;
   }
 
   .welcomeMessage {

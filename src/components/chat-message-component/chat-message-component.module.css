@@ -331,10 +331,10 @@
   }
 
   .codeBlockContainer {
-    /* Small tablet: Match input wrapper (85% width, max 580px) */
-    width: 80vw !important;
-    max-width: 80px !important;
-    min-width: 80vw !important;
+    /* Small tablet: Narrower width like mobile */
+    width: calc(100vw - 9rem) !important;
+    max-width: calc(100vw - 9rem) !important;
+    min-width: calc(100vw - 9rem) !important;
     margin: 1rem 0 !important;
     position: relative !important;
     left: 50% !important;
@@ -366,10 +366,10 @@
   }
 
   .codeBlockContainer {
-    /* Tablet: Match input wrapper (85% width, max 580px) */
-    width: 85vw !important;
-    max-width: 580px !important;
-    min-width: 85vw !important;
+    /* Tablet: Match fixed chat container width (750px - padding) */
+    width: 650px !important;
+    max-width: 650px !important;
+    min-width: 650px !important;
     margin: 1rem 0 !important;
     position: relative !important;
     left: 50% !important;
@@ -385,10 +385,10 @@
 /* Desktop laptop (992-1199px) */
 @media (min-width: 992px) and (max-width: 1199px) {
   .codeBlockContainer {
-    /* Desktop laptop: Match input wrapper (narrower for better centering) */
-    width: calc(100vw - 6rem) !important;
-    max-width: 900px !important;
-    min-width: calc(100vw - 6rem) !important;
+    /* Desktop laptop: Match fixed chat container width (850px - padding) */
+    width: 750px !important;
+    max-width: 750px !important;
+    min-width: 750px !important;
     margin: 1rem 0 !important;
     position: relative !important;
     left: 50% !important;
@@ -400,10 +400,10 @@
 /* Large desktop screens (1200px+) - fixed width code blocks */
 @media (min-width: 1200px) {
   .codeBlockContainer {
-    /* Large desktop: Match input wrapper fixed width (slightly narrower) */
-    width: 750px !important;
-    max-width: 750px !important;
-    min-width: 750px !important;
+    /* Large desktop: Match fixed chat container width (900px - padding) */
+    width: 800px !important;
+    max-width: 800px !important;
+    min-width: 800px !important;
     margin: 1rem 0 !important;
     position: relative !important;
     left: 50% !important;

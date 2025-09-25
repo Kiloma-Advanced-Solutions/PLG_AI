@@ -190,10 +190,18 @@
   }
 }
 
-/* Desktop laptop (992-1199px) */
-@media (min-width: 992px) and (max-width: 1199px) {
+/* Tablet and larger screens (768px+) */
+@media (min-width: 768px) {
   .inputWrapper {
-    width: calc(100% - 3rem); /* Match chat messages: full width minus 1.5rem padding on each side */
+    width: 600px; /* Match chat messages: full width minus 1.5rem padding on each side */
+    max-width: none; /* Remove max-width constraint to align with messages */
+  }
+}
+
+/* Desktop laptop (992-1199px) */
+@media (min-width: 992px) {
+  .inputWrapper {
+    width: 600px; /* Match chat messages: full width minus 1.5rem padding on each side */
     max-width: none; /* Remove max-width constraint to align with messages */
   }
 }
