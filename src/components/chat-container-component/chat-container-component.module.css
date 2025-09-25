@@ -10,7 +10,10 @@
   /* Center content with equal margins */
   max-width: 100%;
   margin: 0 auto;
-  z-index: var(--z-chat-container); 
+  z-index: var(--z-chat-container);
+  overflow-y: auto; /* Move scroll to container level */
+  scroll-behavior: smooth;
+  overscroll-behavior: contain;
 }
 
 /* When chat is empty, position input higher */
@@ -22,16 +25,14 @@
 /* Mobile-first conversation area */
 .messagesContainer {
   flex: 1;
-  overflow-y: auto;
   display: flex;
   flex-direction: column;
   padding: 0rem 1.5rem 1.5rem 1.5rem;
   transition: padding 0.3s ease;
-  scroll-behavior: smooth;
-  overscroll-behavior: contain;
   /* Ensure content is properly centered */
   width: 100%;
   box-sizing: border-box;
+  min-height: 0; /* Allow flex shrinking */
 }
 
 
@@ -232,9 +233,20 @@
 
 /* Large desktop screens (1200px+) */
 @media (min-width: 1200px) {  
-  /* .messagesContainer {
-    padding: 0 2rem;
-  } */
+  /* Keep chatContainer full width so scrollbar stays at browser edge */
+  .chatContainer {
+    max-width: 100%; /* Full width for proper scrollbar placement */
+    margin: 0 auto;
+    align-items: center; /* Center content horizontally */
+  }
+
+  .messagesContainer {
+    /* Center content within the full-width scroll area */
+    width: 900px; /* Fixed width to match input */
+    max-width: 900px; /* Match input width */
+    padding: 0 2rem 1.5rem 2rem; /* Content padding */
+    margin: 0 auto; /* Center within the chat container */
+  }
 
   .welcomeMessage {
     padding: 3rem;

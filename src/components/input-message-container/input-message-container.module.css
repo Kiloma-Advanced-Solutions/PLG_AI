@@ -193,7 +193,8 @@
 /* Desktop laptop (992-1199px) */
 @media (min-width: 992px) and (max-width: 1199px) {
   .inputWrapper {
-    max-width: 650px; /* Slightly larger than tablets */
+    width: calc(100% - 3rem); /* Match chat messages: full width minus 1.5rem padding on each side */
+    max-width: none; /* Remove max-width constraint to align with messages */
   }
 }
 
@@ -204,8 +205,8 @@
   }
   
   .inputWrapper {
-    width: 70%; /* Use screen width better on large displays */
-    max-width: 800px; /* Reasonable max width */
+    width: 800px; /* Fixed wider size for large screens */
+    max-width: 800px; /* Fixed max width */
   }
 }
 
