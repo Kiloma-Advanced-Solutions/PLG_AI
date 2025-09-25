@@ -158,24 +158,24 @@
 
 
 
-/* Small tablet screens (576-768px) */
-@media (min-width: 576px) and (max-width: 767px) {
+/* Small tablets and larger (576px+) */
+@media (min-width: 576px) {
   .inputContainer {
     right: var(--sidebar-width-closed);
-    padding: 0.875rem; /* Between mobile and large tablet */
+    padding: 0.875rem;
   }
   
   .inputContainer.shifted {
-    right: var(--sidebar-width-open); /* Adjust for open sidebar on tablets */
+    right: var(--sidebar-width-open);
   }
   
   .inputWrapper {
-    width: 88%; /* Slightly smaller than mobile but larger than desktop */
+    width: 88%;
     max-width: 600px;
   }
   
   .messageInput {
-    min-height: 1.5rem; /* Between mobile and desktop */
+    min-height: 1.5rem;
     font-size: 0.95rem;
   }
   
@@ -190,15 +190,10 @@
   }
 }
 
-/* Tablet and larger screens (768px+) */
-@media (min-width: 768px) {
+/* Desktop and larger (992px+) */
+@media (min-width: 992px) {
   .inputContainer {
-    right: var(--sidebar-width-closed);
     padding: 1rem;
-  }
-  
-  .inputContainer.shifted {
-    right: var(--sidebar-width-open); /* Adjust for open sidebar on desktop */
   }
   
   .inputWrapper {
@@ -211,9 +206,8 @@
   
   .messageInput {
     font-size: 1.125rem;
-    min-height: 1.5rem;
     max-height: 6rem;
-    padding: 0.75rem 1rem; /* Increase top/bottom padding for better vertical centering on tablet */
+    padding: 0.75rem 1rem;
   }
   
   .sendButton {
@@ -233,8 +227,8 @@
   }
 }
 
-/* Desktop screens (1024px+) */
-@media (min-width: 1024px) {
+/* Large desktop screens (1200px+) */
+@media (min-width: 1200px) {
   .inputContainer {
     padding: 1.5rem;
   }

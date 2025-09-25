@@ -7,7 +7,6 @@
   min-height: 0;
   background-color: var(--background-color);
   padding-top: var(--header-height);
-  /* padding-bottom: var(--input-bottom-padding); */
   /* Center content with equal margins */
   max-width: 100%;
   margin: 0 auto;
@@ -234,8 +233,8 @@
 
 /* Responsive Design */
 
-/* Small tablet screens (576-768px) */
-@media (min-width: 576px) and (max-width: 767px) {
+/* Small tablets and larger (576px+) */
+@media (min-width: 576px) {
   .messagesContainer {
     padding: 0 1rem 1.75rem;
   }
@@ -257,8 +256,8 @@
   }
 }
 
-/* Tablet and larger screens (768px+) */
-@media (min-width: 768px) {
+/* Desktop and larger (992px+) */
+@media (min-width: 992px) {
   .messagesContainer {
     padding: 0 1.5rem 2rem;
   }
@@ -267,14 +266,13 @@
     padding-top: 6rem;
   }
   
-  
   .welcomeMessage {
     padding: 1.5rem;
   }
 }
 
-/* Desktop screens (1024px+) */
-@media (min-width: 1024px) {
+/* Large desktop screens (1200px+) */
+@media (min-width: 1200px) {
   .chatContainer.empty {
     padding-top: var(--header-height);
   }

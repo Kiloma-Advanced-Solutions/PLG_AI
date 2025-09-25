@@ -122,26 +122,20 @@ body {
     /* Small tablet sidebar */
     --sidebar-width-closed: 50px;       /* Collapsed sidebar like larger screens */
     --sidebar-width-open: 30vw;         /* Slightly smaller than full width */
-    
-    /* Small tablet header - same as mobile */
-    --header-height: 60px;              /* Same as mobile for consistency */
   }
 }
 
-/* Tablet and larger screen variables */
-@media (min-width: 768px) {
+/* Large tablet screens (768-991px) */
+@media (min-width: 768px) and (max-width: 991px) {
   :root {
     /* Tablet sidebar */
     --sidebar-width-closed: 60px;
     --sidebar-width-open: 280px;
-    
-    /* Tablet header */
-    --header-height: 70px;
   }
 }
 
-/* Desktop and larger screen variables */
-@media (min-width: 1024px) {
+/* Desktop and larger screen variables (992px+) */
+@media (min-width: 992px) {
   :root {
     /* Desktop sidebar */
     --sidebar-width-open: 320px;

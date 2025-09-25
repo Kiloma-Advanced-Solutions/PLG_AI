@@ -46,28 +46,27 @@
 }
 
 
-/* Small tablet screens (576-768px) */
-@media (min-width: 576px) and (max-width: 767px) {
+/* Small tablets and larger (576px+) */
+@media (min-width: 576px) {
   .sidebar {
-    transform: translateX(0); /* Always visible like larger screens */
+    transform: translateX(0);
     border-left: 1.5px solid var(--border-color);
   }
   
   .sidebar.open {
-    transform: translateX(0); /* No change needed when open */
+    transform: translateX(0);
   }
 }
 
-/* Tablet and larger screens (768px+) */
-@media (min-width: 768px) {
+/* Desktop and larger (992px+) */
+@media (min-width: 992px) {
   .sidebar {
-    transform: translateX(0); /* Always visible on larger screens */
     border-left: 2px solid var(--border-color);
   }
 }
 
-/* Desktop screens (1024px+) */
-@media (min-width: 1024px) {
+/* Large desktop screens (1200px+) */
+@media (min-width: 1200px) {
   .sidebarContent {
     padding: calc(var(--header-height) + 1.5rem) 1rem 1.5rem 0;
   }

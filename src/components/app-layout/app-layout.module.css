@@ -23,8 +23,8 @@
   margin-right: 0;
 }
 
-/* Small tablet screens (576-768px) */
-@media (min-width: 576px) and (max-width: 767px) {
+/* Small tablets and larger (576px+) */
+@media (min-width: 576px) {
   .container {
     font-size: 0.9375rem;
   }
@@ -53,18 +53,10 @@
   }
 }
 
-/* Tablet and larger screens (768px+) */
-@media (min-width: 768px) {
+/* Desktop and larger (992px+) */
+@media (min-width: 992px) {
   .container {
     font-size: 1rem;
-  }
-  
-  .main {
-    margin-right: var(--sidebar-width-closed);
-  }
-  
-  .main.shifted {
-    margin-right: var(--sidebar-width-open);
   }
   
   .burgerSection {

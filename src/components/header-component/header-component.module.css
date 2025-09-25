@@ -111,19 +111,8 @@
 }
 
 
-/* Small tablet screens (576-768px) */
-@media (min-width: 576px) and (max-width: 767px) {
-  .header {
-    right: var(--sidebar-width-closed);
-  }
-  
-  .header.shifted {
-    right: var(--sidebar-width-open);
-  }
-}
-
-/* Tablet and larger screens (768px+) */
-@media (min-width: 768px) {
+/* Small tablets and larger (576px+) */
+@media (min-width: 576px) {
   .header {
     right: var(--sidebar-width-closed);
   }
