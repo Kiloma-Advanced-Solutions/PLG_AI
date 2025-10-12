@@ -57,39 +57,46 @@ def convert_to_llm_tool(tool):
 
 
 
-async def get_final_answer(prompt):
-    """Get final answer without tools"""
-    messages = [
-        {"role": "system", "content": "You are a helpful assistant. Answer the question clearly and concisely."},
-        {"role": "user", "content": prompt}
-    ]
-    
+async def stream_vllm_response(messages, max_tokens=1000):
+    """Stream response from vLLM and collect full text"""
     payload = {
         "model": "gaunernst/gemma-3-12b-it-qat-autoawq",
         "messages": messages,
         "stream": True,
         "temperature": 0.7,
-        "max_tokens": 200
+        "max_tokens": max_tokens
     }
     
     try:
         full_response = ""
         async with httpx.AsyncClient(timeout=60.0) as client:
             async with client.stream("POST", vllm_url, json=payload) as response:
-                if response.status_code == 200:
-                    async for line in response.aiter_lines():
-                        if line.startswith('data: ') and '[DONE]' not in line:
-                            try:
-                                chunk = json.loads(line[6:])
-                                content = chunk['choices'][0]['delta'].get('content', '')
-                                full_response += content
-                            except:
-                                pass
+                if response.status_code != 200:
+                    print(f"Error: {response.status_code}")
+                    return ""
+                
+                async for line in response.aiter_lines():
+                    if line.startswith('data: ') and '[DONE]' not in line:
+                        try:
+                            chunk = json.loads(line[6:])
+                            content = chunk['choices'][0]['delta'].get('content', '')
+                            full_response += content
+                        except:
+                            pass
         return full_response.strip()
-    except:
-        return "Error generating answer"
+    except Exception as e:
+        print(f"Streaming error: {e}")
+        return ""
 
-        
+
+async def get_final_answer(prompt):
+    """Get final answer without tools"""
+    messages = [
+        {"role": "system", "content": "You are a helpful assistant. Answer the question clearly and concisely."},
+        {"role": "user", "content": prompt}
+    ]
+    return await stream_vllm_response(messages, max_tokens=200)
+
 
 async def call_llm(prompt, functions):
     """Call vLLM with LLM API"""
@@ -104,76 +111,39 @@ async def call_llm(prompt, functions):
         {"role": "user", "content": prompt},
     ]
     
-    # Make request directly to vLLM (bypassing LLM API)
-    payload = {
-        "model": "gaunernst/gemma-3-12b-it-qat-autoawq",
-        "messages": messages,
-        "stream": True,  # Use streaming
-        "temperature": 0.7,
-        "max_tokens": 1000
-    }
-
     print(f"\n{messages}\n")
     
-    try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            # Stream the response
-            full_response = ""
-            async with client.stream("POST", vllm_url, json=payload) as response:
-                if response.status_code != 200:
-                    print(f"Error calling vLLM: {response.status_code}")
-                    error_text = await response.aread()
-                    print(f"Response: {error_text.decode()}")
-                    return []
-                
-                # Collect all chunks
-                async for line in response.aiter_lines():
-                    if line.startswith('data: '):
-                        data = line.replace('data: ', '').strip()
-                        if data and data != '[DONE]':
-                            try:
-                                chunk = json.loads(data)
-                                if 'choices' in chunk and len(chunk['choices']) > 0:
-                                    delta = chunk['choices'][0].get('delta', {})
-                                    content = delta.get('content', '')
-                                    if content:
-                                        full_response += content
-                            except json.JSONDecodeError:
-                                pass
-            
-            print("\nLLM Response:")
-            print(full_response)
-            
-            # Parse the response to extract tool calls
-            functions_to_call = []
-            
-            try:
-                # Clean response
-                response_clean = full_response.strip().replace('```json', '').replace('```', '').strip()
-                
-                # If [] in model response - Done, No more tool calls needed
-                if '[]' in response_clean:
-                    return []
-                
-                # Extract JSON substring if present
-                if "{" in response_clean and "}" in response_clean:
-                    json_str = response_clean[response_clean.find("{") : response_clean.rfind("}") + 1]
-                    parsed = json.loads(json_str)
-                    
-                    if 'tool' in parsed:
-                        args = parsed.get('arguments', {})
-                        functions_to_call.append({"name": parsed['tool'], "args": args})
-                        
-            except (json.JSONDecodeError, ValueError, KeyError) as e:
-                print(f"Could not parse response: {e}")
-            
-            return functions_to_call
-            
-    except Exception as e:
-        print(f"Error calling vLLM: {e}")
-        import traceback
-        traceback.print_exc()
+    # Stream response from vLLM
+    full_response = await stream_vllm_response(messages)
+    
+    if not full_response:
         return []
+    
+    print("\nLLM Response:")
+    print(full_response)
+    
+    # Parse the response to extract tool calls
+    try:
+        # Clean response
+        response_clean = full_response.replace('```json', '').replace('```', '').strip()
+        
+        # If [] in model response - Done, No more tool calls needed
+        if '[]' in response_clean:
+            return []
+        
+        # Extract JSON substring if present
+        if "{" in response_clean and "}" in response_clean:
+            json_str = response_clean[response_clean.find("{") : response_clean.rfind("}") + 1]
+            parsed = json.loads(json_str)
+            
+            if 'tool' in parsed:
+                args = parsed.get('arguments', {})
+                return [{"name": parsed['tool'], "args": args}]
+                
+    except (json.JSONDecodeError, ValueError, KeyError) as e:
+        print(f"Could not parse response: {e}")
+    
+    return []
 
 
 
