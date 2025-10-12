@@ -34,9 +34,10 @@ async def call_llm(prompt, functions):
                     param_desc = param_info.get('description', '')
                     system_content += f"    - {param_name} ({param_type}): {param_desc}\n"
         
-        system_content += "\n\nWhen you need to use a tool, respond ONLY with a JSON object in this exact format:"
-        system_content += '\n[{"tool": "tool_name1", "arguments": {"param1": value1, "param2": value2}},{"tool": "tool_name2", "arguments": {"param1": value1, "param2": value2}},...]'
-        system_content += "\n\nDo not include any other text in your response when calling a tool."
+        system_content += "\n\nRESPONSE FORMAT:"
+        system_content += '\n- Call ONE tool at a time: {"tool": "name", "arguments": {...}}'
+        system_content += '\n- When you have the FINAL ANSWER (no more calculations needed): []'
+        system_content += "\n\nReturn ONLY JSON - either the tool call or []."
     
     messages = [
         {"role": "system", "content": system_content},
@@ -85,16 +86,18 @@ async def call_llm(prompt, functions):
             functions_to_call = []
             
             try:
-                # Clean and parse response as JSON array
+                # Clean and parse response
                 response_clean = full_response.strip().replace('```json', '').replace('```', '').strip()
-                json_str = response_clean[response_clean.find('['):response_clean.rfind(']')+1]
-                tool_calls = json.loads(json_str)
+                parsed = json.loads(response_clean)
+                
+                # Normalize to list (handle both single object and array)
+                tool_calls = parsed if isinstance(parsed, list) else [parsed] if parsed else []
                 
                 # Extract tool calls
                 for tool_call in tool_calls:
-                    args = tool_call.get('arguments', {})
-                    functions_to_call.append({"name": tool_call['tool'], "args": args})
-                    print(f"\nExtracted: {tool_call['tool']}({args})")
+                    if isinstance(tool_call, dict) and 'tool' in tool_call:
+                        args = tool_call.get('arguments', {})
+                        functions_to_call.append({"name": tool_call['tool'], "args": args})
                         
             except (json.JSONDecodeError, ValueError, KeyError) as e:
                 print(f"Could not parse tool calls: {e}")
@@ -145,17 +148,49 @@ async def run():
                 functions.append(convert_to_llm_tool(tool))
 
             # LLM prompt
-            prompt = "I have 4 bills of 20$ and another 10$. How much money do I have?"
+            prompt = "I have 3 bills of 50$ and another 20$ and another 40$. How much money do I have?"
             # prompt = "What time is it?"
 
-            # Ask LLM what tools to call, if any
-            functions_to_call = await call_llm(prompt, functions)
-            print("\n Functions to call:", functions_to_call)
+            # Agentic loop: LLM sees intermediate results and decides next steps
+            max_iterations = 5
+            iteration = 0
+            done = False;
+            work_log = []
+            
+            while not done and iteration < max_iterations:
+                print(f"\n--- Iteration {iteration + 1} ---")
+                
+                # Build conversation with all previous work
+                if work_log:
+                    history = f"Question: {prompt}\n\nCalculations completed:\n"
+                    for step in work_log:
+                        history += f"- {step['tool']}({step['args']}) = {step['result']}\n"
+                    history += f"\nCurrent answer: {work_log[-1]['result']}"
+                    history += "\n\nIf this answers the question, return []. Otherwise, call the next tool:"
+                else:
+                    history = prompt
 
-            # Call suggested functions
-            for f in functions_to_call:
-                result = await session.call_tool(f["name"], arguments=f["args"])
-                print("\n Tools result:", result.content)
+                print(f"========history:========\n{history}\n================")
+
+                # Ask LLM what tools to call
+                functions_to_call = await call_llm(history, functions)
+                
+                if not functions_to_call:
+                    print("✓ Done! Final answer:", work_log[-1]['result'] if work_log else "No calculation needed")
+                    break
+                
+                # Execute first tool only
+                tool = functions_to_call[0]
+                
+                if not done:
+                    result = await session.call_tool(tool["name"], arguments=tool["args"])
+                    tool_result = result.content[0].text if result.content else "No result"
+                    print(f"Result: {tool_result}")
+                    
+                    # Log this step
+                    work_log.append({"tool": tool['name'], "args": tool['args'], "result": tool_result})
+                
+                iteration += 1
 
 
 if __name__ == "__main__":
