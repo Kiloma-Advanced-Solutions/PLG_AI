@@ -98,9 +98,11 @@ async def get_final_answer(system_prompt, prompt):
     """Get final answer without tools"""
     
     messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": prompt}
+        {"role": "system", "content": system_prompt},   # System prompt with user info (no functions defenition)
+        {"role": "user", "content": prompt}             # User question with all previous calculations (if existed)
     ]
+
+    # print(f"=== {messages} ===")
     return await stream_vllm_response(messages, max_tokens=200)
 
 
@@ -201,7 +203,6 @@ async def run():
                 max_iterations = 5
                 iteration = 0
                 done = False
-                work_log = []
 
                 while not done and iteration < max_iterations:
                     print(f"\n--- Iteration {iteration + 1} ---")
