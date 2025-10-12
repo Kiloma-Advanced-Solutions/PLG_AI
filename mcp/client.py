@@ -35,7 +35,7 @@ async def call_llm(prompt, functions):
                     system_content += f"    - {param_name} ({param_type}): {param_desc}\n"
         
         system_content += "\n\nWhen you need to use a tool, respond ONLY with a JSON object in this exact format:"
-        system_content += '\n{"tool": "tool_name", "arguments": {"param1": value1, "param2": value2}}'
+        system_content += '\n[{"tool": "tool_name1", "arguments": {"param1": value1, "param2": value2}},{"tool": "tool_name2", "arguments": {"param1": value1, "param2": value2}},...]'
         system_content += "\n\nDo not include any other text in your response when calling a tool."
     
     messages = [
@@ -84,31 +84,20 @@ async def call_llm(prompt, functions):
             # Parse the response to extract tool calls
             functions_to_call = []
             
-            # Try to parse the response as JSON (tool call)
             try:
-                # Clean the response
-                response_clean = full_response.strip()
+                # Clean and parse response as JSON array
+                response_clean = full_response.strip().replace('```json', '').replace('```', '').strip()
+                json_str = response_clean[response_clean.find('['):response_clean.rfind(']')+1]
+                tool_calls = json.loads(json_str)
                 
-                # Try to find JSON in the response
-                if '{' in response_clean and '}' in response_clean:
-                    # Extract JSON from the response
-                    start_idx = response_clean.find('{')
-                    end_idx = response_clean.rfind('}') + 1
-                    json_str = response_clean[start_idx:end_idx]
-                    
-                    tool_call = json.loads(json_str)
-                    if 'tool' in tool_call:
-                        # Handle missing arguments field (default to empty dict)
-                        args = tool_call.get('arguments', {})
-                        functions_to_call.append({
-                            "name": tool_call['tool'],
-                            "args": args
-                        })
-                        print(f"\nExtracted tool call: {tool_call['tool']} with args {args}")
-            except json.JSONDecodeError as e:
-                print(f"Could not parse response as tool call JSON: {e}")
-            except Exception as e:
-                print(f"Error parsing response: {e}")
+                # Extract tool calls
+                for tool_call in tool_calls:
+                    args = tool_call.get('arguments', {})
+                    functions_to_call.append({"name": tool_call['tool'], "args": args})
+                    print(f"\nExtracted: {tool_call['tool']}({args})")
+                        
+            except (json.JSONDecodeError, ValueError, KeyError) as e:
+                print(f"Could not parse tool calls: {e}")
             
             return functions_to_call
             
@@ -156,8 +145,8 @@ async def run():
                 functions.append(convert_to_llm_tool(tool))
 
             # LLM prompt
-            # prompt = "I have 4 bills of 20$ and another 10$. How much money do I have?"
-            prompt = "What time is it?"
+            prompt = "I have 4 bills of 20$ and another 10$. How much money do I have?"
+            # prompt = "What time is it?"
 
             # Ask LLM what tools to call, if any
             functions_to_call = await call_llm(prompt, functions)
