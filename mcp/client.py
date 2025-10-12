@@ -14,8 +14,12 @@ mcp_server_url = "http://localhost:8000/mcp"  # For tools providing and executio
 vllm_url = "http://localhost:8060/v1/chat/completions"  # The LLM API
 
 
-def create_system_prompt(functions):
+def create_system_prompt(functions=None, user_info=None):
     system_prompt = "You are a helpful assistant."
+    
+    # Add user info if available
+    if user_info:
+        system_prompt += f"\n\nThe user information is:\n{user_info}."
     
     # Add available tools information to the system prompt
     if functions:
@@ -37,6 +41,7 @@ def create_system_prompt(functions):
         system_prompt += "\n\nIMPORTANT: Return ONLY the JSON - no text, no explanations."
 
     return system_prompt
+
 
 
 
@@ -89,21 +94,20 @@ async def stream_vllm_response(messages, max_tokens=1000):
         return ""
 
 
-async def get_final_answer(prompt):
+async def get_final_answer(system_prompt, prompt):
     """Get final answer without tools"""
+    
     messages = [
-        {"role": "system", "content": "You are a helpful assistant. Answer the question clearly and concisely."},
+        {"role": "system", "content": system_prompt},
         {"role": "user", "content": prompt}
     ]
     return await stream_vllm_response(messages, max_tokens=200)
 
 
-async def call_llm(prompt, functions):
+async def call_llm(system_prompt, prompt):
     """Call vLLM with LLM API"""
     print("\nCalling LLM...")
 
-    # Create the system prompt with the available tools
-    system_prompt = create_system_prompt(functions)
 
     # Prepare messages in OpenAI format
     messages = [
@@ -154,8 +158,13 @@ async def run():
             # Initialize the connection
             await session.initialize()
 
-            # List available resources
-            resources = await session.list_resources()
+            # Fetch user info resource if available
+            user_info = None
+            try:
+                user_resource = await session.read_resource("local://user")
+                user_info = json.loads(user_resource.contents[0].text)
+            except Exception as e:
+                print(f"Could not fetch user resource: {e}")
 
             # List available tools
             tools = await session.list_tools()
@@ -167,15 +176,21 @@ async def run():
             prompt = "יש לי 3 שטרות של 20$ ו-40 שטרות של 50$. כמה כסף יש לי?"
             # prompt = "מה השעה?"
             # prompt = "מי המציא את פייסבוק?"
+            # prompt = "מה השטח העשרוני של מעגל עם רדיוס 3?"
+            # prompt = "מה השם והגיל של המשתמש?"
             
+            # Create the system prompt with the available tools
+            system_prompt = create_system_prompt(functions, user_info)
+
             # Check if tools are needed
             print("\n--- Analyzing question ---")
-            tool_calls = await call_llm(prompt, functions)
+            tool_calls = await call_llm(system_prompt, prompt)
             
             if not tool_calls:
                 # No tools needed - generate direct answer
                 print("No tools needed. Generating answer...")
-                answer = await get_final_answer(prompt)
+                system_prompt = create_system_prompt(None, user_info)
+                answer = await get_final_answer(system_prompt, prompt)
                 print(f"\n✓ Answer: {answer}")
                 
             else:
@@ -187,26 +202,28 @@ async def run():
                 iteration = 0
                 done = False
                 work_log = []
-                
+
                 while not done and iteration < max_iterations:
                     print(f"\n--- Iteration {iteration + 1} ---")
                     
-                    # Build conversation with all previous work
+                    # Build user message with all previous work
                     if work_log:
-                        history = f"Question: {prompt}\n\nCalculations completed:\n"
+                        user_message = f"Question: {prompt}\n\nCalculations completed:\n"
                         for step in work_log:
-                            history += f"- {step['tool']}({step['args']}) = {step['result']}\n"
-                        history += f"\nCurrent answer: {work_log[-1]['result']}"
-                        history += '\n\nIf this answers the question, return []. Otherwise, call the next tool:'
+                            user_message += f"- {step['tool']}({step['args']}) = {step['result']}\n"
+                        user_message += f"\nCurrent answer: {work_log[-1]['result']}"
+                        user_message += '\n\nIf this answers the question, return []. Otherwise, call the next tool:'
                     else:
-                        history = prompt
+                        user_message = prompt
 
-                    # Ask LLM what tools to call
-                    functions_to_call = await call_llm(history, functions)
+                    # Ask LLM what tools to call (system_prompt has tools, user_message is the question)
+                    functions_to_call = await call_llm(system_prompt, user_message)
 
                     if not functions_to_call:
-                        final_prompt = history.replace("If this answers the question, return []. Otherwise, call the next tool:", "")
-                        answer = await get_final_answer(final_prompt)
+                        # Create answer system prompt (no tool instructions)
+                        answer_system_prompt = create_system_prompt(None, user_info)
+                        final_message = user_message.replace("If this answers the question, return []. Otherwise, call the next tool:", "")
+                        answer = await get_final_answer(answer_system_prompt, final_message)
                         print("✓ Done! Final answer:", answer)
                         break
                     
