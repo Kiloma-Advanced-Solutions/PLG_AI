@@ -4,8 +4,6 @@ aiosignal==1.4.0
 annotated-types==0.7.0
 anyio==4.11.0
 attrs==25.4.0
-azure-ai-inference==1.0.0b9
-azure-core==1.35.1
 certifi==2025.10.5
 charset-normalizer==3.4.3
 click==8.3.0
