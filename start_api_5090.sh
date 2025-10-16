@@ -25,10 +25,16 @@ stop_vllm() {
     pkill -f "vllm.entrypoints.openai.api_server" >/dev/null 2>&1 || true
 }
 
+# Stop any existing MCP server
+stop_mcp() {
+    pkill -f "mcp_server.py" >/dev/null 2>&1 || true
+}
+
 # Ensure cleanup on exit
-trap 'stop_vllm' INT TERM EXIT
+trap 'stop_vllm; stop_mcp' INT TERM EXIT
 
 stop_vllm
+stop_mcp
 
 # Start vLLM server
 start_vllm() {
@@ -57,6 +63,29 @@ start_vllm() {
 }
 start_vllm
 
+# Start MCP server
+start_mcp() {
+    cd "$API_DIR"
+    python mcp_server.py &
+    MCP_PID=$!
+    
+    echo "Waiting for MCP server to start..."
+    MCP_PORT=${LLM_API_MCP_PORT:-8000}
+    for i in {1..30}; do
+        # Check if port is listening (nc -z checks if port is open without sending data)
+        if nc -z localhost "$MCP_PORT" 2>/dev/null; then
+            echo "✅ MCP server is ready on port $MCP_PORT!"
+            break
+        fi
+        if [ $i -eq 30 ]; then
+            echo "❌ MCP server failed to start after 30 seconds"
+            return 1
+        fi
+        sleep 1
+    done
+}
+start_mcp
+
 # Run API from llm-api directory
 cd "$API_DIR"
 
@@ -65,7 +94,12 @@ if [ ! -f "main.py" ]; then
     exit 1
 fi
 
-echo "API: http://${LLM_API_HOST}:${LLM_API_PORT} | vLLM: http://localhost:${VLLM_PORT} | Model: ${MODEL}"
+MCP_PORT=${LLM_API_MCP_PORT:-8000}
+echo "🚀 All services running:"
+echo "  • API:  http://${LLM_API_HOST}:${LLM_API_PORT}"
+echo "  • vLLM: http://localhost:${VLLM_PORT}"
+echo "  • MCP:  http://localhost:${MCP_PORT}/mcp"
+echo "  • Model: ${MODEL}"
 
 
 if [ "$MODE" = "prod" ] || [ "$MODE" = "production" ]; then
