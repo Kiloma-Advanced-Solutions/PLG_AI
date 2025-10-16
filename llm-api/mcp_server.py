@@ -14,9 +14,12 @@ def multiply(a: float, b: float) -> float:
 
 @mcp.tool()
 def time() -> str:
-    """Get the current time."""
+    """Get the current time in Israel (Asia/Jerusalem)."""
     from datetime import datetime
-    return datetime.now().strftime('%H:%M:%S')
+    from zoneinfo import ZoneInfo
+    israel_time = datetime.now(ZoneInfo("Asia/Jerusalem"))
+    return israel_time.strftime('%H:%M:%S')  # convert to string
+
 
 @mcp.tool()
 def get_pi() -> float:
@@ -39,3 +42,4 @@ def user_info():
     
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")
+
