@@ -45,8 +45,6 @@ def get_weather(city: str) -> str:
 
     return str(weather_data)
 
-import base64
-
 @mcp.tool()
 def get_cat_message(message: str) -> str:
     """Get a cat image with a personal message, formatted as Markdown."""
