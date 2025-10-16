@@ -20,6 +20,31 @@ def time() -> str:
     israel_time = datetime.now(ZoneInfo("Asia/Jerusalem"))
     return israel_time.strftime('%H:%M:%S')  # convert to string
 
+@mcp.tool()
+def get_weather(city: str) -> str:
+    """Get the current weather of a city."""
+    import requests
+    from urllib.parse import quote
+
+    city_encoded = quote(city)  # encode spaces and special characters
+    url = f"https://wttr.in/{city_encoded}?format=j1"
+    weather = requests.get(url).json()
+
+    # current_condition is a list with one dict
+    current = weather["current_condition"][0]
+    
+    # extract relevant fields
+    weather_data = {
+        "temp_C": current.get("temp_C"),
+        "FeelsLikeC": current.get("FeelsLikeC"),
+        "humidity": current.get("humidity"),
+        "uvIndex": current.get("uvIndex"),
+        "weatherDesc": current.get("weatherDesc")[0]["value"] if current.get("weatherDesc") else None,
+        "windspeedKmph": current.get("windspeedKmph")
+    }
+
+    return str(weather_data)
+
 
 @mcp.tool()
 def get_pi() -> float:
