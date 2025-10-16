@@ -45,6 +45,23 @@ def get_weather(city: str) -> str:
 
     return str(weather_data)
 
+import base64
+
+@mcp.tool()
+def get_cat_message(message: str) -> str:
+    """Get a cat image with a personal message, formatted as Markdown."""
+    import requests
+    from urllib.parse import quote
+
+    message_encoded = quote(message)
+    url = f"https://cataas.com/cat/says/{message_encoded}"
+
+    response = requests.get(url)
+    if response.status_code == 200:
+        # Return a Markdown image tag so the chatbot renders it directly (<![alt text](image_url)>)
+        return f"![Cat says {message}](https://cataas.com/cat/says/{message_encoded})"
+    else:
+        return f"❌ Could not fetch cat image (status {response.status_code})."
 
 @mcp.tool()
 def get_pi() -> float:
