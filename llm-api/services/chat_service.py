@@ -6,6 +6,7 @@ import logging
 from typing import List, Optional, AsyncGenerator, Dict, Any
 from core.llm_engine import llm_engine
 from core.models import Message
+from services.mcp_service import mcp_service
 
 logger = logging.getLogger(__name__)
 
@@ -18,6 +19,7 @@ class ChatService:
     def __init__(self):
         """Initialize the chat service"""
         self.engine = llm_engine
+        self.use_mcp = True  # Enable MCP integration by default
 
     def generate_session_id(self) -> str:
         """Generate a unique session ID for chat sessions"""
@@ -26,7 +28,8 @@ class ChatService:
     async def stream_chat(
         self,
         messages: List[Message],
-        session_id: str,  
+        session_id: str,
+        use_mcp: bool = True,
     ) -> AsyncGenerator[str, None]:
         """
         Stream chat responses with validation and error handling
@@ -39,7 +42,38 @@ class ChatService:
             Server-sent event formatted strings
         """
         try:
-            # Stream from LLM engine
+            # Check if we should use MCP for this request
+            if self.use_mcp and use_mcp:
+                # Extract latest user message
+                latest_user_msg = self.extract_latest_user_message(messages)
+                
+                if latest_user_msg:
+                    logger.info(f"Attempting MCP processing for: {latest_user_msg[:100]}")
+                    
+                    try:
+                        # Try to process with MCP - returns messages with tool context or None
+                        mcp_messages_dict = await mcp_service.process_with_mcp(latest_user_msg)
+                        
+                        if mcp_messages_dict:
+                            # MCP provided context with tool results - stream final answer using LLM engine
+                            logger.info("MCP provided context, streaming final answer via LLM engine")
+                            
+                            # Convert dict messages to Message objects for LLM engine
+                            mcp_messages = [
+                                Message(role=msg["role"], content=msg["content"]) 
+                                for msg in mcp_messages_dict
+                            ]
+                            
+                            # Stream the final answer using real LLM streaming
+                            async for chunk in self.engine.chat_stream(mcp_messages, session_id):
+                                yield chunk
+                            return
+                        else:
+                            logger.info("MCP not needed or unavailable, using regular chat")
+                    except Exception as mcp_error:
+                        logger.warning(f"MCP processing failed, falling back to regular chat: {mcp_error}")
+            
+            # Stream from LLM engine (fallback or default)
             async for chunk in self.engine.chat_stream(messages, session_id):
                 yield chunk
                 

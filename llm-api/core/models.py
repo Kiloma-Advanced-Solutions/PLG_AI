@@ -34,6 +34,9 @@ class ChatRequest(BaseModel):
     temperature: Optional[float] = None
     max_tokens: Optional[int] = None
     
+    # MCP integration (optional)
+    use_mcp: Optional[bool] = True  # Enable MCP tools by default
+    
     @field_validator('messages')
     @classmethod
     def messages_not_empty(cls, v):

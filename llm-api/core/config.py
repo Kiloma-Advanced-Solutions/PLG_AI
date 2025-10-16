@@ -10,11 +10,12 @@ class LLMConfig:
     def __init__(self):
         # Base URLs for services
         self.base_url: str = os.getenv("LLM_API_BASE_URL", "http://localhost")
-        self.cloud_ip: str = os.getenv("LLM_API_CLOUD_IP", "69.176.92.139")  # The public IP of the cloud instance
-        self.frontend_port: int = int(os.getenv("LLM_API_FRONTEND_PORT", "42692"))  # 3000 mapped port
-        self.api_port: int = int(os.getenv("LLM_API_API_PORT", "11105"))  # 8090 mapped port
+        self.cloud_ip: str = os.getenv("LLM_API_CLOUD_IP", "93.91.156.88")  # The public IP of the cloud instance
+        self.frontend_port: int = int(os.getenv("LLM_API_FRONTEND_PORT", "49887"))  # 3000 mapped port
+        self.api_port: int = int(os.getenv("LLM_API_API_PORT", "54898"))  # 8090 mapped port
 
         self.vllm_port: int = int(os.getenv("LLM_API_VLLM_PORT", "8060"))  # vLLM server port
+        self.mcp_port: int = int(os.getenv("LLM_API_MCP_PORT", "8000"))  # MCP server port
 
         # Server settings
         self.host: str = os.getenv("LLM_API_HOST", "0.0.0.0")
@@ -76,6 +77,15 @@ class LLMConfig:
         else:
             base = self.base_url
         return f"{base}:{self.vllm_port}"
+
+    @property
+    def mcp_url(self) -> str:
+        """Get MCP server base URL"""
+        if self.base_url.endswith("/"):
+            base = self.base_url[:-1]
+        else:
+            base = self.base_url
+        return f"{base}:{self.mcp_port}"
 
     @property
     def vllm_api_url(self) -> str:
