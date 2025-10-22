@@ -137,7 +137,6 @@ class MCPService:
         Returns:
             List of tool calls to make
         """
-        logger.info("Calling LLM for tool decision...")
         
         messages = [
             {"role": "system", "content": system_prompt},
@@ -290,7 +289,6 @@ class MCPService:
                     system_prompt_with_tools = self.create_system_prompt(tools, user_info)
                     
                     # Check if tools are needed
-                    logger.info("Analyzing if tools are needed...")
                     tool_calls = await self.call_llm_for_tools(system_prompt_with_tools, user_prompt)
                     
                     if not tool_calls:
@@ -333,11 +331,9 @@ class MCPService:
                             ]
                         
                         # Execute first tool only
-                        tool = functions_to_call[0]
-                        logger.info(f"Calling tool: {tool['name']} with args: {tool['args']}")
-                        
+                        tool = functions_to_call[0]                        
                         tool_result = await self.call_mcp_tool(session, tool["name"], tool["args"])
-                        logger.info(f"Tool result: {tool_result}")
+                        logger.info(f"Tool: {tool['name'] with args: {tool['args']}, result: {tool_result}")
                         
                         # Add this step to the work log
                         work_log.append({"tool": tool['name'], "args": tool['args'], "result": tool_result})
