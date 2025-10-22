@@ -17,6 +17,9 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Reduce httpx logging verbosity (only show warnings and errors)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 # Import configuration and routes
 from core.config import llm_config
 from api.routes import create_routes
