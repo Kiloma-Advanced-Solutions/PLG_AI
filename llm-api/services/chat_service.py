@@ -101,28 +101,5 @@ class ChatService:
         return None
 
 
-    def get_conversation_summary(self, messages: List[Message]) -> Dict[str, Any]:
-        """
-        Get summary statistics about the conversation
-        
-        Args:
-            messages: Conversation history
-            
-        Returns:
-            Dictionary with conversation statistics
-        """
-        user_messages = sum(1 for msg in messages if msg.role == "user")
-        assistant_messages = sum(1 for msg in messages if msg.role == "assistant")
-        total_chars = sum(len(msg.content) for msg in messages)
-        
-        return {
-            "total_messages": len(messages),
-            "user_messages": user_messages,
-            "assistant_messages": assistant_messages,
-            "total_characters": total_chars,
-            "average_message_length": total_chars // len(messages) if messages else 0
-        }
-
-
 # Global chat service instance
 chat_service = ChatService() 
