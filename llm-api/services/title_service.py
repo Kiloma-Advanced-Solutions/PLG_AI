@@ -39,10 +39,7 @@ class TitleService:
                 Message(role="system", content=self.get_title_system_prompt()),
                 Message(role="user", content=user_message)
             ]
-            
-            # Get simple text response from LLM (not structured)
-            logger.info("Sending title generation request to LLM")
-            
+                        
             # Use the chat_stream method but collect the full response
             title_content = ""
             async for chunk in self.engine.chat_stream(
@@ -66,7 +63,6 @@ class TitleService:
             if not title:
                 title = "שיחה חדשה"
             
-            logger.info(f"Successfully generated title: {title}")
             return TitleGenerationResponse(title=title)
             
         except Exception as e:

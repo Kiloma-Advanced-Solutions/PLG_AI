@@ -27,7 +27,6 @@ class ConversationManager:
         
         try:
             self.tokenizer = AutoTokenizer.from_pretrained(model_name)
-            logger.info(f"Successfully loaded tokenizer for {model_name}")
         except Exception as e:
             logger.error(f"CRITICAL: Could not load tokenizer for {model_name}: {e}")
             logger.error("Token counting is REQUIRED for proper conversation truncation")
