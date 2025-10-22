@@ -23,30 +23,17 @@ def setup_middleware(app: FastAPI) -> None:
         allow_headers=["*"],
     )
     
-    # Request logging middleware
+    # Request logging and error handling middleware
     @app.middleware("http")
-    async def log_requests(request: Request, call_next: Callable) -> Response:
-        """Log all incoming requests"""
+    async def log_and_handle_errors(request: Request, call_next: Callable) -> Response:
+        """Log requests and handle exceptions globally"""
         try:
             response = await call_next(request)  # calls the actual endpoint
             logger.info(f"{request.method} {request.url.path} - {response.status_code}")
             return response
         except Exception as e:
-            logger.error(f"Request error: {e}")
+            logger.error(f"Unhandled request error: {e}")
             return JSONResponse(
                 status_code=500,
                 content={"error": "Internal server error"}
-            )
-    
-    # Error handling middleware
-    @app.middleware("http")
-    async def catch_exceptions(request: Request, call_next: Callable) -> Response:
-        """Global exception handler"""
-        try:
-            return await call_next(request)
-        except Exception as e:
-            logger.error(f"Unhandled error: {e}")
-            return JSONResponse(
-                status_code=500,
-                content={"error": "An unexpected error occurred"}
             ) 

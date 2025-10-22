@@ -78,20 +78,10 @@ class ChatService:
                 yield chunk
                 
         except ValueError as e:
-            logger.error(f"Chat validation error: {e}")
-            logger.error(f"Failed request details:")
-            logger.error(f"  Session ID: {session_id}")
-            logger.error(f"  Original messages ({len(messages)}):")
-            for i, msg in enumerate(messages):
-                logger.error(f"    Message {i+1} [{msg.role}]: {msg.content[:200]}...")
-            yield f'data: {{"error": "Invalid message format: {str(e)}"}}\n\n'
+            logger.warning(f"Chat validation error: {str(e)}")
+            yield f'data: {{"error": "Invalid message format"}}\n\n'
         except Exception as e:
-            logger.error(f"Chat service error: {e}")
-            logger.error(f"Failed request details:")
-            logger.error(f"  Session ID: {session_id}")
-            logger.error(f"  Original messages ({len(messages)}):")
-            for i, msg in enumerate(messages):
-                logger.error(f"    Message {i+1} [{msg.role}]: {msg.content[:200]}...")
+            logger.error(f"Chat service error: {str(e)}")
             yield f'data: {{"error": "Chat service unavailable"}}\n\n'
     
 

@@ -37,10 +37,7 @@ def create_routes(app: FastAPI) -> None:
             
             # Generate session ID if not provided
             session_id = chat_request.session_id or chat_service.generate_session_id()
-
-            # Extract latest user message (from original messages for logging)
-            user_msg = chat_service.extract_latest_user_message(chat_request.messages)
-            logger.info(f"Chat request - User: {user_msg}")
+            logger.info(f"Chat request received - Session: {session_id}")
             
             # Prepare conversation using conversation manager (handles truncation)
             conversation_manager = get_conversation_manager()
@@ -65,14 +62,11 @@ def create_routes(app: FastAPI) -> None:
         except HTTPException:
             raise
         except ValueError as e:
-            logger.warning(f"Chat validation error: {e}")
-            raise HTTPException(status_code=400, detail=str(e))
+            logger.warning(f"Chat validation error: {str(e)}")
+            raise HTTPException(status_code=400, detail="Invalid request format")
         except Exception as e:
-            logger.error(f"Chat endpoint error: {e}")
-            raise HTTPException(
-                status_code=500, 
-                detail="Chat service temporarily unavailable"
-            )
+            logger.error(f"Chat endpoint error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Chat service temporarily unavailable")
         
 
 
@@ -95,11 +89,8 @@ def create_routes(app: FastAPI) -> None:
             result = await task_service.extract_tasks(request.email_content)
             return result
         except Exception as e:
-            logger.error(f"Task extraction error: {e}")
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to extract tasks: {e}"
-            )
+            logger.error(f"Task extraction error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Failed to extract tasks")
         
     
     # ===============================
@@ -121,11 +112,8 @@ def create_routes(app: FastAPI) -> None:
             result = await title_service.generate_title(request.user_message)
             return result
         except Exception as e:
-            logger.error(f"Title generation error: {e}")
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to generate title: {e}"
-            )
+            logger.error(f"Title generation error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Failed to generate title")
     
 
 
@@ -148,11 +136,8 @@ def create_routes(app: FastAPI) -> None:
             result = await summarization_service.summarize_email(request.email_content, request.length)
             return result
         except Exception as e:
-            logger.error(f"Failed to summarize email: {e}")
-            raise HTTPException(
-                status_code=500,
-                detail=f"Failed to summarize email: {e}"
-            )
+            logger.error(f"Email summarization error: {str(e)}")
+            raise HTTPException(status_code=500, detail="Failed to summarize email")
 
 
 
@@ -172,15 +157,13 @@ def create_routes(app: FastAPI) -> None:
         try:
             health_status = await health_checker.check_system_health()
             
-            # Log health issues
             if health_status.status == "unhealthy":
-                logger.warning("System health check failed")
+                logger.warning("System health check: unhealthy")
             
             return health_status
             
         except Exception as e:
-            logger.error(f"Health check error: {e}")
-            # Return unhealthy status on any error
+            logger.error(f"Health check error: {str(e)}")
             return HealthStatus(
                 status="unhealthy",
                 vllm_healthy=False,
