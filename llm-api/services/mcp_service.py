@@ -4,10 +4,10 @@ Provides tools integration to the chat system using Model Context Protocol
 """
 import json
 import logging
-import httpx
 from typing import List, Dict, Any, Optional
 from core.models import Message
 from core.config import llm_config
+from core.llm_engine import llm_engine
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
@@ -19,7 +19,6 @@ class MCPService:
     
     def __init__(self):
         self.mcp_server_url = f"{llm_config.mcp_url}/mcp"  # MCP server URL
-        self.vllm_url = llm_config.vllm_api_url
         self.enabled = True  # Can be toggled based on configuration
         self._client_session = None
         self._tools_cache = None
@@ -86,44 +85,45 @@ class MCPService:
             }
         }
     
-    async def stream_vllm_response(self, messages: List[Dict], max_tokens: int = 1000) -> str:
+    async def get_llm_response(self, messages: List[Dict], session_id: str = "mcp_llm_call") -> str:
         """
-        Stream response from vLLM and collect full text
+        Get LLM response using llm_engine and collect full text
         
         Args:
             messages: List of message dictionaries
-            max_tokens: Maximum tokens to generate
+            session_id: Session ID for tracking
             
         Returns:
             Full response text
         """
-        payload = {
-            "model": llm_config.llm_model_name,
-            "messages": messages,
-            "stream": True,
-            "temperature": llm_config.temperature,
-            "max_tokens": max_tokens
-        }
-        
         try:
+            # Convert dict messages to Message objects
+            message_objects = [
+                Message(role=msg["role"], content=msg["content"])
+                for msg in messages
+            ]
+            
+            # Stream response from llm_engine and collect text
             full_response = ""
-            async with httpx.AsyncClient(timeout=60.0) as client:
-                async with client.stream("POST", self.vllm_url, json=payload) as response:
-                    if response.status_code != 200:
-                        logger.error(f"vLLM error: {response.status_code}")
-                        return ""
+            async for chunk in llm_engine.chat_stream(message_objects, session_id):
+                # Parse SSE format: "data: {json}\n\n"
+                if chunk.startswith('data: '):
+                    data = chunk[6:].strip()
                     
-                    async for line in response.aiter_lines():
-                        if line.startswith('data: ') and '[DONE]' not in line:
-                            try:
-                                chunk = json.loads(line[6:])
-                                content = chunk['choices'][0]['delta'].get('content', '')
-                                full_response += content
-                            except:
-                                pass
+                    if data == '[DONE]':
+                        break
+                    
+                    try:
+                        parsed = json.loads(data)
+                        if 'choices' in parsed and len(parsed['choices']) > 0:
+                            content = parsed['choices'][0].get('delta', {}).get('content', '')
+                            full_response += content
+                    except json.JSONDecodeError:
+                        pass
+            
             return full_response.strip()
         except Exception as e:
-            logger.error(f"Streaming error: {e}")
+            logger.warning(f"LLM response error in MCP: {e}")
             return ""
     
     async def call_llm_for_tools(self, system_prompt: str, prompt: str) -> List[Dict]:
@@ -144,7 +144,7 @@ class MCPService:
             {"role": "user", "content": prompt},
         ]
         
-        full_response = await self.stream_vllm_response(messages)
+        full_response = await self.get_llm_response(messages, session_id="mcp_tool_decision")
         
         if not full_response:
             return []
@@ -190,7 +190,7 @@ class MCPService:
             {"role": "user", "content": prompt}
         ]
         
-        return await self.stream_vllm_response(messages, max_tokens=500)
+        return await self.get_llm_response(messages, session_id="mcp_final_answer")
     
     async def call_mcp_tool(self, session: ClientSession, tool_name: str, arguments: Dict) -> str:
         """
