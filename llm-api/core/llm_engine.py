@@ -112,8 +112,9 @@ class LLMEngine:
         self,
         messages: List[Message],
         session_id: str,
+        tools: Optional[List[Dict[str, Any]]] = None,
     ) -> AsyncGenerator[str, None]:
-        """Stream chat completion"""
+        """Stream chat completion with optional tools support"""
         if not messages:
             yield 'data: {"error": "No messages provided"}\n\n'
             return
@@ -130,6 +131,13 @@ class LLMEngine:
             "messages": self._format_messages(messages),
             "stream": True,
         }
+        
+        # Add tools if provided (for function calling)
+        if tools:
+            payload["tools"] = tools
+            payload["tool_choice"] = "required"  # Force tool usage when tools are available
+            logger.info(f"Adding {len(tools)} tools to vLLM request")
+        
         logger.debug(f"Request payload: {json.dumps(payload, ensure_ascii=False)}")
         
         try:
@@ -213,6 +221,65 @@ class LLMEngine:
             if session_id in self.active_sessions:
                 self.active_sessions.pop(session_id, None)
 
+
+    async def chat_completion(
+        self,
+        messages: List[Message],
+        session_id: str,
+        tools: Optional[List[Dict[str, Any]]] = None,
+    ) -> Dict[str, Any]:
+        """Non-streaming chat completion with optional tools support"""
+        if not messages:
+            raise ValueError("No messages provided")
+        
+        # Track session
+        self.active_sessions[session_id] = datetime.now().isoformat()
+        
+        # Build request payload for vLLM (non-streaming)
+        model_params = llm_config.get_model_params()
+        payload = {
+            "model": llm_config.llm_model_name,
+            **model_params,
+            "messages": self._format_messages(messages),
+            "stream": False,
+        }
+        
+        # Add tools if provided (for function calling)
+        if tools:
+            payload["tools"] = tools
+            payload["tool_choice"] = "required"  # Force tool usage when tools are available
+            logger.info(f"Adding {len(tools)} tools to vLLM request")
+        
+        logger.debug(f"Request payload: {json.dumps(payload, ensure_ascii=False)}")
+        
+        try:
+            # Check if vLLM is available
+            if not await self.check_health():
+                logger.error("vLLM server is not healthy, aborting chat request")
+                raise Exception("LLM service is not available")
+
+            # Make non-streaming request
+            client = await self.get_client()
+            response = await client.post(self.chat_url, json=payload, headers=llm_config.vllm_headers)
+            
+            if response.status_code != 200:
+                logger.error(f"vLLM API error: {response.status_code}")
+                response_text = response.text
+                logger.error(f"vLLM error response: {response_text}")
+                raise Exception(f"LLM request failed with status {response.status_code}")
+            
+            # Parse and return response
+            response_data = response.json()
+            logger.debug(f"vLLM response: {json.dumps(response_data, ensure_ascii=False)}")
+            return response_data
+        
+        except Exception as e:
+            logger.error(f"Chat completion error: {e}")
+            raise
+        finally:
+            # Cleanup session
+            if session_id in self.active_sessions:
+                self.active_sessions.pop(session_id, None)
 
     async def get_structured_completion(
         self,

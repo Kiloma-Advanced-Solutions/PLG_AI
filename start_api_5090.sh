@@ -43,7 +43,9 @@ start_vllm() {
         --max-model-len 16384 \
         --port "$VLLM_PORT" \
         --gpu-memory-utilization 0.9 \
-        --disable-log-requests &
+        --disable-log-requests \
+        --enable-auto-tool-choice \
+        --tool-call-parser pythonic &
 
     echo "Waiting for vLLM to start..."
     for i in {1..1200}; do

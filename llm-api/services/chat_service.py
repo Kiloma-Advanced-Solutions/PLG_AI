@@ -58,14 +58,8 @@ class ChatService:
                             # MCP provided context with tool results - stream final answer using LLM engine
                             logger.info("MCP provided context, streaming final answer via LLM engine")
                             
-                            # Convert dict messages to Message objects for LLM engine
-                            mcp_messages = [
-                                Message(role=msg["role"], content=msg["content"]) 
-                                for msg in mcp_messages_dict
-                            ]
-                            
-                            # Stream the final answer using real LLM streaming
-                            async for chunk in self.engine.chat_stream(mcp_messages, session_id):
+                            # MCP service already returns Message objects, so use them directly
+                            async for chunk in self.engine.chat_stream(mcp_messages_dict, session_id):
                                 yield chunk
                             return
                         else:
