@@ -37,8 +37,12 @@ function App() {
     // Add user message
     setMessages(prev => [...prev, { text: userMessage, isUser: true }]);
 
+    // Add empty assistant message for streaming
+    const assistantMessageIndex = messages.length + 1;
+    setMessages(prev => [...prev, { text: '', isUser: false }]);
+
     try {
-      const response = await fetch('http://localhost:8001/chat', {
+      const response = await fetch('http://localhost:8001/chat/stream', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -50,17 +54,94 @@ function App() {
         throw new Error('Network response was not ok');
       }
 
-      const data = await response.json();
-      
-      // Add assistant response
-      setMessages(prev => [...prev, { text: data.response, isUser: false }]);
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) break;
+        
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop();
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            
+            if (data === '[DONE]') {
+              setIsLoading(false);
+              continue;
+            }
+
+            try {
+              const parsed = JSON.parse(data);
+              
+              if (parsed.error) {
+                console.error('Error from server:', parsed.error);
+                setMessages(prev => {
+                  const updated = [...prev];
+                  updated[assistantMessageIndex] = {
+                    text: "מצטער, אירעה שגיאה. אנא נסה שוב.",
+                    isUser: false
+                  };
+                  return updated;
+                });
+                setIsLoading(false);
+                return;
+              }
+
+              if (parsed.content) {
+                // Append to the assistant message
+                setMessages(prev => {
+                  const updated = [...prev];
+                  updated[assistantMessageIndex] = {
+                    text: updated[assistantMessageIndex].text + parsed.content,
+                    isUser: false
+                  };
+                  return updated;
+                });
+              }
+            } catch (e) {
+              console.error('Error parsing JSON:', e);
+            }
+          }
+        }
+      }
+
+      // Process remaining buffer
+      if (buffer.trim()) {
+        const lines = buffer.split('\n');
+        for (const line of lines) {
+          if (line.startsWith('data: ') && line.slice(6) !== '[DONE]') {
+            try {
+              const parsed = JSON.parse(line.slice(6));
+              if (parsed.content) {
+                setMessages(prev => {
+                  const updated = [...prev];
+                  updated[assistantMessageIndex] = {
+                    text: updated[assistantMessageIndex].text + parsed.content,
+                    isUser: false
+                  };
+                  return updated;
+                });
+              }
+            } catch (e) {
+              console.error('Error parsing remaining buffer:', e);
+            }
+          }
+        }
+      }
+
+      setIsLoading(false);
     } catch (error) {
       console.error('Error:', error);
       setMessages(prev => [...prev, { 
         text: "מצטער, אירעה שגיאה. אנא נסה שוב.", 
         isUser: false 
       }]);
-    } finally {
       setIsLoading(false);
     }
   };
