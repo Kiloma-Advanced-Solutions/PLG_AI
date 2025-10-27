@@ -1,225 +1,372 @@
-# MCP Chatbot with Google Calendar Integration
+# MCP Chat Workshop
 
-A chatbot application that uses the Model Context Protocol (MCP) to integrate Google Calendar functionality, allowing users to query and manage their calendar events through natural language.
+A multi-server chatbot application that integrates with Google Calendar using the Model Context Protocol (MCP). The chatbot can interact with users through natural language and perform actions like creating Google Calendar events, checking weather, and getting system information.
 
-## Features
+## 📋 Table of Contents
 
-- **Google Calendar Integration**: View, create, and search calendar events
-- **MCP Tools**: Extensible tool system via MCP
-- **Hebrew Language Support**: UI and responses in Hebrew
-- **Modern Web Interface**: React-based chat interface
-- **Multiple Tools**: Time, weather, file operations, math, and more
+- [Features](#features)
+- [Architecture](#architecture)
+- [Repository Structure](#repository-structure)
+- [Google Calendar Setup](#google-calendar-setup)
+- [Installation](#installation)
+- [Running the Application](#running-the-application)
+- [Available Tools](#available-tools)
 
-## Architecture
+## 🚀 Features
 
-- **Frontend**: React application on port 3000
-- **Chat API**: FastAPI server on port 8001
-- **MCP Server**: FastMCP server on port 8000
-- **Google Calendar API**: OAuth2 authenticated access
+- **Multi-Server MCP Architecture**: TypeScript and Python MCP servers working together
+- **Google Calendar Integration**: Create and manage calendar events
+- **Weather Information**: Get current weather for any city
+- **File System Tools**: Check file information and system details
+- **Mathematical Operations**: Calculate areas and perform calculations
+- **Hebrew Language Support**: Full Hebrew interface and responses
+- **Streaming Chat**: Real-time streaming responses from the chatbot
 
-## Setup
+## 🏗️ Architecture
 
-### Prerequisites
-
-```bash
-# Python dependencies
-pip install fastapi uvicorn openai python-dotenv mcp google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
-
-# Node.js dependencies (for frontend)
-cd frontend
-npm install
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Frontend (React)                          │
+│                 http://localhost:3000                       │
+└─────────────────────┬───────────────────────────────────────┘
+                      │ HTTP
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Chat API (FastAPI)                              │
+│              http://localhost:8001                           │
+│              chat_api.py                                     │
+└─────────────────────┬───────────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────────┐
+│              MCP Service                                     │
+│              mcp_service.py                                  │
+│              Aggregates tools from multiple servers          │
+└─────┬───────────────────────────────────────┬───────────────┘
+      │                                       │
+      ▼                                       ▼
+┌─────────────────────┐           ┌─────────────────────┐
+│ TypeScript MCP      │           │ Python MCP           │
+│ Port: 8000          │           │ Port: 8002           │
+│ ts_mcp_server.ts    │           │ python_mcp_server.py │
+│ - time              │           │ - calculate_area     │
+│ - get_weather       │           │ - get_file_info      │
+│ - create_calendar   │           │ - get_system_info    │
+└─────────────────────┘           └─────────────────────┘
+                  ↓
+         ┌─────────────────┐
+         │ LLM Engine      │
+         │ llm_engine.py   │
+         │ OpenAI GPT-3.5  │
+         └─────────────────┘
 ```
 
-### Google Calendar Setup
-
-1. **Create Google Cloud Project**:
-   - Go to [Google Cloud Console](https://console.cloud.google.com/)
-   - Create a new project or select existing one
-
-2. **Enable Google Calendar API**:
-   - Navigate to "APIs & Services" > "Library"
-   - Search for "Google Calendar API"
-   - Click "Enable"
-
-3. **Create OAuth Credentials**:
-   - Go to "APIs & Services" > "Credentials"
-   - Click "Create Credentials" > "OAuth client ID"
-   - Choose "Web Application" as application type
-   - Download the JSON file
-
-4. **Configure Credentials**:
-   - Save the downloaded file as `credentials.json` in the project root
-   - The file should look like:
-     ```json
-     {
-       "installed": {
-         "client_id": "...",
-         "project_id": "...",
-         "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-         "token_uri": "https://oauth2.googleapis.com/token",
-         "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-         "client_secret": "...",
-         "redirect_uris": ["http://localhost"]
-       }
-     }
-     ```
-
-5. **Initial Authentication**:
-   ```bash
-   python3 google_calendar_mcp.py
-   ```
-   - First run will open a browser for OAuth authentication
-   - Grant Calendar permissions
-   - A `token.json` file will be created automatically
-
-### Environment Variables
-
-Create a `.env` file in the project root:
-
-```env
-OPENAI_API_KEY=your_openai_api_key_here
-```
-
-## Running the Application
-
-### 1. Start the MCP Server
-
-```bash
-python3 mcp_server.py
-```
-
-The server will start on `http://localhost:8000/mcp`
-
-### 2. Start the Chat API
-
-```bash
-python3 chat_api.py
-```
-
-The API will start on `http://localhost:8001`
-
-### 3. Start the Frontend
-
-```bash
-cd frontend
-npm start
-```
-
-The frontend will start on `http://localhost:3000`
-
-## Available Google Calendar Tools
-
-### View Upcoming Events
-**Hebrew**: "מה יש לי במערכת היום?" or "איזה פגישות יש לי?"  
-**Tool**: `get_calendar_events(max_results=10)`
-
-### View Past Events
-**Hebrew**: "מה הפגישות האחרונות שהיו לי?" or "איזה אירועים קודמים?"  
-**Tool**: `get_past_calendar_events(max_results=10)`
-
-### View All Recent Events
-**Hebrew**: "מה כל הפגישות שהופיעו ביומן שלי?" or "הראה לי את כל האירועים לאחרונה"  
-**Tool**: `get_all_calendar_events(max_results=20, past_days=90)`
-
-### Search Events
-**Hebrew**: "חפש לי פגישות על פרויקט"  
-**Tool**: `search_calendar_events(query="project", max_results=5)`
-
-### Create New Event
-**Hebrew**: "צור לי אירוע בשם פגישת צוות מחר בשעה 14:00"  
-**Tool**: `create_calendar_event(summary, start_time, end_time, description)`
-
-Example format:
-- Start time: `2025-01-15T14:00:00`
-- End time: `2025-01-15T15:00:00`
-
-## Other Available Tools
-
-- **Time**: `time()` - Get current time in Israel
-- **Math**: `add()`, `multiply()`
-- **Weather**: `get_weather(city)` - Get weather for any city
-- **Files**: `read_file()`, `create_file()` - File operations
-- **Cat Messages**: `get_cat_message()` - Fun cat images with messages
-
-## Troubleshooting
-
-### Google Calendar Connection Issues
-
-1. **Token Expired**: Delete `token.json` and run `python3 google_calendar_mcp.py` again
-2. **No Events Found**: Check that you granted Calendar permissions in OAuth
-3. **Credentials Error**: Verify `credentials.json` is in the project root
-
-### MCP Connection Issues
-
-1. **404 Errors**: Ensure the URL is `http://localhost:8000/mcp` (with `/mcp` path)
-2. **Session Terminated**: Restart the MCP server and chat API
-3. **Tools Not Available**: Check that both servers are running
-
-### Server Startup Issues
-
-```bash
-# Check if servers are running
-ps aux | grep -E "mcp_server|chat_api"
-
-# Kill existing processes
-pkill -f "mcp_server.py"
-pkill -f "chat_api.py"
-
-# Restart servers
-python3 mcp_server.py &  # Start in background
-python3 chat_api.py &    # Start in background
-```
-
-## Project Structure
+## 📁 Repository Structure
 
 ```
 mcp_workshop/
-├── README.md                 # This file
-├── credentials.json          # Google OAuth credentials (not in git)
-├── token.json                # OAuth token (not in git)
-├── .env                      # Environment variables (not in git)
-├── mcp_server.py             # MCP server with all tools
-├── chat_api.py              # FastAPI chat backend
-├── mcp_client.py             # MCP client implementation
-├── google_calendar_mcp.py   # Google Calendar authentication
-└── frontend/                 # React frontend
-    ├── src/
-    │   ├── App.js
-    │   ├── App.css
-    │   └── index.js
-    └── package.json
+├── Backend Core
+│   ├── chat_api.py              # FastAPI chat endpoint (port 8001)
+│   ├── mcp_service.py            # MCP integration service
+│   ├── llm_engine.py             # OpenAI API engine
+│   ├── config.py                 # Configuration management
+│   └── models.py                 # Pydantic data models
+│
+├── MCP Servers
+│   ├── ts_mcp_server.ts          # TypeScript MCP server (port 8000)
+│   ├── python_mcp_server.py      # Python MCP server (port 8002)
+│   └── dist/                     # Compiled TypeScript output
+│       └── ts_mcp_server.js
+│
+├── Frontend
+│   └── frontend/                  # React application
+│       ├── src/App.js
+│       └── build/
+│
+├── Configuration
+│   ├── credentials.json           # Google OAuth credentials (gitignored)
+│   ├── token.json                 # Google OAuth token (gitignored)
+│   ├── package.json               # Node.js dependencies
+│   ├── tsconfig.json              # TypeScript configuration
+│   └── .env                       # Environment variables
+│
+└── Documentation
+    └── README.md                  # This file
 ```
 
-## API Endpoints
+## 🔑 Files
 
-- `POST /chat` - Send message to chatbot
-- `GET /health` - Health check
+### Backend Core Files
 
-## Development
+#### `chat_api.py`
+- **Role**: FastAPI endpoint server
+- **Port**: 8001
+- **Responsibilities**:
+  - Exposes `/chat` and `/chat/stream` endpoints
+  - Integrates MCP service for tool execution
+  - Falls back to direct LLM calls if MCP fails
+  - Handles CORS for frontend
 
-### Adding New Tools
+#### `mcp_service.py`
+- **Role**: Multi-server MCP coordinator
+- **Responsibilities**:
+  - Connects to multiple MCP servers (TypeScript & Python)
+  - Aggregates tools from all servers
+  - Executes tools on their respective servers
+  - Maps tool names to server URLs
+  - Handles tool call routing
 
-Add new tools to `mcp_server.py`:
+#### `llm_engine.py`
+- **Role**: OpenAI API client
+- **Responsibilities**:
+  - Sends requests to OpenAI GPT-3.5-turbo
+  - Handles streaming responses
+  - Manages chat completion with tool calling
+  - Provides structured completion support
 
-```python
-@mcp.tool()
-def my_new_tool(param: str) -> str:
-    """Tool description for the LLM."""
-    return f"Result: {param}"
-```
+#### `config.py`
+- **Role**: Configuration management
+- **Responsibilities**:
+  - Loads environment variables
+  - Defines MCP server URLs
+  - Configures OpenAI API settings
+  - Provides model parameters
 
-### Testing Google Calendar Connection
+#### `models.py`
+- **Role**: Data models
+- **Responsibilities**:
+  - Defines Pydantic models for messages
+  - Type-safe data structures
+
+### MCP Servers
+
+#### `ts_mcp_server.ts`
+- **Role**: TypeScript MCP server
+- **Port**: 8000
+- **Tools Provided**:
+  - `time` - Get current time in Israel
+  - `get_weather` - Get weather for a city
+  - `create_calendar_event` - Create Google Calendar events
+
+#### `python_mcp_server.py`
+- **Role**: Python MCP server
+- **Port**: 8002
+- **Tools Provided**:
+  - `calculate_area` - Calculate area of shapes
+  - `get_file_info` - Get file information
+  - `get_system_info` - Get system information
+
+### Configuration Files
+
+#### `credentials.json`
+- **Purpose**: Google OAuth client credentials
+- **How to get**: Download from Google Cloud Console
+- **Important**: This file is gitignored
+
+#### `token.json`
+- **Purpose**: OAuth access and refresh tokens
+- **Generated**: Automatically during OAuth flow
+- **Contains**: access_token, refresh_token, client_id, client_secret
+- **Important**: This file is gitignored
+
+## 🔐 Google Calendar Setup
+
+### Step 1: Create Google Cloud Project
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Click "Create Project" or select existing project
+3. Give it a name (e.g., "mcp-workshop")
+
+### Step 2: Enable Google Calendar API
+
+1. Navigate to "APIs & Services" > "Library"
+2. Search for "Google Calendar API"
+3. Click "Enable"
+
+### Step 3: Create OAuth Credentials
+
+1. Go to "APIs & Services" > "Credentials"
+2. Click "Create Credentials" > "OAuth client ID"
+3. Choose "Web Application" as application type
+4. Configure OAuth consent screen (if prompted):
+   - Choose "External" user type
+   - Fill in app name, support email
+   - Add scopes: `https://www.googleapis.com/auth/calendar`
+   - Add test users (your email)
+5. Download the JSON file and save as `credentials.json` in project root
+
+### Step 4: Authenticate
+
+The first time you run the TypeScript MCP server, it will use the `credentials.json` to authenticate. If you don't have a `token.json` yet, you'll need to run an OAuth flow.
+
+**Option A - Automatic (if token expires):**
+Run the TypeScript server, it will automatically authenticate if credentials are present.
+
+**Option B - Manual Refresh:**
+You may need to delete `token.json` and restart the server to trigger re-authentication.
+
+### Step 5: Verify Access
+
+Check `token.json` exists and contains:
+- `token` (access token)
+- `refresh_token` 
+- `client_id` and `client_secret`
+- `scopes` including calendar access
+
+## 📦 Installation
+
+### Prerequisites
+
+- Python 3.8+
+- Node.js 16+
+- npm
+
+### Install Python Dependencies
 
 ```bash
-python3 google_calendar_mcp.py
+pip install fastapi uvicorn openai python-dotenv mcp fastmcp googleapis
 ```
 
-Should print upcoming events if connection is working.
+### Install Node.js Dependencies
 
-## License
+```bash
+npm install
+```
+
+### Install Frontend Dependencies
+
+```bash
+cd frontend
+npm install
+cd ..
+```
+
+### Configure Environment
+
+Create a `.env` file in the root directory:
+
+```bash
+OPENAI_API_KEY=your_openai_api_key_here
+MCP_SERVERS=http://localhost:8000,http://localhost:8002
+```
+
+## 🚀 Running the Application
+
+### Option 1: Quick Start (All Servers)
+
+```bash
+./start_servers.sh
+```
+
+This script will:
+1. Start all 4 services in the background
+2. Wait for each server to be ready
+3. Print confirmation when all are up
+4. Log output to `/tmp/*.log`
+
+### Option 2: Manual Start (Separate Terminals)
+
+**Terminal 1 - TypeScript MCP Server:**
+```bash
+npm run dev
+```
+
+**Terminal 2 - Python MCP Server:**
+```bash
+python3 python_mcp_server.py
+```
+
+**Terminal 3 - Chat API:**
+```bash
+python3 -m uvicorn chat_api:app --reload --port 8001
+```
+
+**Terminal 4 - Frontend:**
+```bash
+cd frontend && npm start
+```
+
+### View Logs
+
+```bash
+# View all logs
+tail -f /tmp/ts_mcp.log      # TypeScript MCP
+tail -f /tmp/python_mcp.log  # Python MCP
+tail -f /tmp/chat_api.log    # Chat API
+tail -f /tmp/frontend.log    # Frontend
+```
+
+## 🛠️ Available Tools
+
+### From TypeScript Server (Port 8000)
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `time` | Get current time in Israel | None |
+| `get_weather` | Get weather for a city | `city` (string) |
+| `create_calendar_event` | Create Google Calendar event | `summary`, `start_time`, `end_time`, `description` (optional) |
+
+### From Python Server (Port 8002)
+
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `calculate_area` | Calculate area of shapes | `shape` (string), `width` (float), `height` (float, optional) |
+| `get_file_info` | Get file information | `file_path` (string) |
+| `get_system_info` | Get system information | None |
+
+## 🧪 Testing
+
+### Test Chat API
+
+```bash
+curl -X POST http://localhost:8001/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "מה השעה עכשיו?"}'
+```
+
+### Test MCP Servers
+
+**TypeScript MCP:**
+```bash
+curl http://localhost:8000/health
+```
+
+**Python MCP:**
+```bash
+curl http://localhost:8002/health
+```
+
+## 🔒 Security Notes
+
+- Never commit `credentials.json` or `token.json` to git
+- Keep your OpenAI API key secure
+- The `.gitignore` file should exclude sensitive files
+- Use environment variables for production deployments
+
+## 📚 Additional Resources
+
+- [MCP Documentation](https://modelcontextprotocol.io/)
+- [FastMCP Documentation](https://github.com/jlowin/fastmcp)
+- [OpenAI API Documentation](https://platform.openai.com/docs)
+- [Google Calendar API](https://developers.google.com/calendar)
+
+## 🐛 Troubleshooting
+
+### "token.json not found"
+- Run the OAuth authentication flow
+- Check that `credentials.json` exists
+- Delete `token.json` and restart to re-authenticate
+
+### "No MCP tools available"
+- Check that both MCP servers are running
+- Verify server URLs in `config.py`
+- Check server logs for errors
+
+### "Google Calendar authentication failed"
+- Verify `credentials.json` is valid
+- Check `token.json` hasn't expired
+- Re-run OAuth flow if needed
+
+## 📝 License
 
 MIT
-
-## Author
-
-Created for the MCP Workshop
