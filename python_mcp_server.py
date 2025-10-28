@@ -1,13 +1,26 @@
 """
 Python MCP Server using FastMCP
-Provides additional tools for the chatbot
+Provides additional tools for the chatbot including Google Flights integration
 """
 from fastmcp import FastMCP
 from datetime import datetime
 import os
 import requests
+import json
+import asyncio
+from typing import Optional
+from pydantic import BaseModel
+
+# This server focuses on utility tools: calculate_area, get_file_info, get_system_info
 
 mcp = FastMCP("Python Tools Server")
+
+class FlightQuery(BaseModel):
+    origin: str
+    destination: str
+    date: str
+
+
 
 @mcp.tool()
 def calculate_area(shape: str, width: float, height: float = None) -> str:
@@ -93,10 +106,13 @@ def get_system_info() -> str:
     
     return info
 
+
+
 if __name__ == "__main__":
     # Run the MCP server with streamable HTTP transport
     PORT = 8002
     mcp.run(transport="streamable-http", host="0.0.0.0", port=PORT)
     print("Python MCP server listening on http://localhost:${PORT}");
     print("Python MCP endpoint: http://localhost:${PORT}/mcp");
+
 

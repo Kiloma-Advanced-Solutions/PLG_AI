@@ -18,25 +18,25 @@ function getIsraelTime(): string {
   return new Date().toLocaleString("en-GB", { timeZone: "Asia/Jerusalem" });
 }
 
-// Helper function to get Google Calendar service
-async function getCalendarService() {
-  const tokenPath = resolve(process.cwd(), "token.json");
+// // Helper function to get Google Calendar service
+// async function getCalendarService() {
+//   const tokenPath = resolve(process.cwd(), "token.json");
   
-  if (!existsSync(tokenPath)) {
-    throw new Error("token.json not found. Please run the OAuth authentication.");
-  }
+//   if (!existsSync(tokenPath)) {
+//     throw new Error("token.json not found. Please run the OAuth authentication.");
+//   }
   
-  const token = JSON.parse(readFileSync(tokenPath, "utf8"));
-  const oAuth2Client = new google.auth.OAuth2(token.client_id, token.client_secret, "http://localhost");
+//   const token = JSON.parse(readFileSync(tokenPath, "utf8"));
+//   const oAuth2Client = new google.auth.OAuth2(token.client_id, token.client_secret, "https://localhost/8080/");
   
-  oAuth2Client.setCredentials({
-    access_token: token.token,
-    refresh_token: token.refresh_token,
-    expiry_date: new Date(token.expiry).getTime(),
-  });
+//   oAuth2Client.setCredentials({
+//     access_token: token.token,
+//     refresh_token: token.refresh_token,
+//     expiry_date: new Date(token.expiry).getTime(),
+//   });
   
-  return google.calendar({ version: "v3", auth: oAuth2Client });
-}
+//   return google.calendar({ version: "v3", auth: oAuth2Client });
+// }
 
 // Create MCP server using the official SDK
 const server = new McpServer({
@@ -135,55 +135,55 @@ server.registerTool("get_weather", {
   }
 );
 
-server.registerTool("create_calendar_event", {
-  description: "Create a new Google Calendar event",
-  inputSchema: {
-    summary: z.string(),
-    start_time: z.string(),
-    end_time: z.string(),
-    description: z.string().optional(),
-  },
-}, async (args: { summary: string; start_time: string; end_time: string; description?: string }) => {
-  try {
-    const calendar = await getCalendarService();
+// server.registerTool("create_calendar_event", {
+//   description: "Create a new Google Calendar event",
+//   inputSchema: {
+//     summary: z.string(),
+//     start_time: z.string(),
+//     end_time: z.string(),
+//     description: z.string().optional(),
+//   },
+// }, async (args: { summary: string; start_time: string; end_time: string; description?: string }) => {
+//   try {
+//     const calendar = await getCalendarService();
     
-    const event = {
-      summary: args.summary,
-      description: args.description || "",
-      start: {
-        dateTime: args.start_time,
-        timeZone: "Asia/Jerusalem",
-      },
-      end: {
-        dateTime: args.end_time,
-        timeZone: "Asia/Jerusalem",
-      },
-    };
+//     const event = {
+//       summary: args.summary,
+//       description: args.description || "",
+//       start: {
+//         dateTime: args.start_time,
+//         timeZone: "Asia/Jerusalem",
+//       },
+//       end: {
+//         dateTime: args.end_time,
+//         timeZone: "Asia/Jerusalem",
+//       },
+//     };
 
-    const response = await calendar.events.insert({
-      calendarId: "primary",
-      requestBody: event as any,
-    });
+//     const response = await calendar.events.insert({
+//       calendarId: "primary",
+//       requestBody: event as any,
+//     });
 
-    return {
-      content: [
-        {
-          type: "text",
-          text: `✅ האירוע '${args.summary}' נוצר בהצלחה!\nזמן: ${args.start_time} - ${args.end_time}\nID: ${response.data.id}`,
-        },
-      ],
-    };
-  } catch (error: any) {
-    return {
-      content: [
-        {
-          type: "text",
-          text: `❌ שגיאה ביצירת אירוע: ${error.message}`,
-        },
-      ],
-    };
-  }
-});
+//     return {
+//       content: [
+//         {
+//           type: "text",
+//           text: `✅ האירוע '${args.summary}' נוצר בהצלחה!\nזמן: ${args.start_time} - ${args.end_time}\nID: ${response.data.id}`,
+//         },
+//       ],
+//     };
+//   } catch (error: any) {
+//     return {
+//       content: [
+//         {
+//           type: "text",
+//           text: `❌ שגיאה ביצירת אירוע: ${error.message}`,
+//         },
+//       ],
+//     };
+//   }
+// });
 
 // Start the server with Streamable HTTP transport on port 8000
 const PORT = 8000;

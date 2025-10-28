@@ -17,6 +17,7 @@ A multi-server chatbot application that integrates with Google Calendar using th
 - **Multi-Server MCP Architecture**: TypeScript and Python MCP servers working together
 - **Google Calendar Integration**: Create and manage calendar events
 - **Weather Information**: Get current weather for any city
+- **Flight Search**: Search for flights using Google Flights integration
 - **File System Tools**: Check file information and system details
 - **Mathematical Operations**: Calculate areas and perform calculations
 - **Hebrew Language Support**: Full Hebrew interface and responses
@@ -52,6 +53,7 @@ A multi-server chatbot application that integrates with Google Calendar using th
 │ - time              │           │ - calculate_area     │
 │ - get_weather       │           │ - get_file_info      │
 │ - create_calendar   │           │ - get_system_info    │
+│                     │           │ - search_flights     │
 └─────────────────────┘           └─────────────────────┘
                   ↓
          ┌─────────────────┐
@@ -213,6 +215,131 @@ Check `token.json` exists and contains:
 - `client_id` and `client_secret`
 - `scopes` including calendar access
 
+## ✈️ Google Flights Integration
+
+The application includes Google Flights integration for searching flight information. This feature uses the `fast_flights` library to scrape Google Flights data.
+
+### Features
+
+- **Flight Search**: Search for one-way flights between any two airports
+- **Real-time Data**: Get current flight prices and availability
+- **Multiple Airlines**: Results from various airlines and booking sites
+- **Hebrew Support**: Flight information displayed in Hebrew
+
+### Setup Requirements
+
+#### 1. Install Google Flights Dependencies
+
+The Google Flights integration requires additional Python packages:
+
+```bash
+# Activate your virtual environment first
+source myenv/bin/activate
+
+# Install Google Flights dependencies
+pip install primp protobuf selectolax playwright
+
+# Install Playwright browsers (required for web scraping)
+playwright install
+```
+
+#### 2. Verify Integration
+
+The Google Flights integration is automatically included in the Python MCP server. To verify it's working:
+
+```bash
+# Test the integration
+python -c "
+import sys
+sys.path.append('Google-Flights-MCP-Server')
+from fast_flights import FlightData, Passengers, get_flights
+print('✅ Google Flights integration is working!')
+"
+```
+
+#### 3. Usage Examples
+
+**Search for flights:**
+```
+תמצא לי טיסה מתל אביב לברלין בתאריך 28.11.2025
+```
+
+**Search for flights with specific requirements:**
+```
+תמצא לי טיסה זולה מניו יורק ללונדון בתאריך 15.12.2025 לשני מבוגרים
+```
+
+### Available Flight Tool
+
+#### `search_flights`
+
+**Description**: Search for flights between two airports on a specific date
+
+**Parameters**:
+- `origin` (string): Origin airport code (e.g., "TLV", "JFK", "LAX")
+- `destination` (string): Destination airport code (e.g., "BER", "LHR", "CDG")
+- `date` (string): Travel date in YYYY-MM-DD format
+- `adults` (integer, optional): Number of adult passengers (default: 1)
+
+**Example Usage**:
+```json
+{
+  "origin": "TLV",
+  "destination": "BER", 
+  "date": "2025-11-28",
+  "adults": 2
+}
+```
+
+**Response Format**:
+```
+Found 5 flights from TLV to BER on 2025-11-28:
+✈️ Bluebird Airways - $520 - 9:00 to 12:30
+✈️ Aegean - $641 - 12:20 to 17:30
+✈️ Air Baltic - $661 - 11:10 to 18:55
+✈️ Israir Airlines - $N/A - 8:15 to 11:40
+✈️ Aegean - $631 - 12:20 to 10:35
+```
+
+### Important Notes
+
+#### Limitations
+- **Anti-bot Measures**: Google Flights has anti-bot protection that may limit automated searches
+- **Rate Limiting**: Excessive requests may be blocked
+- **Data Accuracy**: Flight prices and availability may change frequently
+- **Legal Compliance**: Ensure compliance with Google's terms of service
+
+#### Troubleshooting
+
+**"Google Flights functionality not available"**
+- Verify all dependencies are installed: `pip list | grep -E "(playwright|primp|selectolax)"`
+- Check Playwright browsers are installed: `playwright install`
+- Ensure the `Google-Flights-MCP-Server` directory exists
+
+**"No flights found"**
+- This may be normal due to Google's anti-bot measures
+- Try different dates or routes
+- Check if the airport codes are correct (use IATA codes like "TLV", "JFK")
+
+**"Error searching flights"**
+- Check server logs: `tail -f /tmp/python_mcp.log`
+- Verify the virtual environment is activated
+- Restart the Python MCP server
+
+### Airport Code Reference
+
+Common airport codes for testing:
+
+| City | Airport Code | Full Name |
+|------|-------------|-----------|
+| Tel Aviv | TLV | Ben Gurion Airport |
+| New York | JFK | John F. Kennedy International |
+| London | LHR | Heathrow Airport |
+| Berlin | BER | Berlin Brandenburg Airport |
+| Paris | CDG | Charles de Gaulle Airport |
+| Los Angeles | LAX | Los Angeles International |
+| San Francisco | SFO | San Francisco International |
+
 ## 📦 Installation
 
 ### Prerequisites
@@ -224,7 +351,14 @@ Check `token.json` exists and contains:
 ### Install Python Dependencies
 
 ```bash
+# Core dependencies
 pip install fastapi uvicorn openai python-dotenv mcp fastmcp googleapis
+
+# Google Flights integration dependencies
+pip install primp protobuf selectolax playwright
+
+# Install Playwright browsers (required for Google Flights)
+playwright install
 ```
 
 ### Install Node.js Dependencies
@@ -313,15 +447,24 @@ tail -f /tmp/frontend.log    # Frontend
 | `calculate_area` | Calculate area of shapes | `shape` (string), `width` (float), `height` (float, optional) |
 | `get_file_info` | Get file information | `file_path` (string) |
 | `get_system_info` | Get system information | None |
+| `search_flights` | Search for flights | `origin` (string), `destination` (string), `date` (string), `adults` (int, optional) |
 
 ## 🧪 Testing
 
 ### Test Chat API
 
+**Test time functionality:**
 ```bash
 curl -X POST http://localhost:8001/chat \
   -H "Content-Type: application/json" \
   -d '{"message": "מה השעה עכשיו?"}'
+```
+
+**Test Google Flights functionality:**
+```bash
+curl -X POST http://localhost:8001/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "תמצא לי טיסה מתל אביב לברלין בתאריך 28.11.2025"}'
 ```
 
 ### Test MCP Servers
@@ -366,6 +509,18 @@ curl http://localhost:8002/health
 - Verify `credentials.json` is valid
 - Check `token.json` hasn't expired
 - Re-run OAuth flow if needed
+
+### "Google Flights functionality not available"
+- Verify all dependencies are installed: `pip list | grep -E "(playwright|primp|selectolax)"`
+- Check Playwright browsers are installed: `playwright install`
+- Ensure the `Google-Flights-MCP-Server` directory exists
+- Restart the Python MCP server
+
+### "No flights found" (Google Flights)
+- This may be normal due to Google's anti-bot measures
+- Try different dates or routes
+- Check if the airport codes are correct (use IATA codes like "TLV", "JFK")
+- Verify the virtual environment is activated
 
 ## 📝 License
 
