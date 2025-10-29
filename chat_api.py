@@ -3,8 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from mcp_service import mcp_service
-from llm_engine import llm_engine
-from models import Message
+from llm_engine import llm_engine, Message
 import logging
 
 # Configure logging

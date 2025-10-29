@@ -6,21 +6,22 @@
     "@modelcontextprotocol/sdk": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
-    "googleapis": "^164.1.0",
-    "serpapi": "^2.2.1"
+    "express": "^4.21.2",
+    "serpapi": "^2.2.1",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.4",
     "@types/node": "^20.10.0",
-    "express": "^4.21.2",
-    "typescript": "^5.3.3",
-    "zod": "^3.22.4"
+    "tsx": "^4.20.6",
+    "typescript": "^5.3.3"
   },
   "scripts": {
     "build": "tsc",
-    "start": "npm run build && node dist/ts_mcp_server.js",
-    "dev": "tsc && node dist/ts_mcp_server.js",
+    "start:workshop": "npx tsx mcp_server_workshop.ts",
+    "start:solution": "npx tsx Solution/SOL_mcp_server_workshop.ts",
+    "dev": "npx tsx mcp_server_workshop.ts",
     "watch": "tsc --watch"
   }
 }

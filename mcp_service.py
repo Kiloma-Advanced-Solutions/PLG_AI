@@ -2,13 +2,10 @@
 MCP Integration Service for Chat
 Supports multiple MCP servers with tool aggregation
 """
-import asyncio
 import json
 import logging
 from typing import List, Optional
-from config import llm_config
-from llm_engine import llm_engine
-from models import Message
+from llm_engine import llm_engine, llm_config, Message
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 
@@ -18,7 +15,6 @@ class MCPService:
     """Service for integrating MCP tools from multiple servers"""
     
     def __init__(self):
-        # Support multiple MCP servers
         self.mcp_servers = llm_config.mcp_servers
         self.server_tool_map = {}  # tool_name -> server_url
         self.system_prompt = """אתה עוזר בינה מלאכותית שמטרתו לספק מידע מדויק ואמין בשפה העברית. ענה באופן ברור, מדויק, ומבוסס על עובדות בלבד. תמיד השתמש בכלים הזמינים כשהם רלוונטיים לשאלה."""
@@ -77,10 +73,14 @@ class MCPService:
                 return None
             
             # Query LLM
-            messages = [Message(role="system", content=self.system_prompt), Message(role="user", content=user_prompt)]
+            messages = [
+                Message(role="system", content=self.system_prompt),
+                Message(role="user", content=user_prompt)
+            ]
             response = await llm_engine.chat_completion(messages, session_id="mcp", tools=all_tools)
             
-            tool_calls = response.get("choices", [{}])[0].get("message", {}).get("tool_calls", [])
+            message = response.get("choices", [{}])[0].get("message", {})
+            tool_calls = message.get("tool_calls", [])
             if not tool_calls:
                 return None
             
@@ -88,17 +88,20 @@ class MCPService:
             results = []
             for call in tool_calls:
                 fn = call.get("function", {})
+                tool_name = fn.get("name")
                 args = fn.get("arguments", {})
                 if isinstance(args, str):
                     args = json.loads(args)
                 
-                result = await self._execute_tool(fn.get("name"), args)
-                results.append(f"Tool {fn.get('name')}: {result}")
+                result = await self._execute_tool(tool_name, args)
+                results.append(f"Tool {tool_name}: {result}")
             
             # Return final prompt
             final = f"שאלה: {user_prompt}\n\nתוצאות מכלים:\n" + "\n".join(results) + "\n\nענה על השאלה בהתבסס על התוצאות."
-            return [Message(role="system", content=self.system_prompt), Message(role="user", content=final)]
-            
+            return [
+                Message(role="system", content=self.system_prompt),
+                Message(role="user", content=final)
+            ]
         except Exception as e:
             logger.error(f"MCP error: {e}")
             return None

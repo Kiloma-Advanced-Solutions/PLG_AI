@@ -14,6 +14,6 @@
     "declarationMap": true,
     "sourceMap": true
   },
-  "include": ["ts_mcp_server.ts"],
+  "include": ["mcp_server_workshop.ts", "Solution/SOL_mcp_server_workshop.ts"],
   "exclude": ["node_modules", "dist"]
 }
