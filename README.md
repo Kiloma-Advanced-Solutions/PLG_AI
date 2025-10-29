@@ -1,528 +1,232 @@
-# MCP Chat Workshop
+# MCP Workshop
 
-A multi-server chatbot application that integrates with Google Calendar using the Model Context Protocol (MCP). The chatbot can interact with users through natural language and perform actions like creating Google Calendar events, checking weather, and getting system information.
+A hands-on workshop for learning the Model Context Protocol (MCP) by building TypeScript MCP servers with a complete chat interface.
 
-## 📋 Table of Contents
+## 📚 Workshop Overview
 
-- [Features](#features)
-- [Architecture](#architecture)
-- [Repository Structure](#repository-structure)
-- [Google Calendar Setup](#google-calendar-setup)
-- [Installation](#installation)
-- [Running the Application](#running-the-application)
-- [Available Tools](#available-tools)
+This workshop teaches you how to build MCP (Model Context Protocol) servers in TypeScript. You'll learn to create tools that can be used by LLMs to extend their capabilities, and test them through a web-based chat interface.
 
-## 🚀 Features
+## 🎯 Learning Objectives
 
-- **Multi-Server MCP Architecture**: TypeScript and Python MCP servers working together
-- **Google Calendar Integration**: Create and manage calendar events
-- **Weather Information**: Get current weather for any city
-- **Flight Search**: Search for flights using Google Flights integration
-- **File System Tools**: Check file information and system details
-- **Mathematical Operations**: Calculate areas and perform calculations
-- **Hebrew Language Support**: Full Hebrew interface and responses
-- **Streaming Chat**: Real-time streaming responses from the chatbot
-
-## 🏗️ Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    Frontend (React)                          │
-│                 http://localhost:3000                       │
-└─────────────────────┬───────────────────────────────────────┘
-                      │ HTTP
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              Chat API (FastAPI)                              │
-│              http://localhost:8001                           │
-│              chat_api.py                                     │
-└─────────────────────┬───────────────────────────────────────┘
-                      │
-                      ▼
-┌─────────────────────────────────────────────────────────────┐
-│              MCP Service                                     │
-│              mcp_service.py                                  │
-│              Aggregates tools from multiple servers          │
-└─────┬───────────────────────────────────────┬───────────────┘
-      │                                       │
-      ▼                                       ▼
-┌─────────────────────┐           ┌─────────────────────┐
-│ TypeScript MCP      │           │ Python MCP           │
-│ Port: 8000          │           │ Port: 8002           │
-│ ts_mcp_server.ts    │           │ python_mcp_server.py │
-│ - time              │           │ - calculate_area     │
-│ - get_weather       │           │ - get_file_info      │
-│ - create_calendar   │           │ - get_system_info    │
-│                     │           │ - search_flights     │
-└─────────────────────┘           └─────────────────────┘
-                  ↓
-         ┌─────────────────┐
-         │ LLM Engine      │
-         │ llm_engine.py   │
-         │ OpenAI GPT-3.5  │
-         └─────────────────┘
-```
+- Understand the Model Context Protocol (MCP)
+- Build TypeScript MCP servers using the official SDK
+- Create and register MCP tools
+- Handle HTTP transport for MCP servers
+- Integrate external APIs (weather, flights) with MCP
+- Test tools through a chat interface
 
 ## 📁 Repository Structure
 
 ```
 mcp_workshop/
-├── Backend Core
-│   ├── chat_api.py              # FastAPI chat endpoint (port 8001)
-│   ├── mcp_service.py            # MCP integration service
-│   ├── llm_engine.py             # OpenAI API engine
-│   ├── config.py                 # Configuration management
-│   └── models.py                 # Pydantic data models
-│
-├── MCP Servers
-│   ├── ts_mcp_server.ts          # TypeScript MCP server (port 8000)
-│   ├── python_mcp_server.py      # Python MCP server (port 8002)
-│   └── dist/                     # Compiled TypeScript output
-│       └── ts_mcp_server.js
-│
-├── Frontend
-│   └── frontend/                  # React application
-│       ├── src/App.js
-│       └── build/
-│
-├── Configuration
-│   ├── credentials.json           # Google OAuth credentials (gitignored)
-│   ├── token.json                 # Google OAuth token (gitignored)
-│   ├── package.json               # Node.js dependencies
-│   ├── tsconfig.json              # TypeScript configuration
-│   └── .env                       # Environment variables
-│
-└── Documentation
-    └── README.md                  # This file
+├── mcp_server_workshop.ts          # Workshop file - complete the exercises!
+├── Solution/
+│   └── SOL_mcp_server_workshop.ts  # Complete solution
+├── python_mcp_server.py            # Python MCP server (reference)
+├── chat_api.py                     # FastAPI backend for chat UI
+├── mcp_service.py                  # MCP integration service
+├── llm_engine.py                   # OpenAI integration (models & config)
+├── frontend/                        # React chat interface
+│   ├── src/App.js
+│   └── package.json
+├── package.json                     # Node.js dependencies
+├── tsconfig.json                    # TypeScript configuration
+├── requirements.txt                 # Python dependencies
+├── start.sh                         # Start all services script
+├── .env                             # Environment variables (create this)
+└── README.md                        # This file
 ```
 
-## 🔑 Files
+## 🚀 Quick Start
 
-### Backend Core Files
+### Prerequisites
 
-#### `chat_api.py`
-- **Role**: FastAPI endpoint server
-- **Port**: 8001
-- **Responsibilities**:
-  - Exposes `/chat` and `/chat/stream` endpoints
-  - Integrates MCP service for tool execution
-  - Falls back to direct LLM calls if MCP fails
-  - Handles CORS for frontend
+- Node.js 18+
+- Python 3.8+
+- npm or yarn
 
-#### `mcp_service.py`
-- **Role**: Multi-server MCP coordinator
-- **Responsibilities**:
-  - Connects to multiple MCP servers (TypeScript & Python)
-  - Aggregates tools from all servers
-  - Executes tools on their respective servers
-  - Maps tool names to server URLs
-  - Handles tool call routing
-
-#### `llm_engine.py`
-- **Role**: OpenAI API client
-- **Responsibilities**:
-  - Sends requests to OpenAI GPT-3.5-turbo
-  - Handles streaming responses
-  - Manages chat completion with tool calling
-  - Provides structured completion support
-
-#### `config.py`
-- **Role**: Configuration management
-- **Responsibilities**:
-  - Loads environment variables
-  - Defines MCP server URLs
-  - Configures OpenAI API settings
-  - Provides model parameters
-
-#### `models.py`
-- **Role**: Data models
-- **Responsibilities**:
-  - Defines Pydantic models for messages
-  - Type-safe data structures
-
-### MCP Servers
-
-#### `ts_mcp_server.ts`
-- **Role**: TypeScript MCP server
-- **Port**: 8000
-- **Tools Provided**:
-  - `time` - Get current time in Israel
-  - `get_weather` - Get weather for a city
-  - `create_calendar_event` - Create Google Calendar events
-
-#### `python_mcp_server.py`
-- **Role**: Python MCP server
-- **Port**: 8002
-- **Tools Provided**:
-  - `calculate_area` - Calculate area of shapes
-  - `get_file_info` - Get file information
-  - `get_system_info` - Get system information
-
-### Configuration Files
-
-#### `credentials.json`
-- **Purpose**: Google OAuth client credentials
-- **How to get**: Download from Google Cloud Console
-- **Important**: This file is gitignored
-
-#### `token.json`
-- **Purpose**: OAuth access and refresh tokens
-- **Generated**: Automatically during OAuth flow
-- **Contains**: access_token, refresh_token, client_id, client_secret
-- **Important**: This file is gitignored
-
-## 🔐 Google Calendar Setup
-
-### Step 1: Create Google Cloud Project
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Click "Create Project" or select existing project
-3. Give it a name (e.g., "mcp-workshop")
-
-### Step 2: Enable Google Calendar API
-
-1. Navigate to "APIs & Services" > "Library"
-2. Search for "Google Calendar API"
-3. Click "Enable"
-
-### Step 3: Create OAuth Credentials
-
-1. Go to "APIs & Services" > "Credentials"
-2. Click "Create Credentials" > "OAuth client ID"
-3. Choose "Web Application" as application type
-4. Configure OAuth consent screen (if prompted):
-   - Choose "External" user type
-   - Fill in app name, support email
-   - Add scopes: `https://www.googleapis.com/auth/calendar`
-   - Add test users (your email)
-5. Download the JSON file and save as `credentials.json` in project root
-
-### Step 4: Authenticate
-
-The first time you run the TypeScript MCP server, it will use the `credentials.json` to authenticate. If you don't have a `token.json` yet, you'll need to run an OAuth flow.
-
-**Option A - Automatic (if token expires):**
-Run the TypeScript server, it will automatically authenticate if credentials are present.
-
-**Option B - Manual Refresh:**
-You may need to delete `token.json` and restart the server to trigger re-authentication.
-
-### Step 5: Verify Access
-
-Check `token.json` exists and contains:
-- `token` (access token)
-- `refresh_token` 
-- `client_id` and `client_secret`
-- `scopes` including calendar access
-
-## ✈️ Google Flights Integration
-
-The application includes Google Flights integration for searching flight information. This feature uses the `fast_flights` library to scrape Google Flights data.
-
-### Features
-
-- **Flight Search**: Search for one-way flights between any two airports
-- **Real-time Data**: Get current flight prices and availability
-- **Multiple Airlines**: Results from various airlines and booking sites
-- **Hebrew Support**: Flight information displayed in Hebrew
-
-### Setup Requirements
-
-#### 1. Install Flight Search Dependencies
-
-The flight search integration uses SerpAPI to access Google Flights data:
+### Installation
 
 ```bash
-# Activate your virtual environment first
-source myenv/bin/activate
+# Install Node.js dependencies
+npm install
 
-# Install additional dependencies (if needed)
-pip install requests
+# Install frontend dependencies
+cd frontend && npm install && cd ..
+
+# (Optional) Create Python virtual environment and install dependencies
+python3 -m venv myenv
+source myenv/bin/activate  # On Windows: myenv\Scripts\activate
+pip install -r requirements.txt
 ```
 
-#### 2. Get SerpAPI Credentials
+### Environment Setup
 
-1. **Sign up for free**: Go to [https://serpapi.com/](https://serpapi.com/)
-2. **Get API key**: Copy your API key from the dashboard
-3. **Set environment variable**:
+Create a `.env` file in the root directory:
 
 ```bash
-# Add to your .env file or export in terminal
-export SERPAPI_KEY="your_serpapi_key_here"
+# Required for flight search tool (Exercise 3)
+SERPAPI_API_KEY=your_serpapi_key_here
+
+# Required for chat interface
+OPENAI_API_KEY=your_openai_key_here
+MCP_SERVERS=http://localhost:8000,http://localhost:8002
 ```
 
-#### 3. Verify Integration
+Get your API keys:
+- SerpAPI: https://serpapi.com/manage-api-key
+- OpenAI: https://platform.openai.com/api-keys
 
-The flight search integration is automatically included in the Python MCP server. To verify it's working:
+### Start Everything
 
 ```bash
-# Test the integration (will show API key error if not configured)
-curl -X POST http://localhost:8001/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "תמצא לי טיסה מתל אביב לברלין בתאריך 28.11.2025"}'
+# Make script executable (first time only)
+chmod +x start.sh
+
+# Start all services (workshop mode)
+./start.sh
+
+# Or start with solution
+./start.sh solution
 ```
 
-#### 3. Usage Examples
+This will:
+1. Start TypeScript MCP Server (port 8000)
+2. Start Python MCP Server (port 8002)
+3. Start Chat API (port 8001)
+4. Start Frontend UI (port 3000)
+5. Open your browser to http://localhost:3000
 
-**Search for flights:**
-```
-תמצא לי טיסה מתל אביב לברלין בתאריך 28.11.2025
-```
+## 📝 Exercises
 
-**Search for flights with specific requirements:**
-```
-תמצא לי טיסה זולה מניו יורק ללונדון בתאריך 15.12.2025 לשני מבוגרים
-```
+### Exercise 1: Time Tool ⏳
 
-### Available Flight Tool
+**Location**: `mcp_server_workshop.ts` - Look for `Ex-1: Time Tool`
 
-#### `search_flights`
+**Task**: Complete the `time` tool to return the current time in Israel (Asia/Jerusalem timezone).
 
-**Description**: Search for flights between two airports on a specific date
+**Hint**: Use JavaScript's `Date` object with `toLocaleString()` method.
 
-**Parameters**:
-- `origin` (string): Origin airport code (e.g., "TLV", "JFK", "LAX")
-- `destination` (string): Destination airport code (e.g., "BER", "LHR", "CDG")
-- `date` (string): Travel date in YYYY-MM-DD format
-- `adults` (integer, optional): Number of adult passengers (default: 1)
+### Exercise 2: Weather Tool 🌦️
 
-**Example Usage**:
-```json
-{
-  "origin": "TLV",
-  "destination": "BER", 
-  "date": "2025-11-28",
-  "adults": 2
-}
-```
+**Location**: `mcp_server_workshop.ts` - Look for `Ex-2: Weather Tool`
 
-**Response Format**:
-```
-Found 5 flights from TLV to BER on 2025-11-28:
-✈️ Bluebird Airways - $520 - 9:00 to 12:30
-✈️ Aegean - $641 - 12:20 to 17:30
-✈️ Air Baltic - $661 - 11:10 to 18:55
-✈️ Israir Airlines - $N/A - 8:15 to 11:40
-✈️ Aegean - $631 - 12:20 to 10:35
-```
+**Task**: Implement the weather tool using the `https` library to fetch weather data from `wttr.in`.
 
 ### Important Notes
 
-#### Limitations
-- **Anti-bot Measures**: Google Flights has anti-bot protection that may limit automated searches
-- **Rate Limiting**: Excessive requests may be blocked
-- **Data Accuracy**: Flight prices and availability may change frequently
-- **Legal Compliance**: Ensure compliance with Google's terms of service
+**Hint**: 
+- Use `https.get()` to fetch data
+- Parse JSON response
+- Extract weather data from `current_condition[0]`
 
-#### Troubleshooting
+### Exercise 3: Flight Search Tool ✈️
 
-**"Google Flights functionality not available"**
-- Verify all dependencies are installed: `pip list | grep -E "(playwright|primp|selectolax)"`
-- Check Playwright browsers are installed: `playwright install`
-- Ensure the `Google-Flights-MCP-Server` directory exists
+**Location**: `mcp_server_workshop.ts` - Look for `Ex-3: Flight Search Tool`
 
-**"No flights found"**
-- This may be normal due to Google's anti-bot measures
-- Try different dates or routes
-- Check if the airport codes are correct (use IATA codes like "TLV", "JFK")
+**Task**: Implement flight search using SerpAPI to call the Google Flights API.
 
 **"Error searching flights"**
 - Check server logs: `tail -f /tmp/python_mcp.log`
 - Verify the virtual environment is activated
 - Restart the Python MCP server
 
-### Airport Code Reference
+**Hint**:
+- Check for API key first
+- Use `getJson()` function (callback-based)
+- Set `type: 1` for round trip when `return_date` is provided, `type: 2` for one-way
+- Wrap `getJson` in a Promise to use async/await
 
-Common airport codes for testing:
+**API Reference**: https://serpapi.com/google-flights-api
 
-| City | Airport Code | Full Name |
-|------|-------------|-----------|
-| Tel Aviv | TLV | Ben Gurion Airport |
-| New York | JFK | John F. Kennedy International |
-| London | LHR | Heathrow Airport |
-| Berlin | BER | Berlin Brandenburg Airport |
-| Paris | CDG | Charles de Gaulle Airport |
-| Los Angeles | LAX | Los Angeles International |
-| San Francisco | SFO | San Francisco International |
+## 🛠️ Running the Workshop
 
-## 📦 Installation
-
-### Prerequisites
-
-- Python 3.8+
-- Node.js 16+
-- npm
-
-### Install Python Dependencies
+Start all services including the chat UI:
 
 ```bash
-# Core dependencies
-pip install fastapi uvicorn openai python-dotenv mcp fastmcp googleapis requests
-
-# Note: SerpAPI credentials are required for flight search functionality
+./start.sh
 ```
 
-### Install Node.js Dependencies
+This starts everything and opens the browser to the chat interface.
 
-```bash
-npm install
-```
 
-### Install Frontend Dependencies
 
-```bash
-cd frontend
-npm install
-cd ..
-```
+## 🌐 Services
 
-### Configure Environment
+The workshop includes a complete testing environment:
 
-Create a `.env` file in the root directory:
+- **TypeScript MCP Server** (port 8000) - Your workshop exercises
+- **Python MCP Server** (port 8002) - Additional reference tools
+- **Chat API** (port 8001) - FastAPI backend that aggregates MCP tools
+- **Frontend UI** (port 3000) - React chat interface for testing
 
-```bash
-OPENAI_API_KEY=your_openai_api_key_here
-MCP_SERVERS=http://localhost:8000,http://localhost:8002
-```
+## 📚 Resources
 
-## 🚀 Running the Application
+### MCP Documentation
+- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk)
+- [MCP Specification](https://modelcontextprotocol.io/)
+- [MCP Tutorial](https://github.com/modelcontextprotocol/typescript-sdk/tree/main/examples)
 
-### Option 1: Quick Start (All Servers)
-
-```bash
-./start_servers.sh
-```
-
-This script will:
-1. Start all 4 services in the background
-2. Wait for each server to be ready
-3. Print confirmation when all are up
-4. Log output to `/tmp/*.log`
-
-### Option 2: Manual Start (Separate Terminals)
-
-**Terminal 1 - TypeScript MCP Server:**
-```bash
-npm run dev
-```
-
-**Terminal 2 - Python MCP Server:**
-```bash
-python3 python_mcp_server.py
-```
-
-**Terminal 3 - Chat API:**
-```bash
-python3 -m uvicorn chat_api:app --reload --port 8001
-```
-
-**Terminal 4 - Frontend:**
-```bash
-cd frontend && npm start
-```
-
-### View Logs
-
-```bash
-# View all logs
-tail -f /tmp/ts_mcp.log      # TypeScript MCP
-tail -f /tmp/python_mcp.log  # Python MCP
-tail -f /tmp/chat_api.log    # Chat API
-tail -f /tmp/frontend.log    # Frontend
-```
-
-## 🛠️ Available Tools
-
-### From TypeScript Server (Port 8000)
-
-| Tool | Description | Parameters |
-|------|-------------|------------|
-| `time` | Get current time in Israel | None |
-| `get_weather` | Get weather for a city | `city` (string) |
-| `create_calendar_event` | Create Google Calendar event | `summary`, `start_time`, `end_time`, `description` (optional) |
-
-### From Python Server (Port 8002)
-
-| Tool | Description | Parameters |
-|------|-------------|------------|
-| `calculate_area` | Calculate area of shapes | `shape` (string), `width` (float), `height` (float, optional) |
-| `get_file_info` | Get file information | `file_path` (string) |
-| `get_system_info` | Get system information | None |
-| `search_flights` | Search for flights | `origin` (string), `destination` (string), `date` (string), `adults` (int, optional) |
-
-## 🧪 Testing
-
-### Test Chat API
-
-**Test time functionality:**
-```bash
-curl -X POST http://localhost:8001/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "מה השעה עכשיו?"}'
-```
-
-**Test Google Flights functionality:**
-```bash
-curl -X POST http://localhost:8001/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message": "תמצא לי טיסה מתל אביב לברלין בתאריך 28.11.2025"}'
-```
-
-### Test MCP Servers
-
-**TypeScript MCP:**
-```bash
-curl http://localhost:8000/health
-```
-
-**Python MCP:**
-```bash
-curl http://localhost:8002/health
-```
-
-## 🔒 Security Notes
-
-- Never commit `credentials.json` or `token.json` to git
-- Keep your OpenAI API key secure
-- The `.gitignore` file should exclude sensitive files
-- Use environment variables for production deployments
-
-## 📚 Additional Resources
-
-- [MCP Documentation](https://modelcontextprotocol.io/)
-- [FastMCP Documentation](https://github.com/jlowin/fastmcp)
-- [OpenAI API Documentation](https://platform.openai.com/docs)
-- [Google Calendar API](https://developers.google.com/calendar)
+### APIs Used
+- **Weather**: [wttr.in API](https://wttr.in/:help)
+- **Flights**: [SerpAPI Google Flights](https://serpapi.com/google-flights-api)
 
 ## 🐛 Troubleshooting
 
-### "token.json not found"
-- Run the OAuth authentication flow
-- Check that `credentials.json` exists
-- Delete `token.json` and restart to re-authenticate
+### "Cannot find module 'serpapi'"
+```bash
+npm install serpapi
+```
 
-### "No MCP tools available"
-- Check that both MCP servers are running
-- Verify server URLs in `config.py`
-- Check server logs for errors
+### "SERPAPI_API_KEY not set"
+- Create a `.env` file
+- Add: `SERPAPI_API_KEY=your_key_here`
+- Restart the server
 
-### "Google Calendar authentication failed"
-- Verify `credentials.json` is valid
-- Check `token.json` hasn't expired
-- Re-run OAuth flow if needed
+### Port already in use
+```bash
+# Find and kill the process
+lsof -ti:8000 | xargs kill    # TypeScript MCP
+lsof -ti:8001 | xargs kill    # Chat API
+lsof -ti:8002 | xargs kill    # Python MCP
+lsof -ti:3000 | xargs kill    # Frontend
+```
 
-### "Flight search API error"
-- Verify SerpAPI credentials are set: `echo $SERPAPI_KEY`
-- Check API key is valid at [SerpAPI Dashboard](https://serpapi.com/manage-api-key)
-- Ensure you have sufficient credits in your SerpAPI account
-- Check API rate limits and quotas
+### Frontend won't start
+```bash
+# Install frontend dependencies
+cd frontend && npm install && cd ..
+```
 
-### "No flights found" (Flight Search)
-- Verify airport codes are correct (use IATA codes like "TLV", "JFK")
-- Check if the date is in the future (API may not have data for past dates)
-- Try different dates or routes
-- Ensure API credentials are properly configured
+### Python dependencies missing
+```bash
+# Create virtual environment
+python3 -m venv myenv
+source myenv/bin/activate
+pip install -r requirements.txt
+```
 
-## 📝 License
+### TypeScript compilation errors
+```bash
+# Check the error message
+npm run build
 
-MIT
+# Common issues:
+# - Missing imports
+# - Syntax errors (check semicolons, brackets)
+# - Type mismatches
+```
+
+## 📝 Solution
+
+If you get stuck, check `Solution/SOL_mcp_server_workshop.ts` for complete implementations. But try to solve the exercises first!
+
+## 🎓 Workshop Tips
+
+1. **Read the TODOs**: Each exercise has clear TODO comments with hints
+2. **Check the examples**: The `power_calculator` tool shows the pattern
+3. **Test through the UI**: Use the chat interface at http://localhost:3000 to test your tools
+4. **Test incrementally**: Test each tool after implementing it
+5. **Use TypeScript**: The type system will help catch errors
+6. **Read error messages**: They usually point to the problem
+
