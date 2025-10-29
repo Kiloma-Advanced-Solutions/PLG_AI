@@ -10,8 +10,10 @@ import json
 import asyncio
 from typing import Optional
 from pydantic import BaseModel
-
+import dotenv
 # This server focuses on utility tools: calculate_area, get_file_info, get_system_info
+dotenv.load_dotenv()
+
 
 mcp = FastMCP("Python Tools Server")
 
@@ -106,6 +108,94 @@ def get_system_info() -> str:
     
     return info
 
+@mcp.tool()
+def search_flights(origin: str, destination: str, date: str, return_date: str = None) -> str:
+    """
+    Search for flights between two airports using SerpAPI Google Flights.
+    
+    Args:
+        origin: Origin airport code (e.g., "TLV", "JFK", "LAX")
+        destination: Destination airport code (e.g., "BER", "LHR", "CDG")
+        date: The departure date (YYYY-MM-DD format)
+        return_date: Return date for round-trip flights (YYYY-MM-DD format, optional)
+    
+    Returns:
+        Flight search results in Hebrew
+    """
+
+    from serpapi import GoogleSearch
+    serpapi_key = os.getenv("SERPAPI_API_KEY")
+    params = {
+    "api_key": serpapi_key,
+    "engine": "google_flights",
+    "hl": "en",
+    "gl": "us",
+    "departure_id": origin,
+    "arrival_id": destination,
+    "outbound_date": date,
+    "return_date": return_date,
+    "currency": "USD"
+    }
+    search = GoogleSearch(params)
+    results = search.get_dict()
+    
+    # Check for errors
+    if "error" in results:
+        return f"❌ שגיאה ב-SerpAPI: {results['error']}"
+    
+    # Check if we have flight results
+    if "best_flights" not in results or not results["best_flights"]:
+        return f"❌ לא נמצאו טיסות מ{origin} ל{destination} בתאריך {date}"
+    
+    flights = results["best_flights"]
+    
+    # Format results in Hebrew - concise version
+    trip_type = "הלוך ושוב" if return_date else "כיוון אחד"
+    result = f"✈️ טיסות {trip_type} מ{origin} ל{destination}:\n"
+    result += f"📅 תאריך יציאה: {date}"
+    if return_date:
+        result += f" | תאריך חזרה: {return_date}"
+    result += f"\n\n"
+    
+    # Show top 3 flights only
+    for i, flight in enumerate(flights[:3], 1):
+        flight_segments = flight.get("flights", [])
+        if not flight_segments:
+            continue
+            
+        first_segment = flight_segments[0]
+        last_segment = flight_segments[-1]
+        
+        # Extract basic info
+        airline = first_segment.get("airline", "Unknown")
+        departure_airport = first_segment.get("departure_airport", {})
+        arrival_airport = last_segment.get("arrival_airport", {})
+        
+        departure_time = departure_airport.get("time", "N/A")
+        arrival_time = arrival_airport.get("time", "N/A")
+        
+        # Format times to show only time part
+        if departure_time != "N/A" and "T" in departure_time:
+            departure_time = departure_time.split("T")[1][:5]
+        if arrival_time != "N/A" and "T" in arrival_time:
+            arrival_time = arrival_time.split("T")[1][:5]
+        
+        total_duration = flight.get("total_duration", "N/A")
+        price = flight.get("price", "N/A")
+        
+        # Count stops
+        stops = len(flight_segments) - 1
+        stops_text = "ללא עצירות" if stops == 0 else f"{stops} עצירה"
+        
+        # Format price
+        price_text = f"${price}" if price != "N/A" else "מחיר לא זמין"
+        
+        result += f"{i}. {airline}\n"
+        result += f"   🕐 {departure_time} → {arrival_time} ({total_duration} דקות)\n"
+        result += f"   🛫 {stops_text} | 💰 {price_text}\n\n"
+    
+    result += f"📊 נמצאו {len(flights)} טיסות זמינות"
+    return result
 
 
 if __name__ == "__main__":

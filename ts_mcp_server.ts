@@ -4,6 +4,7 @@
  * Following the official MCP SDK tutorial: https://github.com/modelcontextprotocol/typescript-sdk
  */
 
+import "dotenv/config";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import express from "express";
@@ -12,6 +13,7 @@ import { z } from "zod";
 import { google } from "googleapis";
 import { readFileSync, existsSync } from "fs";
 import { resolve } from "path";
+import { getJson } from "serpapi";
 
 // Helper function to get current time in Israel
 function getIsraelTime(): string {
@@ -184,6 +186,68 @@ server.registerTool("get_weather", {
 //     };
 //   }
 // });
+
+
+
+
+
+
+
+server.registerTool("search_flights", {
+  description: "Search for flights between two airports",
+  inputSchema: {
+    origin: z.string(),
+    destination: z.string(),
+    date: z.string(),
+    return_date: z.string().optional(),
+  },
+}, async (args: { origin: string; destination: string; date: string; return_date?: string }) => {
+  const serpapiKey = process.env.SERPAPI_API_KEY;
+
+  if (!serpapiKey) {
+    return {
+      content: [
+        { type: "text", text: "Error: SERPAPI_API_KEY environment variable is not set." },
+      ],
+    };
+  }
+
+  try {
+    const json = await new Promise((resolve, reject) => {
+      getJson(
+        {
+          api_key: serpapiKey,
+          engine: "google_flights",
+          hl: "en",
+          gl: "us",
+          departure_id: args.origin,
+          arrival_id: args.destination,
+          outbound_date: args.date,
+          // Only include return_date and type=1 if provided
+          ...(args.return_date
+            ? { return_date: args.return_date, type: 1 }
+            : { type: 2 }),
+          currency: "USD",
+        },
+        (json: unknown) => resolve(json),
+      );
+    });
+
+    return {
+      content: [
+        { type: "text", text: JSON.stringify(json, null, 2) },
+      ],
+    };
+  } catch (err) {
+    console.error("Flight search error:", err);
+    return {
+      content: [
+        { type: "text", text: `Error fetching flight data: ${(err as Error).message}` },
+      ],
+    };
+  }
+});
+
 
 // Start the server with Streamable HTTP transport on port 8000
 const PORT = 8000;

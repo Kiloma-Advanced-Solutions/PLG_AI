@@ -5,7 +5,9 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.20.2",
     "cors": "^2.8.5",
-    "googleapis": "^164.1.0"
+    "dotenv": "^17.2.3",
+    "googleapis": "^164.1.0",
+    "serpapi": "^2.2.1"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",

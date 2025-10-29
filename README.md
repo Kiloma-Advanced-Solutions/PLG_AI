@@ -228,33 +228,38 @@ The application includes Google Flights integration for searching flight informa
 
 ### Setup Requirements
 
-#### 1. Install Google Flights Dependencies
+#### 1. Install Flight Search Dependencies
 
-The Google Flights integration requires additional Python packages:
+The flight search integration uses SerpAPI to access Google Flights data:
 
 ```bash
 # Activate your virtual environment first
 source myenv/bin/activate
 
-# Install Google Flights dependencies
-pip install primp protobuf selectolax playwright
-
-# Install Playwright browsers (required for web scraping)
-playwright install
+# Install additional dependencies (if needed)
+pip install requests
 ```
 
-#### 2. Verify Integration
+#### 2. Get SerpAPI Credentials
 
-The Google Flights integration is automatically included in the Python MCP server. To verify it's working:
+1. **Sign up for free**: Go to [https://serpapi.com/](https://serpapi.com/)
+2. **Get API key**: Copy your API key from the dashboard
+3. **Set environment variable**:
 
 ```bash
-# Test the integration
-python -c "
-import sys
-sys.path.append('Google-Flights-MCP-Server')
-from fast_flights import FlightData, Passengers, get_flights
-print('✅ Google Flights integration is working!')
-"
+# Add to your .env file or export in terminal
+export SERPAPI_KEY="your_serpapi_key_here"
+```
+
+#### 3. Verify Integration
+
+The flight search integration is automatically included in the Python MCP server. To verify it's working:
+
+```bash
+# Test the integration (will show API key error if not configured)
+curl -X POST http://localhost:8001/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "תמצא לי טיסה מתל אביב לברלין בתאריך 28.11.2025"}'
 ```
 
 #### 3. Usage Examples
@@ -352,13 +357,9 @@ Common airport codes for testing:
 
 ```bash
 # Core dependencies
-pip install fastapi uvicorn openai python-dotenv mcp fastmcp googleapis
+pip install fastapi uvicorn openai python-dotenv mcp fastmcp googleapis requests
 
-# Google Flights integration dependencies
-pip install primp protobuf selectolax playwright
-
-# Install Playwright browsers (required for Google Flights)
-playwright install
+# Note: SerpAPI credentials are required for flight search functionality
 ```
 
 ### Install Node.js Dependencies
@@ -510,17 +511,17 @@ curl http://localhost:8002/health
 - Check `token.json` hasn't expired
 - Re-run OAuth flow if needed
 
-### "Google Flights functionality not available"
-- Verify all dependencies are installed: `pip list | grep -E "(playwright|primp|selectolax)"`
-- Check Playwright browsers are installed: `playwright install`
-- Ensure the `Google-Flights-MCP-Server` directory exists
-- Restart the Python MCP server
+### "Flight search API error"
+- Verify SerpAPI credentials are set: `echo $SERPAPI_KEY`
+- Check API key is valid at [SerpAPI Dashboard](https://serpapi.com/manage-api-key)
+- Ensure you have sufficient credits in your SerpAPI account
+- Check API rate limits and quotas
 
-### "No flights found" (Google Flights)
-- This may be normal due to Google's anti-bot measures
+### "No flights found" (Flight Search)
+- Verify airport codes are correct (use IATA codes like "TLV", "JFK")
+- Check if the date is in the future (API may not have data for past dates)
 - Try different dates or routes
-- Check if the airport codes are correct (use IATA codes like "TLV", "JFK")
-- Verify the virtual environment is activated
+- Ensure API credentials are properly configured
 
 ## 📝 License
 
