@@ -7,15 +7,16 @@
   height: 100vh;
   min-height: 0;
   background-color: var(--background-color);
-  padding-top: var(--header-height);
-  /* Center content with equal margins */
-  max-width: 100%;
-  margin: 0 auto;
-  z-index: var(--z-chat-container);
-  overflow-y: auto; /* Auto scrollbar when needed */
-  overflow-x: hidden; /* Prevent horizontal scroll */
-  scroll-behavior: smooth;
-  overscroll-behavior: contain;
+  padding-top: 70px; /* Account for fixed header */
+  padding-bottom: 80px; /* Account for fixed input area */
+  margin-right: 0;
+  transition: margin-right 0.3s ease;
+}
+
+
+/* When sidebar is open */
+.chatContainer.shifted {
+  margin-right: var(--sidebar-width-open);
 }
 
 /* When chat is empty, position input higher */
@@ -30,11 +31,13 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  padding: 0 12rem 2rem; /* Remove top padding, handled by scroll boundary */
+  padding: 0 15rem 2rem; /* Remove top padding, handled by scroll boundary */
   transition: padding 0.3s ease;
   /* Improve scroll behavior */
   scroll-behavior: smooth;
   overscroll-behavior: contain;
+  /* Prevent layout shift when scrollbar appears */
+  scrollbar-gutter: stable;
 }
 
 /* Reduced horizontal padding when sidebar is open */
@@ -53,13 +56,8 @@
 /* Center welcome message on empty chat */
 .messagesContainer.empty {
   flex: 0 0 auto; 
-  justify-content: center;
-}
-
-/* Center welcome message on empty chat */
-.messagesContainer.empty {
-  flex: 0 0 auto; 
-  justify-content: center;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 .welcomeMessage {
@@ -90,12 +88,17 @@
 }
 
 .welcomeMessage p {
-  font-size: 1rem;
-  margin-top: 2rem;
+  font-size: 1.1rem;
+  margin-top: 2.5rem;
   line-height: 1.6;
   opacity: 0.8;
   animation: welcomeFadeIn 1.5s ease-out 0.3s forwards; 
   opacity: 0;
+}
+
+/* Spacing for inline input after welcome message */
+.messagesContainer.empty .welcomeMessage {
+  margin-bottom: 3rem;
 }
 
 .streamingResponse {
@@ -231,45 +234,41 @@
 
 /* Responsive Design - spacing handled by main container */
 
-/* Large tablets (768px+) */
-@media (min-width: 768px) {
-  .chatContainer {
-    max-width: 100%;
-    margin: 0 auto;
-    align-items: center;
+/* Mobile responsive design */
+@media (max-width: 768px) {
+  .chatContainer.shifted {
+    margin-right: var(--sidebar-width-open-tablet);
   }
   
   .messagesContainer {
-    width: calc(100% - 3rem);
-    max-width: 750px;
-    padding: 0 1.5rem 1.5rem 1.5rem;
-    margin: 0 auto;
+    padding: 0 2rem 2rem 2rem; /* Remove top padding, handled by scroll boundary */
   }
-
-  .welcomeMessage {
-    padding: 2.5rem;
+  
+  .chatContainer.shifted .messagesContainer {
+    padding: 0 1rem 2rem 1rem; /* Further reduced horizontal padding when sidebar is open on tablets */
   }
 }
 
-/* Small desktops (992px+) */
-@media (min-width: 992px) {
-  .messagesContainer {
-    width: 850px;
-    max-width: 850px;
-    padding: 0 1.75rem 1.5rem 1.75rem;
+@media (max-width: 600px) {
+  .chatContainer {
+    padding-bottom: 100px; /* Slightly less padding for mobile input */
+    margin-right: var(--sidebar-width-closed-mobile);
   }
-
+  
+  .chatContainer.shifted {
+    margin-right: var(--sidebar-width-open-mobile);
+  }
+  
+  .messagesContainer {
+    padding: 0 1rem 1rem 1rem; /* Remove top padding, handled by scroll boundary */
+  }
+  
+  .chatContainer.shifted .messagesContainer {
+    padding: 0 0.5rem 1rem 0.5rem; /* Minimal horizontal padding when sidebar is open on mobile */
+  }
+  
   .welcomeMessage {
-    padding: 2.75rem;
-  }
-}
-
-/* Large desktop screens (1200px+) */
-@media (min-width: 1200px) {  
-  .messagesContainer {
-    width: 900px;
-    max-width: 900px;
-    padding: 0 2rem 1.5rem 2rem;
+    padding: 1.5rem 1rem 3rem 1rem; /* Adjusted for mobile */
   }
 
   .welcomeMessage h2 {
