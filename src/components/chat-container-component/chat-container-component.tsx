@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useRef, useEffect, useState, useCallback } from 'react';
@@ -127,105 +128,87 @@ export default function ChatContainerComponent({
     }, [messages, forceScrollToBottom]);
 
     return (
-      <div className={`${styles.chatContainer} ${messages.length === 0 ? styles.empty : ''}`}>
-        {messages.length === 0 ? (
-          // Empty chat layout - welcome message and input together
-          <div className={`${styles.messagesContainer} ${styles.empty}`}>
+      <div className={`${styles.chatContainer} ${isSidebarOpen ? styles.shifted : ''} ${messages.length === 0 ? styles.empty : ''}`}>
+        <div 
+          ref={messagesContainerRef}
+          className={`${styles.messagesContainer} ${messages.length === 0 ? styles.empty : ''}`}
+        >
+          {/* Scroll boundary to prevent scrolling too high */}
+          <div className={styles.scrollBoundary}></div>
+          
+          {messages.length === 0 ? (
             <div className={styles.welcomeMessage}>
               <h2>ברוכים הבאים ל-ChatPLG!</h2>
               <p>התחל שיחה חדשה על ידי שליחת הודעה</p>
             </div>
-            <div className={styles.inputWrapper}>
-              <InputMessageContainer 
-                onSendMessage={onSendMessage}
-                isStreaming={isStreaming}
-                triggerFocusAnimation={triggerInputAnimation}
-                prefilledMessage={prefilledMessage}
-                onPrefilledMessageCleared={onPrefilledMessageCleared}
-                onStop={onStop}
-                isSidebarOpen={isSidebarOpen}
-                isInline={true}
+          ) : (
+            // Render all messages
+            messages.map((message) => (
+              <ChatMessageComponent
+                key={message.id}
+                type={message.type}
+                content={message.content}
+                timestamp={formatMessageTimestamp(message.timestamp)}
+                onMessageEdit={message.type === 'user' && onMessageEdit ? 
+                  (newContent: string) => onMessageEdit(message.id, newContent) : 
+                  undefined
+                }
               />
+            ))
+          )}
+          
+          {apiError && (
+            <div className={styles.errorMessage}>
+              <div className={styles.errorContent}>
+                <span className={styles.errorIcon}>⚠️</span>
+                <span className={styles.errorText}>{apiError}</span>
+                {onRetry && (
+                  <button 
+                    className={styles.retryButton}
+                    onClick={async () => {
+                      try {
+                        await onRetry();
+                      } catch (error) {
+                        console.error('Retry failed:', error);
+                      }
+                    }}
+                  >
+                    נסה שוב
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
-        ) : (
-          // Normal chat layout - messages container and input at bottom
-          <>
-            <div 
-              ref={messagesContainerRef}
-              className={styles.messagesContainer}
-            >
-              {/* Scroll boundary to prevent scrolling too high */}
-              <div className={styles.scrollBoundary}></div>
-              
-              {/* Render all messages */}
-              {messages.map((message) => (
+          )}
+          
+          {isStreaming && (
+            <div className={styles.streamingResponse}>
+              {streamingMessage ? (
                 <ChatMessageComponent
-                  key={message.id}
-                  type={message.type}
-                  content={message.content}
-                  timestamp={formatMessageTimestamp(message.timestamp)}
-                  onMessageEdit={message.type === 'user' && onMessageEdit ? 
-                    (newContent: string) => onMessageEdit(message.id, newContent) : 
-                    undefined
-                  }
+                  type="assistant"
+                  content={streamingMessage}
+                  timestamp={formatMessageTimestamp(getCurrentTimestamp())}
+                  isStreaming={true}
                 />
-              ))}
-              
-              {apiError && (
-                <div className={styles.errorMessage}>
-                  <div className={styles.errorContent}>
-                    <span className={styles.errorIcon}>⚠️</span>
-                    <span className={styles.errorText}>{apiError}</span>
-                    {onRetry && (
-                      <button 
-                        className={styles.retryButton}
-                        onClick={async () => {
-                          try {
-                            await onRetry();
-                          } catch (error) {
-                            console.error('Retry failed:', error);
-                          }
-                        }}
-                      >
-                        נסה שוב
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-              
-              {isStreaming && (
-                <div className={styles.streamingResponse}>
-                  {streamingMessage ? (
-                    <ChatMessageComponent
-                      type="assistant"
-                      content={streamingMessage}
-                      timestamp={formatMessageTimestamp(getCurrentTimestamp())}
-                      isStreaming={true}
-                    />
-                  ) : (
-                    <div className={styles.typingIndicator}>
-                      <span></span>
-                      <span></span>
-                      <span></span>
-                    </div>
-                  )}
+              ) : (
+                <div className={styles.typingIndicator}>
+                  <span></span>
+                  <span></span>
+                  <span></span>
                 </div>
               )}
             </div>
-            
-            <InputMessageContainer 
-              onSendMessage={onSendMessage}
-              isStreaming={isStreaming}
-              triggerFocusAnimation={triggerInputAnimation}
-              prefilledMessage={prefilledMessage}
-              onPrefilledMessageCleared={onPrefilledMessageCleared}
-              onStop={onStop}
-              isSidebarOpen={isSidebarOpen}
-            />
-          </>
-        )}
+          )}
+        </div>
+        
+        <InputMessageContainer 
+          onSendMessage={onSendMessage}
+          isStreaming={isStreaming}
+          triggerFocusAnimation={triggerInputAnimation}
+          prefilledMessage={prefilledMessage}
+          onPrefilledMessageCleared={onPrefilledMessageCleared}
+          onStop={onStop}
+          isSidebarOpen={isSidebarOpen}
+        />
       </div>
     );
 } 

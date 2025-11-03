@@ -1,10 +1,7 @@
-/* Mobile-first message containers */
+/* Message Containers */
 .messageContainer {
   display: flex;
-  margin-top: 0.1rem;
-  margin-bottom: 0.1rem;
-  margin-left: 0.75rem;
-  margin-right: 0.75rem;
+  margin: 0.5rem 1.75rem;
 }
 
 .messageContainer.user {
@@ -15,19 +12,19 @@
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  max-width: 90%;
+  max-width: 80%;
 }
 
 .messageContainer.assistant {
   justify-content: flex-start;
-  max-width: 95%;
+  max-width: 85%; /* Constrain assistant messages to reasonable width */
 }
 
-/* Mobile-first message box */
+/* User Message Box */
 .messageBox {
   width: 100%;
   padding: 0.75rem 1rem;
-  border-radius: 18px;
+  border-radius: 1rem;
   overflow-wrap: break-word;
   word-break: break-word;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -43,10 +40,10 @@
   color: var(--text-primary);
 }
 
-/* Mobile-first message text */
+/* Message Text */
 .messageText {
-  font-size: 0.9rem;
-  line-height: 1.5;
+  font-size: 0.95rem;
+  line-height: 1.4;
   overflow-wrap: break-word;
 }
 
@@ -155,14 +152,14 @@
   width: 100%;
   padding: 0.25rem 0.5rem;
   min-height: 1.5rem;
-  max-height: calc(1.5em * 4 + 0.5rem);
+  max-height: calc(1.4em * 4 + 0.5rem);   /* max height of 4 lines of text + padding */
   border: none;
   border-radius: 0.5rem;
   background-color: var(--message-bg);
   color: var(--text-primary);
   font-family: inherit;
-  font-size: 1rem;
-  line-height: 1.5;
+  font-size: 0.95rem;
+  line-height: 1.4;
   resize: none;
   outline: none;
   box-sizing: border-box;
@@ -177,7 +174,7 @@
 .editButtons {
   display: flex;
   gap: 0.5rem;
-  padding-top: 0.25rem;
+  padding-top: 0.3rem;
 }
 
 .saveButton, .cancelButton {
@@ -210,7 +207,7 @@
 }
 
 
-/* Mobile-first markdown elements */
+/* Markdown Elements */
 .paragraph {
   margin: 0.5rem 0;
   line-height: 1.6;
@@ -229,13 +226,13 @@
   margin: 0.75rem 0 0.5rem 0;
 }
 
-.heading1 { font-size: 1.25rem; margin-top: 1rem; }
-.heading2 { font-size: 1.125rem; margin-top: 0.75rem; }
-.heading3 { font-size: 1rem; }
+.heading1 { font-size: 1.5rem; margin-top: 1rem; }
+.heading2 { font-size: 1.25rem; margin-top: 0.875rem; }
+.heading3 { font-size: 1.125rem; }
 
 .list, .orderedList {
   margin: 0.5rem 0;
-  padding-inline-start: 1.5rem;
+  padding-inline-start: 1.25rem;
   line-height: 1.6;
   list-style-position: inside;
 }
@@ -312,22 +309,58 @@
   }
 }
 
-/* Small tablet screens (576-768px) */
-@media (min-width: 576px) and (max-width: 767px) {
+/* Tablet Responsive */
+@media (max-width: 768px) {
   .messageContainer {
-    margin: 0.625rem 1rem;
+    margin: 0.5rem 1rem;
+  }
+
+  .userMessageWrapper {
+    max-width: 85%;
+  }
+
+  .userMessageWrapper.editing {
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .messageContainer.assistant .messageBox {
+    max-width: 90%;
+  }
+
+  .codeBlockContainer {
+    width: min(500px, calc(100vw - 25rem)) !important; /* Responsive width for tablets */
+    max-width: 100% !important;
+  }
+  
+  .messageContainer.user .codeBlockContainer {
+    width: min(400px, calc(100vw - 25rem)) !important;
+    max-width: 100% !important;
+  }
+}
+
+
+/* Mobile Responsive */
+@media (max-width: 600px) {
+  .messageContainer {
+    margin: 0.5rem 0.5rem;
   }
 
   .userMessageWrapper {
     max-width: 90%;
   }
 
-  .messageContainer.assistant {
-    max-width: 95%;
+  .userMessageWrapper.editing {
+    max-width: 100%;
+    width: 100%;
   }
 
   .messageBox {
-    padding: 0.875rem 1.25rem;
+    padding: 0.75rem;
+  }
+
+  .messageContainer.assistant .messageBox {
+    max-width: 95%;
   }
 
   .codeBlockContainer {
