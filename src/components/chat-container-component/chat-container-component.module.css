@@ -14,11 +14,6 @@
 }
 
 
-/* When sidebar is open */
-.chatContainer.shifted {
-  margin-right: var(--sidebar-width-open);
-}
-
 /* When chat is empty, position input higher */
 .chatContainer.empty {
   justify-content: flex-start;
