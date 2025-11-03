@@ -137,10 +137,22 @@ export default function ChatContainerComponent({
           <div className={styles.scrollBoundary}></div>
           
           {messages.length === 0 ? (
-            <div className={styles.welcomeMessage}>
-              <h2>ברוכים הבאים ל-ChatPLG!</h2>
-              <p>התחל שיחה חדשה על ידי שליחת הודעה</p>
-            </div>
+            <>
+              <div className={styles.welcomeMessage}>
+                <h2>ברוכים הבאים ל-ChatPLG!</h2>
+                <p>התחל שיחה חדשה על ידי שליחת הודעה</p>
+              </div>
+              <InputMessageContainer 
+                onSendMessage={onSendMessage}
+                isStreaming={isStreaming}
+                triggerFocusAnimation={triggerInputAnimation}
+                prefilledMessage={prefilledMessage}
+                onPrefilledMessageCleared={onPrefilledMessageCleared}
+                onStop={onStop}
+                isSidebarOpen={isSidebarOpen}
+                isInline={true}
+              />
+            </>
           ) : (
             // Render all messages
             messages.map((message) => (
@@ -200,15 +212,18 @@ export default function ChatContainerComponent({
           )}
         </div>
         
-        <InputMessageContainer 
-          onSendMessage={onSendMessage}
-          isStreaming={isStreaming}
-          triggerFocusAnimation={triggerInputAnimation}
-          prefilledMessage={prefilledMessage}
-          onPrefilledMessageCleared={onPrefilledMessageCleared}
-          onStop={onStop}
-          isSidebarOpen={isSidebarOpen}
-        />
+        {messages.length > 0 && (
+          <InputMessageContainer 
+            onSendMessage={onSendMessage}
+            isStreaming={isStreaming}
+            triggerFocusAnimation={triggerInputAnimation}
+            prefilledMessage={prefilledMessage}
+            onPrefilledMessageCleared={onPrefilledMessageCleared}
+            onStop={onStop}
+            isSidebarOpen={isSidebarOpen}
+            isInline={false}
+          />
+        )}
       </div>
     );
 } 

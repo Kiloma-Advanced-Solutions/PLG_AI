@@ -23,6 +23,7 @@
 .chatContainer.empty {
   justify-content: flex-start;
   padding-top: 15rem; /* Account for fixed header */
+  padding-bottom: 0; /* No bottom padding when empty - input is inline */
 }
 
 /* conversation area */
@@ -58,6 +59,7 @@
   flex: 0 0 auto; 
   justify-content: flex-start;
   align-items: center;
+  overflow-y: visible; /* No scrolling when empty */
 }
 
 .welcomeMessage {
@@ -98,7 +100,7 @@
 
 /* Spacing for inline input after welcome message */
 .messagesContainer.empty .welcomeMessage {
-  margin-bottom: 3rem;
+  margin-bottom: 2rem;
 }
 
 .streamingResponse {

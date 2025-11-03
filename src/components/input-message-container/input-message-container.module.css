@@ -141,13 +141,15 @@
   right: auto;
   left: auto;
   bottom: auto;
-  padding: 0;
+  padding: 0 1.25rem;
+  margin-top: 0;
   background-color: transparent;
   border-top: none;
-    z-index: var(--z-input);
+  z-index: var(--z-input);
   width: 100%;
   max-width: 800px;
-  margin: 0 auto;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Inline mode always overrides shifted positioning across all breakpoints */
