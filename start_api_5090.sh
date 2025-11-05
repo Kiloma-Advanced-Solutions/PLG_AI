@@ -18,6 +18,11 @@ LLM_API_LOG_LEVEL=${LLM_API_LOG_LEVEL:-INFO}
 VLLM_PORT=${LLM_API_VLLM_PORT:-8060}
 MODEL=${LLM_API_LLM_MODEL_NAME:-${LLM_API_MODEL_NAME:-gaunernst/gemma-3-12b-it-qat-autoawq}}
 MODE="${1:-dev}"  # dev | prod
+OPENAI_LOG=${OPENAI_LOG:-debug}
+OPENAI_AGENTS_DEBUG=${OPENAI_AGENTS_DEBUG:-1}
+
+export OPENAI_LOG
+export OPENAI_AGENTS_DEBUG
 
 # Stop any existing vLLM server
 stop_vllm() {
@@ -25,9 +30,10 @@ stop_vllm() {
     pkill -f "vllm.entrypoints.openai.api_server" >/dev/null 2>&1 || true
 }
 
-# Stop any existing MCP server
+# Stop any existing MCP servers
 stop_mcp() {
     pkill -f "mcp_server.py" >/dev/null 2>&1 || true
+    pkill -f "mcp_server1.py" >/dev/null 2>&1 || true
 }
 
 # Ensure cleanup on exit
@@ -65,22 +71,39 @@ start_vllm() {
 }
 start_vllm
 
-# Start MCP server
+# Start MCP servers
 start_mcp() {
     cd "$API_DIR"
-    python mcp_server.py &
-    MCP_PID=$!
-    
-    echo "Waiting for MCP server to start..."
-    MCP_PORT=${LLM_API_MCP_PORT:-8000}
+    python mcp_servers/mcp_server.py &
+    MCP_PID1=$!
+    python mcp_servers/mcp_server1.py &
+    MCP_PID2=$!
+
+    echo "Waiting for MCP servers to start..."
+    MCP_PORT1=${LLM_API_MCP_PORT:-8000}
+    MCP_PORT2=${LLM_API_MCP_PORT2:-8001}
+
+    # Wait for first MCP server
     for i in {1..30}; do
-        # Check if port is listening (nc -z checks if port is open without sending data)
-        if nc -z localhost "$MCP_PORT" 2>/dev/null; then
-            echo "✅ MCP server is ready on port $MCP_PORT!"
+        if nc -z localhost "$MCP_PORT1" 2>/dev/null; then
+            echo "✅ MCP server (mcp_server.py) is ready on port $MCP_PORT1!"
             break
         fi
         if [ $i -eq 30 ]; then
-            echo "❌ MCP server failed to start after 30 seconds"
+            echo "❌ MCP server (mcp_server.py) failed to start after 30 seconds"
+            return 1
+        fi
+        sleep 1
+    done
+
+    # Wait for second MCP server
+    for i in {1..30}; do
+        if nc -z localhost "$MCP_PORT2" 2>/dev/null; then
+            echo "✅ MCP server (mcp_server1.py) is ready on port $MCP_PORT2!"
+            break
+        fi
+        if [ $i -eq 30 ]; then
+            echo "❌ MCP server (mcp_server1.py) failed to start after 30 seconds"
             return 1
         fi
         sleep 1
@@ -96,11 +119,13 @@ if [ ! -f "main.py" ]; then
     exit 1
 fi
 
-MCP_PORT=${LLM_API_MCP_PORT:-8000}
+MCP_PORT1=${LLM_API_MCP_PORT:-8000}
+MCP_PORT2=${LLM_API_MCP_PORT2:-8001}
 echo "🚀 All services running:"
 echo "  • API:  http://${LLM_API_HOST}:${LLM_API_PORT}"
 echo "  • vLLM: http://localhost:${VLLM_PORT}"
-echo "  • MCP:  http://localhost:${MCP_PORT}/mcp"
+echo "  • MCP (mcp_server.py):  http://localhost:${MCP_PORT1}/mcp"
+echo "  • MCP (mcp_server1.py): http://localhost:${MCP_PORT2}/mcp"
 echo "  • Model: ${MODEL}"
 
 

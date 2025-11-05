@@ -130,3 +130,13 @@ class APIError(BaseModel):
     details: Optional[Dict[str, Any]] = None
     timestamp: datetime = Field(default_factory=datetime.now) 
 
+
+# ===============================
+# AGENTS MODELS
+# ===============================
+
+class TriageAgentResponse(BaseModel):
+    """Response from triage agent"""
+    should_handoff: bool = Field(description="Whether to handoff to another agent")
+    handoff_agent: Literal["IO", "Internet", "null"] = Field(description="The name of the agent to handoff to")
+    handoff_reason: str = Field(description="The reason for handoff")

@@ -1,52 +1,45 @@
+import logging
+import traceback
+
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("Demo", port=8000)
+mcp = FastMCP("Demo1", port=8001)
+
+logger = logging.getLogger(__name__)
 
 @mcp.tool()
 def add(a: float, b: float) -> float:
     """Add two numbers together."""
+    logger.info("[MCP] add called", extra={"a": a, "b": b})
+    print(f"[MCP] add called with a={a!r} (type={type(a)}), b={b!r} (type={type(b)})")
     return a + b
 
 
 @mcp.tool()
 def multiply(a: float, b: float) -> float:
     """Multiply two numbers together."""
+    logger.info("[MCP] multiply called", extra={"a": a, "b": b})
+    print(f"[MCP] multiply called with a={a!r} (type={type(a)}), b={b!r} (type={type(b)})")
     return a * b
 
+@mcp.tool()
+def get_pi() -> float:
+    """Get the value of Pi."""
+    logger.info("[MCP] get_pi called")
+    print("[MCP] get_pi called")
+    import math
+    return math.pi
+    
 
 @mcp.tool()
 def time() -> str:
     """Get the current time in Israel (Asia/Jerusalem)."""
+    logger.info("[MCP] time called")
+    print("[MCP] time called")
     from datetime import datetime
     from zoneinfo import ZoneInfo
     israel_time = datetime.now(ZoneInfo("Asia/Jerusalem"))
     return israel_time.strftime('%H:%M:%S')  # convert to string
-
-
-@mcp.tool()
-def get_weather(city: str) -> str:
-    """Get the current weather of a city."""
-    import requests
-    from urllib.parse import quote
-
-    city_encoded = quote(city)  # encode spaces and special characters
-    url = f"https://wttr.in/{city_encoded}?format=j1"
-    weather = requests.get(url).json()
-
-    # current_condition is a list with one dict
-    current = weather["current_condition"][0]
-    
-    # extract relevant fields
-    weather_data = {
-        "temp_C": current.get("temp_C"),
-        "FeelsLikeC": current.get("FeelsLikeC"),
-        "humidity": current.get("humidity"),
-        "uvIndex": current.get("uvIndex"),
-        "weatherDesc": current.get("weatherDesc")[0]["value"] if current.get("weatherDesc") else None,
-        "windspeedKmph": current.get("windspeedKmph")
-    }
-
-    return str(weather_data)
 
 
 @mcp.tool()
@@ -56,6 +49,17 @@ def create_file(content: str, file_name) -> str:
     Use this tool whenever the user asks to create a file.
     IMPORTANT: Always return the tool’s output directly to the user.   
     """
+    logger.info(
+        "[MCP] create_file called",
+        extra={
+            "file_name": file_name,
+            "content_preview": content[:100] if isinstance(content, str) else str(type(content)),
+        },
+    )
+    print(
+        f"[MCP] create_file called with file_name={file_name!r} (type={type(file_name)}), "
+        f"content_type={type(content)}"
+    )
     import os
 
     try:
@@ -67,6 +71,7 @@ def create_file(content: str, file_name) -> str:
         return f"✅ הקובץ נוצר לבקשתך. ניתן לצפות בו בנתיב: {abs_path}"
         
     except Exception as e:
+        traceback.print_exc()
         return f"❌ שגיאה ביצירת קובץ: {e}"
 
 
@@ -78,6 +83,8 @@ def read_file(file_path: str) -> str:
     The 'file_path' parameter should be the full path to the file.
     IMPORTANT: Always return the tool’s output directly to the user.   
     """
+    logger.info("[MCP] read_file called", extra={"file_path": file_path})
+    print(f"[MCP] read_file called with file_path={file_path!r} (type={type(file_path)})")
     import os
 
     # Normalize the path - handle both absolute and relative paths
@@ -98,44 +105,9 @@ def read_file(file_path: str) -> str:
             content = f.read()
         return f"📄 תוכן הקובץ:`{os.path.abspath(file_path)}`:\n\n{content}"
     except Exception as e:
+        traceback.print_exc()
         return f"❌ שגיאה בקריאת קובץ: {e}"
 
-
-@mcp.tool()
-def get_cat_message(message: str) -> str:
-    """Get a cat image with a personal message, formatted as Markdown."""
-    import requests
-    from urllib.parse import quote
-
-    message_encoded = quote(message)
-    url = f"https://cataas.com/cat/says/{message_encoded}"
-
-    response = requests.get(url)
-    if response.status_code == 200:
-        # Return a Markdown image tag so the chatbot renders it directly (<![alt text](image_url)>)
-        return f"![החתול אומר {message}](https://cataas.com/cat/says/{message_encoded})"
-    else:
-        return f"❌ נכשל באחזור התמונה (status {response.status_code})."
-
-
-@mcp.tool()
-def get_pi() -> float:
-    """Get the value of Pi."""
-    import math
-    return math.pi
-
-
-@mcp.resource("greeting://{name}")
-def get_greeting(name: str) -> str:
-    """Get a personalized greeting."""
-    return f"Hello, {name}!"
-
-
-@mcp.resource("local://user")
-def user_info():
-    """Provide basic information about the current user."""
-    import json
-    return json.dumps({"name": "פלג אליהו", "age": 28})
 
 
     

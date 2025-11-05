@@ -49,7 +49,7 @@ def create_routes(app: FastAPI) -> None:
             # Stream chat response using prepared messages
             return StreamingResponse(
                 # Call chat service to generate response stream with prepared messages
-                chat_service.stream_chat(prepared_messages, session_id, chat_request.use_mcp),
+                chat_service.stream_chat(prepared_messages, session_id),
                 media_type="text/event-stream",
                 headers={
                     "Cache-Control": "no-cache",
