@@ -44,6 +44,10 @@ stop_mcp
 
 # Start vLLM server
 start_vllm() {
+    # Get the directory where this script is located
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    CHAT_TEMPLATE_PATH="$SCRIPT_DIR/llm-api/gemma_tool_template.jinja"
+    
     python -m vllm.entrypoints.openai.api_server \
         --model "$MODEL" \
         --max-model-len 16384 \
@@ -51,7 +55,8 @@ start_vllm() {
         --gpu-memory-utilization 0.9 \
         --disable-log-requests \
         --enable-auto-tool-choice \
-        --tool-call-parser pythonic &
+        --tool-call-parser pythonic \
+        --chat-template "$CHAT_TEMPLATE_PATH" &
 
     echo "Waiting for vLLM to start..."
     for i in {1..1200}; do

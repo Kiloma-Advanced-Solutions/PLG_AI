@@ -42,14 +42,14 @@ triage_agent = Agent(name="Triage Agent",
 
 Available specialized agents:
 - "IO": For file system operations, reading/writing files
-- "Internet": For web searches, fetching external data
+- "Internet": For web searches, fetching external data, time, weather
 
 CRITICAL: You MUST respond with ONLY valid JSON. No explanations, no markdown, no code blocks.
 
 JSON format (required):
 {
   "should_handoff": true/false,
-  "handoff_agent": "IO" or "Internet" (only if should_handoff is true, otherwise "null"),
+  "handoff_agent": "IO" or "Internet" (only if should_handoff is true, otherwise null),
   "handoff_reason": "brief explanation"
 }
 
@@ -61,21 +61,21 @@ Respond with JSON only.""",
 io_agent = Agent(
     name="IO Agent",
     instructions="You are a helpful assistant for IO operations. Use the available tools to help users with file operations.",
-    model=model,
+              model=model,
     mcp_servers=[mcp_io],
     model_settings=ModelSettings(tool_choice="required"),
-)
+              )
 
 internet_agent = Agent(
     name="Internet Agent",
     instructions="You are a helpful assistant for Internet operations. Use the available tools to help users with weather, time, and other internet-based queries. Return the tool result directly to the user.",
-    model=model,
+              model=model,
     mcp_servers=[mcp_internet],
     model_settings=ModelSettings(
         tool_choice="required",
         parallel_tool_calls=False  # Disable parallel calls to simplify
     ),
-)
+              )
 
 general_agent = Agent(name="General Agent",
               instructions="You are a helpful assistant for queries that don't require specialized help.",

@@ -1,0 +1,44 @@
+{% for message in messages %}
+    {%- if message['role'] == 'system' -%}
+        {{ bos_token }}{{ message['content'] }}
+    {%- elif message['role'] == 'user' -%}
+        {{ '<start_of_turn>user\n' + message['content'] + '<end_of_turn>\n' }}
+    {%- elif message['role'] == 'assistant' -%}
+        {%- if message.get('tool_calls') -%}
+            {# Assistant is calling a tool #}
+            {{ '<start_of_turn>model\n' }}
+            {%- for tool_call in message['tool_calls'] -%}
+                {{ 'Calling function: ' + tool_call['function']['name'] + '\n' }}
+                {%- if tool_call['function']['arguments'] is string -%}
+                    {{ 'Arguments: ' + tool_call['function']['arguments'] + '\n' }}
+                {%- else -%}
+                    {{ 'Arguments: ' + (tool_call['function']['arguments'] | tojson) + '\n' }}
+                {%- endif -%}
+            {%- endfor -%}
+            {{ '<end_of_turn>\n' }}
+        {%- else -%}
+            {{ '<start_of_turn>model\n' + message['content'] + '<end_of_turn>\n' }}
+        {%- endif -%}
+    {%- elif message['role'] == 'tool' -%}
+        {# Convert tool response to user message with context #}
+        {{ '<start_of_turn>user\n' }}
+        {%- if message['content'] is string -%}
+            {{ 'Function result: ' + message['content'] + '\n' }}
+        {%- elif message['content'] is mapping -%}
+            {# Handle dict content - extract text field or serialize #}
+            {%- if message['content'].get('text') -%}
+                {{ 'Function result: ' + message['content']['text'] + '\n' }}
+            {%- else -%}
+                {{ 'Function result: ' + (message['content'] | tojson) + '\n' }}
+            {%- endif -%}
+        {%- else -%}
+            {{ 'Function result: ' + (message['content'] | string) + '\n' }}
+        {%- endif -%}
+        {{ 'Please provide a natural response based on this result.' }}
+        {{ '<end_of_turn>\n' }}
+    {%- endif -%}
+{%- endfor -%}
+{%- if add_generation_prompt -%}
+    {{ '<start_of_turn>model\n' }}
+{%- endif -%}
+

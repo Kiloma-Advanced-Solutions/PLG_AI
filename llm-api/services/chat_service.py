@@ -87,7 +87,7 @@ class ChatService:
         """Run triage and select appropriate agent."""
         logger.info(f"Triage: {user_message[:50]}...")
         
-        # Run triage
+        # Run triage agent
         result = await Runner().run(triage_agent, user_message)
         raw = result.final_output.strip()
         
@@ -148,119 +148,17 @@ class ChatService:
             yield "data: [DONE]\n\n"
     
     async def _run_agent_with_tools(self, agent: Any, user_message: str) -> AsyncGenerator[str, None]:
-        """
-        Run agent with tools using manual tool execution loop.
-        """
-        from openai import AsyncOpenAI
+        """Run agent with MCP tools - SDK handles everything automatically."""
+        logger.info(f"Running {agent.name}")
         
-        # Get the model's OpenAI client
-        openai_client = agent.model._client  # Private attribute
-        model_name = agent.model.model
+        # Let the SDK handle the full agent workflow
+        result = await Runner().run(starting_agent=agent, input=user_message)
         
-        # Wrap MCP tool calls for reconnection
-        mcp_servers = getattr(agent, "mcp_servers", [])
-        for server in mcp_servers:
-            original = server.call_tool
-            async def wrapped(name: str, args: dict, _orig=original, _srv=server):
-                logger.info(f"[MCP] {_srv.name}.{name}({args})")
-                try:
-                    await _srv.cleanup()
-                except:
-                    pass
-                await _srv.connect()
-                result = await _orig(name, args)
-                logger.info(f"[MCP] {name} returned: {result}")
-                return result
-            server.call_tool = wrapped
-        
-        # Get tools from MCP servers (reconnect first if needed)
-        tools = []
-        for server in mcp_servers:
-            # Ensure connection before listing tools
-            try:
-                await server.cleanup()
-            except:
-                pass
-            await server.connect()
-            server_tools = await server.list_tools()
-            for tool in server_tools:
-                tools.append({
-                    "type": "function",
-                    "function": {
-                        "name": tool.name,
-                        "description": tool.description or "",
-                        "parameters": tool.inputSchema or {"type": "object", "properties": {}}
-                    }
-                })
-        
-        logger.info(f"Running {agent.name} with {len(tools)} tools")
-        
-        # Step 1: Get tool call from LLM
-        messages = [
-            {"role": "system", "content": agent.instructions},
-            {"role": "user", "content": user_message}
-        ]
-        
-        response = await openai_client.chat.completions.create(
-            model=model_name,
-            messages=messages,
-            tools=tools,
-            tool_choice="required"
-        )
-        
-        tool_calls = response.choices[0].message.tool_calls
-        if not tool_calls:
-            logger.warning("No tool calls generated")
-            yield "data: [DONE]\n\n"
-            return
-        
-        # Step 2: Execute tool
-        tool_call = tool_calls[0]
-        tool_name = tool_call.function.name
-        tool_args = json.loads(tool_call.function.arguments)
-        
-        logger.info(f"Executing tool: {tool_name}({tool_args})")
-        
-        # Find the right server and execute
-        tool_result = None
-        for server in mcp_servers:
-            try:
-                tool_result = await server.call_tool(tool_name, tool_args)
-                break
-            except:
-                continue
-        
-        if not tool_result:
-            logger.error(f"Tool {tool_name} execution failed")
-            yield "data: [DONE]\n\n"
-            return
-        
-        # Extract text from tool result
-        tool_output = self._extract_text_from_tool_result(tool_result)
-        logger.info(f"Tool output: {tool_output}")
-        
-        # Step 3: Get final response from LLM (without tool role)
-        # Add assistant message acknowledging tool use, then user message with result
-        # This maintains the required user/assistant alternation
-        messages.append({
-            "role": "assistant",
-            "content": f"I'll use the {tool_name} tool to answer your question."
-        })
-        messages.append({
-            "role": "user",
-            "content": f"The tool returned: {tool_output}\n\nNow please provide a natural, helpful response in Hebrew."
-        })
-        
-        response = await openai_client.chat.completions.create(
-            model=model_name,
-            messages=messages,
-            stream=True
-        )
-        
-        # Step 4: Stream the response
-        async for chunk in response:
-            if chunk.choices and chunk.choices[0].delta.content:
-                yield self._sse(chunk.choices[0].delta.content)
+        # Stream the final output character by character
+        if output := result.final_output:
+            for char in output:
+                yield self._sse(char)
+                await asyncio.sleep(0.005)  # Small delay for smooth streaming
         
         yield "data: [DONE]\n\n"
     
@@ -302,8 +200,29 @@ class ChatService:
     async def ensure_mcp_servers_connected(self, mcp_servers: List[MCPServer]) -> None:
         """Ensure all MCP servers have active sessions before use."""
         for server in mcp_servers:
-            # Only connect if not already connected
-            if getattr(server, "session", None) is None:
+            session = getattr(server, "session", None)
+            
+            # Check if we need to reconnect
+            needs_reconnect = False
+            if session is None:
+                needs_reconnect = True
+            else:
+                # Check if session is closed by trying to access write stream
+                try:
+                    write_stream = getattr(session, "_write_stream", None)
+                    if write_stream is None or getattr(write_stream, "_closed", False):
+                        needs_reconnect = True
+                except:
+                    needs_reconnect = True
+            
+            if needs_reconnect:
+                # Cleanup old session if it exists
+                if session is not None:
+                    try:
+                        await server.cleanup()
+                    except:
+                        pass
+                
                 logger.info(f"Connecting to MCP server {server.name}: {getattr(server, 'params', {}).get('url', 'unknown')}")
                 await server.connect()
             else:

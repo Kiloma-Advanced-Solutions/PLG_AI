@@ -31,13 +31,16 @@ def get_weather(city: str) -> str:
         "windspeedKmph": current.get("windspeedKmph")
     }
 
+    return str(weather_data)
+
+
 
 @mcp.tool()
 def time() -> str:
     """Get the current time in Israel (Asia/Jerusalem)."""
     from datetime import datetime
     from zoneinfo import ZoneInfo
-
+    print("time tool")
     israel_time = datetime.now(ZoneInfo("Asia/Jerusalem"))
     return israel_time.strftime('%H:%M:%S')  # convert to string
 
@@ -57,7 +60,6 @@ def get_cat_message(message: str) -> str:
         return f"![החתול אומר {message}](https://cataas.com/cat/says/{message_encoded})"
     else:
         return f"❌ נכשל באחזור התמונה (status {response.status_code})."
-
 
 
 

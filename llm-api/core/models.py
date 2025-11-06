@@ -138,5 +138,6 @@ class APIError(BaseModel):
 class TriageAgentResponse(BaseModel):
     """Response from triage agent"""
     should_handoff: bool = Field(description="Whether to handoff to another agent")
-    handoff_agent: Literal["IO", "Internet", "null"] = Field(description="The name of the agent to handoff to")
-    handoff_reason: str = Field(description="The reason for handoff")
+    handoff_agent: Optional[Literal["IO", "Internet"]] = Field(default=None, description="The name of the agent to handoff to")
+    handoff_reason: Optional[str] = Field(default=None, description="The reason for handoff")
+
