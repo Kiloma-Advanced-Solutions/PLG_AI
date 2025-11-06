@@ -48,218 +48,19 @@ class ChatService:
             latest_user_msg = self.extract_latest_user_message(messages)
 
             if latest_user_msg:
-                logger.info(f"Running triage for: {latest_user_msg[:100]}")
-
                 try:
-                    # Run triage agent to decide routing
-                    triage_result = await Runner().run(triage_agent, latest_user_msg)
+                    # Triage and route to appropriate agent
+                    agent = await self._select_agent(latest_user_msg)
+                    await self.ensure_mcp_servers_connected(getattr(agent, "mcp_servers", []))
                     
-                    # Extract JSON from markdown code blocks if present
-                    raw_output = triage_result.final_output.strip()
+                    # Stream agent response
+                    async for chunk in self._stream_agent_response(agent, latest_user_msg):
+                        yield chunk
+                    return
                     
-                    # Remove markdown code blocks (```json ... ``` or ``` ... ```)
-                    if raw_output.startswith("```"):
-                        # Extract content between triple backticks
-                        match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', raw_output, re.DOTALL)
-                        if match:
-                            raw_output = match.group(1).strip()
-                    
-                    logger.info(f"Triage output: {raw_output[:200]}")
-                    
-                    triage_data = json.loads(raw_output)
-                    triage_response = TriageAgentResponse(**triage_data)
-
-                    logger.info(
-                        f"Triage decision: handoff={triage_response.should_handoff}, "
-                        f"agent={triage_response.handoff_agent if triage_response.should_handoff else 'general'}"
-                    )
-
-                    # Route to selected agent based on triage decision
-                    if triage_response.should_handoff:
-                        agent_name = triage_response.handoff_agent.lower()
-                        if agent_name == "io":
-                            selected_agent = io_agent
-                        elif agent_name == "internet":
-                            selected_agent = internet_agent
-                        else:
-                            selected_agent = general_agent
-                    else:
-                        selected_agent = general_agent
-
-                    logger.info(f"Routing to {selected_agent.name}")
-
-                    # Ensure MCP servers are connected before streaming
-                    await self.ensure_mcp_servers_connected(
-                        getattr(selected_agent, "mcp_servers", [])
-                    )
-
-                    # Stream the selected agent's response
-                    runner = Runner()
-                    
-                    # Wrap MCP servers to reconnect before each call_tool (workaround for ClosedResourceError)
-                    original_call_tools = {}
-                    for mcp_server in getattr(selected_agent, "mcp_servers", []):
-                        original_call_tool = mcp_server.call_tool
-                        async def logged_call_tool(tool_name: str, arguments: dict, _orig=original_call_tool, _server=mcp_server):
-                            try:
-                                # Reconnect before each tool call to work around session closure
-                                logger.info(f"[MCP] Reconnecting to {_server.name} before calling {tool_name}")
-                                try:
-                                    await _server.cleanup()
-                                except Exception:
-                                    pass  # Ignore cleanup errors
-                                await _server.connect()
-                                
-                                logger.info(f"[MCP] Calling tool {tool_name} with args: {arguments}")
-                                result = await _orig(tool_name, arguments)
-                                logger.info(f"[MCP] Tool {tool_name} returned: {result}")
-                                return result
-                            except Exception as e:
-                                logger.error(f"[MCP] Tool {tool_name} failed: {type(e).__name__}: {e}", exc_info=True)
-                                raise
-                        mcp_server.call_tool = logged_call_tool
-                        original_call_tools[id(mcp_server)] = original_call_tool
-                    
-                    result = runner.run_streamed(selected_agent, latest_user_msg)
-                    tool_arg_buffers: Dict[str, str] = {}
-
-                    async for event in result.stream_events():
-                        logger.debug(
-                            "Stream event received: %s",
-                            getattr(event, "type", "unknown"),
-                        )
-
-                        if event.type == "raw_response_event":
-                            response_event = event.data
-                            event_type = getattr(response_event, "type", "")
-                            logger.debug("Raw response event type: %s", event_type)
-
-                            if event_type == "response.output_text.delta":
-                                chunk = getattr(response_event, "delta", "")
-                                if not chunk:
-                                    continue
-
-                                payload = {
-                                    "choices": [
-                                        {
-                                            "delta": {
-                                                "content": chunk
-                                            }
-                                        }
-                                    ]
-                                }
-                                yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
-
-                            elif event_type == "response.function_call_arguments.delta":
-                                # Stream argument deltas for visibility during debugging
-                                delta = getattr(response_event, "arguments_delta", "")
-                                tool_id = getattr(response_event, "tool_call_id", None)
-                                if tool_id:
-                                    tool_arg_buffers[tool_id] = (
-                                        tool_arg_buffers.get(tool_id, "") + (delta or "")
-                                    )
-                                logger.info(
-                                    "Tool argument delta received: id=%s delta=%s buffer=%s",
-                                    tool_id,
-                                    delta,
-                                    tool_arg_buffers.get(tool_id, ""),
-                                )
-
-                            elif event_type == "response.completed":
-                                yield "data: [DONE]\n\n"
-                                return
-
-                        elif event.type == "run_item_stream_event":
-                            item = getattr(event, "item", None)
-                            item_type = getattr(item, "type", "") if item else ""
-                            logger.debug(
-                                "Run item event name=%s type=%s",
-                                getattr(event, "name", "unknown"),
-                                item_type,
-                            )
-
-                            if item_type == "tool_call_item" and item is not None:
-                                raw_item = getattr(item, "raw_item", None)
-                                tool_name = getattr(raw_item, "name", None)
-                                arguments = getattr(raw_item, "arguments", None)
-                                tool_call_id = getattr(raw_item, "id", None)
-                                buffered_args = (
-                                    tool_arg_buffers.get(tool_call_id, "") if tool_call_id else None
-                                )
-                                logger.info(
-                                    "Tool call issued: name=%s id=%s arguments=%s buffered_arguments=%s",
-                                    tool_name,
-                                    tool_call_id,
-                                    arguments,
-                                    buffered_args,
-                                )
-
-                            if item_type == "tool_call_output_item" and item is not None:
-                                tool_output = getattr(item, "output", None)
-                                logger.info(
-                                    "Tool call output received",
-                                    extra={
-                                        "output": tool_output,
-                                        "raw": getattr(item, "raw_item", None),
-                                    },
-                                )
-                                
-                                # Stream the tool output directly to the user
-                                if tool_output:
-                                    output_text = str(tool_output)
-                                    payload = {
-                                        "choices": [
-                                            {
-                                                "delta": {
-                                                    "content": output_text
-                                                }
-                                            }
-                                        ]
-                                    }
-                                    yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
-                                    # Send done signal and exit
-                                    yield "data: [DONE]\n\n"
-                                    return
-
-                            if item_type == "message_output_item" and item is not None:
-                                raw_message = getattr(item, "raw_item", None)
-                                if raw_message is None:
-                                    continue
-
-                                content_parts = getattr(raw_message, "content", [])
-                                for content_part in content_parts:
-                                    part_type = getattr(content_part, "type", "")
-                                    text_value = getattr(content_part, "text", None)
-
-                                    if part_type == "output_text" and text_value:
-                                        payload = {
-                                            "choices": [
-                                                {
-                                                    "delta": {
-                                                        "content": text_value
-                                                    }
-                                                }
-                                            ]
-                                        }
-                                        yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n"
-
-                            else:
-                                logger.debug(
-                                    "Run item event: %s for agent %s",
-                                    getattr(event, "name", "unknown"),
-                                    selected_agent.name,
-                                )
-
-                    # If we exit the loop without a completion event, send done signal
-                    yield "data: [DONE]\n\n"
-                    return  # Exit after agent handles the request
-                    
-                except Exception as triage_error:
-                    logger.exception(
-                        "Triage failed, falling back to regular chat: %s",
-                        repr(triage_error),
-                    )
-                    # Fall through to regular chat processing
+                except Exception as e:
+                    logger.exception(f"Agent routing failed: {e}")
+                    # Fall through to regular chat
 
             # Fallback: regular chat stream
             async for chunk in self.engine.chat_stream(messages, session_id):
@@ -276,19 +77,227 @@ class ChatService:
     
 
     def extract_latest_user_message(self, messages: List[Message]) -> Optional[str]:
-        """
-        Extract the most recent user message from conversation
-        
-        Args:
-            messages: Conversation history
-            
-        Returns:
-            Latest user message content or None
-        """
+        """Extract the most recent user message."""
         for msg in reversed(messages):
             if msg.role == "user":
                 return msg.content.strip()
         return None
+    
+    async def _select_agent(self, user_message: str) -> Any:
+        """Run triage and select appropriate agent."""
+        logger.info(f"Triage: {user_message[:50]}...")
+        
+        # Run triage
+        result = await Runner().run(triage_agent, user_message)
+        raw = result.final_output.strip()
+        
+        # Extract JSON from markdown if needed
+        if raw.startswith("```"):
+            if match := re.search(r'```(?:json)?\s*\n?(.*?)\n?```', raw, re.DOTALL):
+                raw = match.group(1).strip()
+        
+        # Parse triage decision
+        triage = TriageAgentResponse(**json.loads(raw))
+        logger.info(f"→ {triage.handoff_agent if triage.should_handoff else 'general'}")
+        
+        # Select agent
+        if not triage.should_handoff:
+            return general_agent
+        
+        agent_map = {"io": io_agent, "internet": internet_agent}
+        return agent_map.get(triage.handoff_agent.lower(), general_agent)
+    
+    @staticmethod
+    def _extract_text_from_tool_result(result: Any) -> Optional[str]:
+        """Extract text content from MCP tool result."""
+        if not result:
+            return None
+        
+        # Try to extract from content items
+        for item in getattr(result, 'content', []):
+            if text := getattr(item, 'text', None):
+                return text
+        
+        return str(result)
+    
+    @staticmethod
+    def _sse(content: str) -> str:
+        """Create SSE payload."""
+        return f'data: {json.dumps({"choices": [{"delta": {"content": content}}]}, ensure_ascii=False)}\n\n'
+    
+    async def _stream_agent_response(self, agent: Any, user_message: str) -> AsyncGenerator[str, None]:
+        """Stream agent responses with tool support."""
+        # For agents with MCP tools, use non-streaming mode to avoid template errors
+        if getattr(agent, "mcp_servers", []):
+            async for chunk in self._run_agent_with_tools(agent, user_message):
+                yield chunk
+        else:
+            # For agents without tools, use streaming
+            result = Runner().run_streamed(agent, user_message)
+            async for event in result.stream_events():
+                if event.type == "raw_response_event":
+                    if chunk := self._handle_raw_event(event):
+                        yield chunk
+                        if chunk == "data: [DONE]\n\n":
+                            return
+                elif event.type == "run_item_stream_event":
+                    async for chunk in self._handle_item_event(event):
+                        yield chunk
+                        if chunk == "data: [DONE]\n\n":
+                            return
+            yield "data: [DONE]\n\n"
+    
+    async def _run_agent_with_tools(self, agent: Any, user_message: str) -> AsyncGenerator[str, None]:
+        """
+        Run agent with tools using manual tool execution loop.
+        """
+        from openai import AsyncOpenAI
+        
+        # Get the model's OpenAI client
+        openai_client = agent.model._client  # Private attribute
+        model_name = agent.model.model
+        
+        # Wrap MCP tool calls for reconnection
+        mcp_servers = getattr(agent, "mcp_servers", [])
+        for server in mcp_servers:
+            original = server.call_tool
+            async def wrapped(name: str, args: dict, _orig=original, _srv=server):
+                logger.info(f"[MCP] {_srv.name}.{name}({args})")
+                try:
+                    await _srv.cleanup()
+                except:
+                    pass
+                await _srv.connect()
+                result = await _orig(name, args)
+                logger.info(f"[MCP] {name} returned: {result}")
+                return result
+            server.call_tool = wrapped
+        
+        # Get tools from MCP servers (reconnect first if needed)
+        tools = []
+        for server in mcp_servers:
+            # Ensure connection before listing tools
+            try:
+                await server.cleanup()
+            except:
+                pass
+            await server.connect()
+            server_tools = await server.list_tools()
+            for tool in server_tools:
+                tools.append({
+                    "type": "function",
+                    "function": {
+                        "name": tool.name,
+                        "description": tool.description or "",
+                        "parameters": tool.inputSchema or {"type": "object", "properties": {}}
+                    }
+                })
+        
+        logger.info(f"Running {agent.name} with {len(tools)} tools")
+        
+        # Step 1: Get tool call from LLM
+        messages = [
+            {"role": "system", "content": agent.instructions},
+            {"role": "user", "content": user_message}
+        ]
+        
+        response = await openai_client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            tools=tools,
+            tool_choice="required"
+        )
+        
+        tool_calls = response.choices[0].message.tool_calls
+        if not tool_calls:
+            logger.warning("No tool calls generated")
+            yield "data: [DONE]\n\n"
+            return
+        
+        # Step 2: Execute tool
+        tool_call = tool_calls[0]
+        tool_name = tool_call.function.name
+        tool_args = json.loads(tool_call.function.arguments)
+        
+        logger.info(f"Executing tool: {tool_name}({tool_args})")
+        
+        # Find the right server and execute
+        tool_result = None
+        for server in mcp_servers:
+            try:
+                tool_result = await server.call_tool(tool_name, tool_args)
+                break
+            except:
+                continue
+        
+        if not tool_result:
+            logger.error(f"Tool {tool_name} execution failed")
+            yield "data: [DONE]\n\n"
+            return
+        
+        # Extract text from tool result
+        tool_output = self._extract_text_from_tool_result(tool_result)
+        logger.info(f"Tool output: {tool_output}")
+        
+        # Step 3: Get final response from LLM (without tool role)
+        # Add assistant message acknowledging tool use, then user message with result
+        # This maintains the required user/assistant alternation
+        messages.append({
+            "role": "assistant",
+            "content": f"I'll use the {tool_name} tool to answer your question."
+        })
+        messages.append({
+            "role": "user",
+            "content": f"The tool returned: {tool_output}\n\nNow please provide a natural, helpful response in Hebrew."
+        })
+        
+        response = await openai_client.chat.completions.create(
+            model=model_name,
+            messages=messages,
+            stream=True
+        )
+        
+        # Step 4: Stream the response
+        async for chunk in response:
+            if chunk.choices and chunk.choices[0].delta.content:
+                yield self._sse(chunk.choices[0].delta.content)
+        
+        yield "data: [DONE]\n\n"
+    
+    def _handle_raw_event(self, event: Any) -> Optional[str]:
+        """Handle raw response events."""
+        evt = event.data
+        evt_type = getattr(evt, "type", "")
+        
+        if evt_type == "response.output_text.delta":
+            if chunk := getattr(evt, "delta", ""):
+                return self._sse(chunk)
+        elif evt_type == "response.completed":
+            return "data: [DONE]\n\n"
+        
+        return None
+    
+    async def _handle_item_event(self, event: Any) -> AsyncGenerator[str, None]:
+        """Handle run item events."""
+        if not (item := getattr(event, "item", None)):
+            return
+        
+        item_type = getattr(item, "type", "")
+        
+        # Tool output
+        if item_type == "tool_call_output_item":
+            if text := self._extract_text_from_tool_result(getattr(item, "output", None)):
+                logger.info(f"Tool output: {text[:50]}...")
+                yield self._sse(text)
+                yield "data: [DONE]\n\n"
+        
+        # Message output
+        elif item_type == "message_output_item":
+            if msg := getattr(item, "raw_item", None):
+                for part in getattr(msg, "content", []):
+                    if getattr(part, "type", "") == "output_text":
+                        if text := getattr(part, "text", None):
+                            yield self._sse(text)
 
     async def ensure_mcp_servers_connected(self, mcp_servers: List[MCPServer]) -> None:
         """Ensure all MCP servers have active sessions before use."""
