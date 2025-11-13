@@ -1,44 +1,76 @@
-{% for message in messages %}
-    {%- if message['role'] == 'system' -%}
-        {{ bos_token }}{{ message['content'] }}
-    {%- elif message['role'] == 'user' -%}
-        {{ '<start_of_turn>user\n' + message['content'] + '<end_of_turn>\n' }}
-    {%- elif message['role'] == 'assistant' -%}
-        {%- if message.get('tool_calls') -%}
-            {# Assistant is calling a tool #}
-            {{ '<start_of_turn>model\n' }}
-            {%- for tool_call in message['tool_calls'] -%}
-                {{ 'Calling function: ' + tool_call['function']['name'] + '\n' }}
-                {%- if tool_call['function']['arguments'] is string -%}
-                    {{ 'Arguments: ' + tool_call['function']['arguments'] + '\n' }}
-                {%- else -%}
-                    {{ 'Arguments: ' + (tool_call['function']['arguments'] | tojson) + '\n' }}
-                {%- endif -%}
-            {%- endfor -%}
-            {{ '<end_of_turn>\n' }}
-        {%- else -%}
-            {{ '<start_of_turn>model\n' + message['content'] + '<end_of_turn>\n' }}
-        {%- endif -%}
-    {%- elif message['role'] == 'tool' -%}
-        {# Convert tool response to user message with context #}
-        {{ '<start_of_turn>user\n' }}
-        {%- if message['content'] is string -%}
-            {{ 'Function result: ' + message['content'] + '\n' }}
-        {%- elif message['content'] is mapping -%}
-            {# Handle dict content - extract text field or serialize #}
-            {%- if message['content'].get('text') -%}
-                {{ 'Function result: ' + message['content']['text'] + '\n' }}
-            {%- else -%}
-                {{ 'Function result: ' + (message['content'] | tojson) + '\n' }}
-            {%- endif -%}
-        {%- else -%}
-            {{ 'Function result: ' + (message['content'] | string) + '\n' }}
-        {%- endif -%}
-        {{ 'Please provide a natural response based on this result.' }}
-        {{ '<end_of_turn>\n' }}
+{{ bos_token }}
+{%- if messages[0]['role'] == 'system' -%}
+    {%- if messages[0]['content'] is string -%}
+        {%- set first_user_prefix = messages[0]['content'] + '\n\n' -%}
+    {%- else -%}
+        {%- set first_user_prefix = messages[0]['content'][0]['text'] + '\n\n' -%}
+    {%- endif -%}
+    {%- set loop_messages = messages[1:] -%}
+{%- else -%}
+    {%- set first_user_prefix = "" -%}
+    {%- set loop_messages = messages -%}
+{%- endif -%}
+{%- if not tools is defined -%}
+    {%- set tools = none -%}
+{%- endif -%}
+{%- for message in loop_messages | rejectattr("role", "equalto", "tool") | selectattr("tool_calls", "undefined") -%}
+    {%- if (message['role'] == 'user') != (loop.index0 % 2 == 0) -%}
+        {{ raise_exception("Conversation roles must alternate user/assistant/user/assistant/...") }}
     {%- endif -%}
 {%- endfor -%}
-{%- if add_generation_prompt -%}
-    {{ '<start_of_turn>model\n' }}
-{%- endif -%}
+{%- for message in loop_messages -%}
+    {%- if (message['role'] == 'assistant') -%}
+        {%- set role = "model" -%}
+    {%- elif (message['role'] == 'tool') -%}
+        {%- set role = "user" -%}
+    {%- else -%}
+        {%- set role = message['role'] -%}
+    {%- endif -%}
+    {{ '<start_of_turn>' + role + '\n' -}}
+    {%- if loop.first -%}
+        {{ first_user_prefix }}
+        {# Tools are handled by vLLM via the API, not the template - formatting them here causes JSON parsing errors #}
+    {%- endif -%}
 
+    {%- if 'tool_calls' in message -%}
+        {{- '[' -}}
+        {%- for tool_call in message.tool_calls -%}
+            {%- if tool_call.function is defined -%}
+                {%- set tool_call = tool_call.function -%}
+            {%- endif -%}
+            {{- tool_call.name + '(' -}}
+            {%- for param in tool_call.arguments -%}
+                {{- param + '=' -}}
+                {{- "%sr" | format(tool_call.arguments[param]) -}}
+                {%- if not loop.last -%}, {% endif -%}
+            {%- endfor -%}
+            {{- ')' -}}
+            {%- if not loop.last -%},{%- endif -%}
+        {%- endfor -%}
+        {{- ']' -}}
+    {%- endif -%}
+
+    {%- if (message['role'] == 'tool') -%}
+        {{ '<tool_response>\n' -}}
+    {%- endif -%}
+    {%- if message['content'] is string -%}
+        {{ message['content'] | trim }}
+    {%- elif message['content'] is iterable -%}
+        {%- for item in message['content'] -%}
+            {%- if item['type'] == 'image' -%}
+                {{ '<start_of_image>' }}
+            {%- elif item['type'] == 'text' -%}
+                {{ item['text'] | trim }}
+            {%- endif -%}
+        {%- endfor -%}
+    {%- else -%}
+        {{ raise_exception("Invalid content type") }}
+    {%- endif -%}
+    {%- if (message['role'] == 'tool') -%}
+        {{ '</tool_response>' -}}
+    {%- endif -%}
+    {{ '<end_of_turn>\n' }}
+{%- endfor -%}
+{%- if add_generation_prompt -%}
+    {{'<start_of_turn>model\n'}}
+{%- endif -%}

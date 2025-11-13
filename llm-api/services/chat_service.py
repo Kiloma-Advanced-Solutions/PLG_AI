@@ -4,13 +4,10 @@ Chat service for handling chat conversations
 import uuid
 import logging
 import json
-import re
-import asyncio
-from typing import List, Optional, AsyncGenerator, Dict, Any
-from agents.mcp import MCPServer
+from typing import List, Optional, AsyncGenerator
 from core.llm_engine import llm_engine
-from core.models import Message, TriageAgentResponse
-from services.agent_service import triage_agent, io_agent, internet_agent, general_agent, Runner
+from core.models import Message
+from services.agent_service import triage_agent, Runner, mcp_internet, mcp_io
 
 logger = logging.getLogger(__name__)
 
@@ -23,6 +20,33 @@ class ChatService:
     def __init__(self):
         """Initialize the chat service"""
         self.engine = llm_engine
+        self._mcp_connected = False
+    
+    async def _ensure_mcp_connected(self):
+        """Ensure MCP servers are connected before agent workflow runs
+        
+        Note: MCP connections are closed after each agent workflow completes,
+        so we reconnect them for each request.
+        """
+        try:
+            # Always reconnect - the agents framework closes connections after workflow completes
+            # Wrap in try/except to handle cases where connect() is called on already-connected servers
+            try:
+                await mcp_internet.connect()
+            except Exception as e:
+                # If already connected, that's fine - just log and continue
+                logger.debug(f"MCP internet server connection attempt: {e}")
+            
+            try:
+                await mcp_io.connect()
+            except Exception as e:
+                # If already connected, that's fine - just log and continue
+                logger.debug(f"MCP IO server connection attempt: {e}")
+            
+            logger.info("MCP servers ready")
+        except Exception as e:
+            logger.error(f"Failed to ensure MCP servers are connected: {e}")
+            # Don't raise - let the agent workflow handle connection errors
 
     def generate_session_id(self) -> str:
         """Generate a unique session ID for chat sessions"""
@@ -44,25 +68,77 @@ class ChatService:
             Server-sent event formatted strings
         """
         try:
-            # Extract latest user message for triage
+            # Extract latest user message for agent routing
             latest_user_msg = self.extract_latest_user_message(messages)
 
             if latest_user_msg:
                 try:
-                    # Triage and route to appropriate agent
-                    agent = await self._select_agent(latest_user_msg)
-                    await self.ensure_mcp_servers_connected(getattr(agent, "mcp_servers", []))
+                    # Ensure MCP servers are connected before running agents
+                    await self._ensure_mcp_connected()
                     
-                    # Stream agent response
-                    async for chunk in self._stream_agent_response(agent, latest_user_msg):
-                        yield chunk
-                    return
+                    # Use triage agent with automatic handoffs to specialized agents
+                    logger.info(f"Triage: {latest_user_msg[:50]}...")
+                    
+                    import asyncio
+                    try:
+                        # Add timeout to prevent hanging
+                        logger.info("Starting agent workflow...")
+                        result = await asyncio.wait_for(
+                            Runner().run(triage_agent, latest_user_msg),
+                            timeout=120.0  # 120 second timeout for tool execution
+                        )
+                        logger.info(f"Agent workflow completed. Result type: {type(result)}")
+                        if result:
+                            logger.info(f"Result attributes: {dir(result)}")
+                            # Check for final_output (the correct attribute for RunResult)
+                            has_final_output = hasattr(result, 'final_output') and result.final_output
+                            logger.info(f"Result has final_output: {has_final_output}")
+                            if has_final_output:
+                                logger.info(f"Result final_output type: {type(result.final_output)}")
+                                logger.info(f"Result final_output: {result.final_output}")
+                    except asyncio.TimeoutError:
+                        logger.error("Agent workflow timed out after 120 seconds")
+                        raise Exception("Agent workflow timed out - vLLM may be hanging")
+                    except Exception as agent_error:
+                        logger.exception(f"Agent workflow error: {agent_error}")
+                        raise
+                    
+                    # Stream the agent's response back to the user
+                    if result and hasattr(result, 'final_output') and result.final_output:
+                        # Format as SSE for the client
+                        response_text = str(result.final_output)
+                        logger.info(f"Agent response: {response_text[:100]}...")
+                        
+                        # Stream the response in chunks (simulating streaming)
+                        chunk_data = {
+                            "choices": [{
+                                "delta": {"content": response_text},
+                                "index": 0,
+                                "finish_reason": None
+                            }]
+                        }
+                        yield f"data: {json.dumps(chunk_data)}\n\n"
+                        
+                        # Send finish message
+                        finish_data = {
+                            "choices": [{
+                                "delta": {},
+                                "index": 0,
+                                "finish_reason": "stop"
+                            }]
+                        }
+                        yield f"data: {json.dumps(finish_data)}\n\n"
+                        logger.info("Agent response streamed successfully")
+                        return  # Don't fall through to regular chat
+                    else:
+                        logger.warning(f"No output from agent, falling back. Result: {result}")
                     
                 except Exception as e:
                     logger.exception(f"Agent routing failed: {e}")
                     # Fall through to regular chat
 
             # Fallback: regular chat stream
+            logger.info("Using fallback chat stream")
             async for chunk in self.engine.chat_stream(messages, session_id):
                 yield chunk
 
@@ -83,150 +159,7 @@ class ChatService:
                 return msg.content.strip()
         return None
     
-    async def _select_agent(self, user_message: str) -> Any:
-        """Run triage and select appropriate agent."""
-        logger.info(f"Triage: {user_message[:50]}...")
-        
-        # Run triage agent
-        result = await Runner().run(triage_agent, user_message)
-        raw = result.final_output.strip()
-        
-        # Extract JSON from markdown if needed
-        if raw.startswith("```"):
-            if match := re.search(r'```(?:json)?\s*\n?(.*?)\n?```', raw, re.DOTALL):
-                raw = match.group(1).strip()
-        
-        # Parse triage decision
-        triage = TriageAgentResponse(**json.loads(raw))
-        logger.info(f"→ {triage.handoff_agent if triage.should_handoff else 'general'}")
-        
-        # Select agent
-        if not triage.should_handoff:
-            return general_agent
-        
-        agent_map = {"io": io_agent, "internet": internet_agent}
-        return agent_map.get(triage.handoff_agent.lower(), general_agent)
-    
-    @staticmethod
-    def _extract_text_from_tool_result(result: Any) -> Optional[str]:
-        """Extract text content from MCP tool result."""
-        if not result:
-            return None
-        
-        # Try to extract from content items
-        for item in getattr(result, 'content', []):
-            if text := getattr(item, 'text', None):
-                return text
-        
-        return str(result)
-    
-    @staticmethod
-    def _sse(content: str) -> str:
-        """Create SSE payload."""
-        return f'data: {json.dumps({"choices": [{"delta": {"content": content}}]}, ensure_ascii=False)}\n\n'
-    
-    async def _stream_agent_response(self, agent: Any, user_message: str) -> AsyncGenerator[str, None]:
-        """Stream agent responses with tool support."""
-        # For agents with MCP tools, use non-streaming mode to avoid template errors
-        if getattr(agent, "mcp_servers", []):
-            async for chunk in self._run_agent_with_tools(agent, user_message):
-                yield chunk
-        else:
-            # For agents without tools, use streaming
-            result = Runner().run_streamed(agent, user_message)
-            async for event in result.stream_events():
-                if event.type == "raw_response_event":
-                    if chunk := self._handle_raw_event(event):
-                        yield chunk
-                        if chunk == "data: [DONE]\n\n":
-                            return
-                elif event.type == "run_item_stream_event":
-                    async for chunk in self._handle_item_event(event):
-                        yield chunk
-                        if chunk == "data: [DONE]\n\n":
-                            return
-            yield "data: [DONE]\n\n"
-    
-    async def _run_agent_with_tools(self, agent: Any, user_message: str) -> AsyncGenerator[str, None]:
-        """Run agent with MCP tools - SDK handles everything automatically."""
-        logger.info(f"Running {agent.name}")
-        
-        # Let the SDK handle the full agent workflow
-        result = await Runner().run(starting_agent=agent, input=user_message)
-        
-        # Stream the final output character by character
-        if output := result.final_output:
-            for char in output:
-                yield self._sse(char)
-                await asyncio.sleep(0.005)  # Small delay for smooth streaming
-        
-        yield "data: [DONE]\n\n"
-    
-    def _handle_raw_event(self, event: Any) -> Optional[str]:
-        """Handle raw response events."""
-        evt = event.data
-        evt_type = getattr(evt, "type", "")
-        
-        if evt_type == "response.output_text.delta":
-            if chunk := getattr(evt, "delta", ""):
-                return self._sse(chunk)
-        elif evt_type == "response.completed":
-            return "data: [DONE]\n\n"
-        
-        return None
-    
-    async def _handle_item_event(self, event: Any) -> AsyncGenerator[str, None]:
-        """Handle run item events."""
-        if not (item := getattr(event, "item", None)):
-            return
-        
-        item_type = getattr(item, "type", "")
-        
-        # Tool output
-        if item_type == "tool_call_output_item":
-            if text := self._extract_text_from_tool_result(getattr(item, "output", None)):
-                logger.info(f"Tool output: {text[:50]}...")
-                yield self._sse(text)
-                yield "data: [DONE]\n\n"
-        
-        # Message output
-        elif item_type == "message_output_item":
-            if msg := getattr(item, "raw_item", None):
-                for part in getattr(msg, "content", []):
-                    if getattr(part, "type", "") == "output_text":
-                        if text := getattr(part, "text", None):
-                            yield self._sse(text)
 
-    async def ensure_mcp_servers_connected(self, mcp_servers: List[MCPServer]) -> None:
-        """Ensure all MCP servers have active sessions before use."""
-        for server in mcp_servers:
-            session = getattr(server, "session", None)
-            
-            # Check if we need to reconnect
-            needs_reconnect = False
-            if session is None:
-                needs_reconnect = True
-            else:
-                # Check if session is closed by trying to access write stream
-                try:
-                    write_stream = getattr(session, "_write_stream", None)
-                    if write_stream is None or getattr(write_stream, "_closed", False):
-                        needs_reconnect = True
-                except:
-                    needs_reconnect = True
-            
-            if needs_reconnect:
-                # Cleanup old session if it exists
-                if session is not None:
-                    try:
-                        await server.cleanup()
-                    except:
-                        pass
-                
-                logger.info(f"Connecting to MCP server {server.name}: {getattr(server, 'params', {}).get('url', 'unknown')}")
-                await server.connect()
-            else:
-                logger.debug(f"MCP server {server.name} already connected, reusing session")
 
 
 # Global chat service instance
