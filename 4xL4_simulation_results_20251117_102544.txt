@@ -1,0 +1,59 @@
+================================================================================
+MULTI-USER SIMULATION SUMMARY
+================================================================================
+
+Simulation Configuration:
+  - Number of users: 25
+  - User start delay: 0.0s
+  - Request delay: 5.0s
+  - Model: gaunernst/gemma-3-12b-it-qat-autoawq
+
+Overall Statistics:
+  - Total requests: 596
+  - Successful requests: 596
+  - Failed requests: 0
+  - System snapshots collected: 2034
+
+Empty Response Analysis:
+  - No empty responses detected! 🎉
+
+Queue Time (TTFT) Analysis:
+  - Mean Queue Time: 7.397s
+  - Median Queue Time: 7.674s
+  - Min Queue Time: 0.070s
+  - Max Queue Time: 41.357s
+  - Data points: 596/596
+
+Generation Time Analysis:
+  - Mean Generation Time: 147.312s
+  - Median Generation Time: 162.998s
+  - Min Generation Time: 1.707s
+  - Max Generation Time: 283.101s
+  - Data points: 593/596
+
+Token Generation Speed Analysis:
+  - Mean TPS: 12.3 tokens/s
+  - Median TPS: 7.9 tokens/s
+  - Min TPS: 4.9 tokens/s
+  - Max TPS: 49.0 tokens/s
+  - Data points: 593/596
+
+Response Token Analysis:
+  - Mean Response Tokens: 1258
+  - Median Response Tokens: 1302
+  - Min Response Tokens: 44
+  - Max Response Tokens: 1622
+  - Data points: 593/596
+
+Context Analysis:
+  - Individual context range: 16 - 33025 tokens
+  - Mean individual context: 14664 tokens
+  - Total context range: 16 - 768166 tokens
+  - Mean total context: 346607 tokens
+
+System Metrics Analysis:
+  - Max concurrent running requests: 25
+  - Max waiting requests: 4
+  - Mean running requests: 21.8
+  - Mean waiting requests: 0.4
+================================================================================
