@@ -66,7 +66,7 @@ llvmlite==0.44.0
 lm-format-enforcer==0.10.12
 markdown-it-py==4.0.0
 MarkupSafe==2.1.5
-mcp==1.18.0
+mcp==1.23.0
 mdurl==0.1.2
 mistral_common==1.8.4
 more-itertools==10.3.0
