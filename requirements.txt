@@ -163,7 +163,7 @@ typeguard==4.3.0
 typer==0.16.1
 typing-inspection==0.4.1
 typing_extensions==4.14.1
-urllib3==2.5.0
+urllib3==2.6.0
 uvicorn==0.35.0
 uvloop==0.21.0
 -e git+https://github.com/Kiloma-Advanced-Solutions/PLG_AI.git@d73e3d15d8875671f628663aace675b8e96cec06#egg=vllm&subdirectory=external_sources/vllm
