@@ -1,0 +1,94 @@
+services:
+  # LiteLLM container (CPU-only)
+  lite-llm:
+    image: ghcr.io/berriai/litellm:main-stable
+    container_name: lite-llm
+    depends_on:
+      - redis
+      - postgres
+    env_file:
+      - .env
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ""
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./litellm-config.yaml:/app/config.yaml
+      - litellm_data:/app/data
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    restart: always
+    command: ["--config", "/app/config.yaml", "--port", "4000", "--num_workers", "2"]
+
+  # Open WebUI container
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    container_name: open-webui
+    depends_on:
+      lite-llm:
+        condition: service_started
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy # Wait for postgres healthcheck to pass
+    ports:
+      - "3000:8080"
+    volumes:
+      - openwebui_data:/app/backend/data
+    environment:
+      WEBUI_SECRET_KEY: "your-secret-key-change-this-in-production"
+      OPENAI_API_BASE_URL: http://lite-llm:4000/v1
+      OPENAI_API_KEY: ${LITELLM_MASTER_KEY}
+      REDIS_URL: redis://redis:6379
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/openwebui
+      ENABLE_SIGNUP: "true"
+    restart: always
+
+  # Redis container
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: always
+
+  # Postgres container
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    healthcheck: # Added healthcheck to ensure DB is ready
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Adminer - Web-based Database Manager
+  adminer:
+    image: adminer:latest
+    container_name: adminer
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      ADMINER_DEFAULT_SERVER: postgres
+    restart: always
+
+volumes:
+  litellm_data:
+  openwebui_data:
+  redis_data:
+  postgres_data:
