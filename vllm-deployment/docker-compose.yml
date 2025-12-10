@@ -1,5 +1,7 @@
+# Docker compose file for LiteLLM and Open WebUI deployment
+
 services:
-  # LiteLLM container (CPU-only)
+  # LiteLLM container
   lite-llm:
     image: ghcr.io/berriai/litellm:main-stable
     container_name: lite-llm
