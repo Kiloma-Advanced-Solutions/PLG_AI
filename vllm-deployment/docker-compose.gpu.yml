@@ -1,4 +1,4 @@
-# vLLM GPU Deployment for NVIDIA GPUs
+# Docker compose file for vLLM deployment with NVIDIA GPUs
 
 services:
   vllm:
