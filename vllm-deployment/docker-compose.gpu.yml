@@ -1,11 +1,10 @@
 # vLLM GPU Deployment for NVIDIA GPUs
-# Optimized for dual RTX 4090 or similar CUDA-compatible GPUs
 
 services:
   vllm:
     image: vllm/vllm-openai:latest  # Official vLLM image with GPU support
     container_name: vllm-gpu
-    shm_size: '16gb'  # Larger shared memory for GPU operations
+    shm_size: '16gb'  
     deploy:
       resources:
         reservations:
@@ -14,9 +13,7 @@ services:
               count: all  # Use all available GPUs
               capabilities: [gpu]
     environment:
-      # GPU Memory Utilization: 90% of available GPU memory
       VLLM_GPU_MEMORY_UTILIZATION: "0.9"
-      # CUDA Visible Devices: Use all GPUs (or specify "0,1" for specific GPUs)
       CUDA_VISIBLE_DEVICES: "all"
     command: >
       --model Qwen/Qwen2-0.5B-Instruct
@@ -30,41 +27,4 @@ services:
     ports:
       - "8000:8000"
     restart: unless-stopped
-
-# For larger models (e.g., Qwen2-72B), use:
-# services:
-#   vllm-large:
-#     image: vllm/vllm-openai:latest
-#     container_name: vllm-gpu-large
-#     shm_size: '32gb'
-#     deploy:
-#       resources:
-#         reservations:
-#           devices:
-#             - driver: nvidia
-#               count: all
-#               capabilities: [gpu]
-#     command: >
-#       --model Qwen/Qwen2-72B-Instruct
-#       --host 0.0.0.0
-#       --port 8000
-#       --max-model-len 32768
-#       --dtype auto
-#       --tensor-parallel-size 2
-#       --gpu-memory-utilization 0.95
-#       --trust-remote-code
-#       --enable-chunked-prefill
-#     ports:
-#       - "8000:8000"
-
-# Usage:
-# docker-compose -f docker-compose.gpu.yml up -d
-#
-# Monitor GPU usage:
-# watch -n 1 nvidia-smi
-#
-# Test:
-# curl http://localhost:8000/v1/chat/completions \
-#   -H "Content-Type: application/json" \
-#   -d '{"model": "Qwen/Qwen2-0.5B-Instruct", "messages": [{"role": "user", "content": "Hello"}]}'
 
