@@ -1,0 +1,23 @@
+model_list:
+  - model_name: qwen2-0.5b
+    litellm_params:
+      model: openai/Qwen/Qwen2-0.5B-Instruct
+      api_base: http://host.docker.internal:8000/v1
+      api_key: dummy
+      timeout: 300
+      stream_timeout: 300
+  - model_name: google/gemma-3-1b-it
+    litellm_params:
+      model: openai/google/gemma-3-1b-it
+      api_base: http://host.docker.internal:8001/v1
+      api_key: dummy
+      timeout: 300
+      stream_timeout: 300
+
+general_settings:
+  store_model_in_db: true
+  store_prompts_in_spend_logs: true
+  request_timeout: 300
+  cache: true
+  cache_params:
+    type: redis
