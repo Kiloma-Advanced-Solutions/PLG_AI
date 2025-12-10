@@ -1,5 +1,4 @@
-# vLLM CPU-Only Deployment for Apple Silicon (M3/M3 Max/M3 Pro)
-# Optimized for Mac M3 MAX with CPU-only inference
+# Docker compose file for vLLM deployment with CPU only
 
 services:
   vllm:
