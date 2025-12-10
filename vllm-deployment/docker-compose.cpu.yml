@@ -1,0 +1,33 @@
+# vLLM CPU-Only Deployment for Apple Silicon (M3/M3 Max/M3 Pro)
+# Optimized for Mac M3 MAX with CPU-only inference
+
+services:
+  vllm:
+    image: peleg28/vllm-cpu-env:latest  # Custom-built ARM64 CPU-optimized image
+    container_name: vllm-cpu
+    shm_size: '8gb'  # Shared memory for PyTorch operations
+    environment:
+      # KV Cache: 4GB allocation for key-value cache
+      VLLM_CPU_KVCACHE_SPACE: "4"
+      # OpenMP Thread Binding: Use 8 CPU cores (0-7)
+      VLLM_CPU_OMP_THREADS_BIND: "0-7"
+      # Multiprocessing: Use spawn method for macOS stability
+      VLLM_WORKER_MULTIPROC_METHOD: "spawn"
+    command: >
+      --model Qwen/Qwen2-0.5B-Instruct
+      --host 0.0.0.0
+      --port 8000
+      --max-model-len 2048
+      --dtype float16
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+# Usage:
+# docker-compose -f docker-compose.cpu.yml up -d
+#
+# Test:
+# curl http://localhost:8000/v1/chat/completions \
+#   -H "Content-Type: application/json" \
+#   -d '{"model": "Qwen/Qwen2-0.5B-Instruct", "messages": [{"role": "user", "content": "Hello"}]}'
+
