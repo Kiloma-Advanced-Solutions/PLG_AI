@@ -45,8 +45,7 @@ services:
       OPENAI_API_KEY: ${LITELLM_MASTER_KEY}
       REDIS_URL: redis://redis:6379
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/openwebui
-      ENABLE_SIGNUP: "true"
-    restart: always
+      ENABLE_FORWARD_USER_INFO_HEADERS: true
 
   # Redis container
   redis:
