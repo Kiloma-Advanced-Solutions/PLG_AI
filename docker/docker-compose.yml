@@ -35,12 +35,14 @@ services:
         condition: service_started
       postgres:
         condition: service_healthy # Wait for postgres healthcheck to pass
+    env_file:
+      - .env
     ports:
       - "3000:8080"
     volumes:
       - openwebui_data:/app/backend/data
     environment:
-      WEBUI_SECRET_KEY: "your-secret-key-change-this-in-production"
+      WEBUI_SECRET_KEY: ${LITELLM_MASTER_KEY}
       OPENAI_API_BASE_URL: http://lite-llm:4000/v1
       OPENAI_API_KEY: ${LITELLM_MASTER_KEY}
       REDIS_URL: redis://redis:6379
