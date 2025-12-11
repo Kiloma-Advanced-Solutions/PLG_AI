@@ -1,9 +1,9 @@
 # Docker compose file for vLLM deployment with CPU only
 
 services:
-  vllm:
+  vllm-Qwen2-0.5B:
     image: peleg28/vllm-cpu-env:latest  # Custom-built ARM64 CPU-optimized image
-    container_name: vllm-cpu
+    container_name: vllm-Qwen2-0.5B
     shm_size: '8gb'  # Shared memory for PyTorch operations
     environment:
       # KV Cache: 4GB allocation for key-value cache
@@ -20,4 +20,25 @@ services:
       --dtype float16
     ports:
       - "8000:8000"
+    restart: unless-stopped
+
+  vllm-gemma-3-1b:
+    image: peleg28/vllm-cpu-env:latest  # Custom-built ARM64 CPU-optimized image
+    container_name: vllm-gemma-3-1b
+    shm_size: '8gb'  # Shared memory for PyTorch operations
+    environment:
+      # KV Cache: 4GB allocation for key-value cache
+      VLLM_CPU_KVCACHE_SPACE: "4"
+      # OpenMP Thread Binding: Use 8 CPU cores (0-7)
+      VLLM_CPU_OMP_THREADS_BIND: "0-7"
+      # Multiprocessing: Use spawn method for macOS stability
+      VLLM_WORKER_MULTIPROC_METHOD: "spawn"
+    command: >
+      --model google/gemma-3-1b-it
+      --host 0.0.0.0
+      --port 8001
+      --max-model-len 2048
+      --dtype float16
+    ports:
+      - "8001:8001"
     restart: unless-stopped
